@@ -1,9 +1,9 @@
 import styles from "../../../styles/buttons/SaveButton.module.css";
 
-const SaveButton = () => {
+const SaveButton = ({ onClick, children }) => {
   return (
-    <button type={"button"} className={`${styles.saveButton}`}>
-      Save
+    <button type={"button"} className={`${styles.saveButton}`} onClick={onClick}>
+      {children || "Save"}
     </button>
   );
 };

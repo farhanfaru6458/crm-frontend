@@ -1,0 +1,135 @@
+/* Page Background */
+.wrapper {
+  min-height: 100vh;
+  background-color: #f2f3f7;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+
+.card {
+  width: 700px;
+  background: #ffffff;
+  padding: 35px 40px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+}
+
+
+.title {
+  text-align: center;
+  margin-bottom: 25px;
+  font-size: 22px;
+  font-weight: 600;
+  color: #2c2c2c;
+}
+
+
+.form {
+  display: flex;
+  flex-direction: column;
+}
+
+
+.row {
+  display: flex;
+  gap: 25px;
+  margin-bottom: 20px;
+}
+
+
+.inputGroup {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.inputGroupFull {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 20px;
+}
+
+
+label {
+  font-size: 15px;
+  margin-bottom: 6px;
+  color: gray;
+}
+
+
+input,
+select {
+  height: 42px;
+  padding: 0 12px;
+  border-radius: 6px;
+  border: 1px solid #d9dce3;
+  background-color: #f9fafc;
+  font-size: 14px;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+input:focus,
+select:focus {
+  border-color: #6d5dfc;
+  background-color: #ffffff;
+}
+
+
+.button {
+  height: 45px;
+  margin-top: 10px;
+  border: none;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #6d5dfc, #5a4bff);
+  color: white;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.button:hover {
+  opacity: 0.9;
+}
+
+
+.loginText {
+  margin-top: 20px;
+  font-size: 13px;
+  color: #555;
+  text-align: center;
+}
+
+.loginText span {
+  color: #6d5dfc;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+
+.link {
+  color: #6d5dfc;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.link:hover {
+  text-decoration: underline;
+}
+
+
+
+@media (max-width: 768px) {
+  .card {
+    width: 90%;
+  }
+
+  .row {
+    flex-direction: column;
+    gap: 15px;
+  }
+}

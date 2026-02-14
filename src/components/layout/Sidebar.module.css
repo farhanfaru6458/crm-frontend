@@ -9,8 +9,9 @@
   align-items: center;
   gap: 30px;
   position: fixed;
-  top: 70px;
-  left: 8px;
+  top: 64px;
+  left: 0;
+  z-index: 50;
 }
 
 /* Menu Item */
