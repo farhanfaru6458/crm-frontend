@@ -4,7 +4,7 @@ import styles from "../../styles/Modal.module.css";
 import CancelButton from "./buttons/CancelButton";
 import SaveButton from "./buttons/SaveButton";
 
-const Modal = ({ isOpen, onClose, title, children }) => {
+const Modal = ({ isOpen, onClose, title, children, footer, onSave }) => {
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
@@ -47,18 +47,16 @@ const Modal = ({ isOpen, onClose, title, children }) => {
 
         <div className={styles.body}>{children}</div>
 
-        <div className={styles.footer}>
-          {/* 
-                Placeholder for Action Buttons:
-                You can replace these comments or default buttons with your custom components.
-                
-                Example usage:
+        {footer !== null && (
+          <div className={styles.footer}>
+            {footer || (
+              <>
                 <CancelButton onClick={onClose} />
-                <SaveButton onClick={handleSave} />
-            */}
-          <CancelButton />
-          <SaveButton />
-        </div>
+                <SaveButton onClick={onSave} />
+              </>
+            )}
+          </div>
+        )}
       </div>
     </div>,
     document.body,
