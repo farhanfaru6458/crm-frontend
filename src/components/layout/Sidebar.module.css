@@ -1,17 +1,16 @@
 .sidebar {
-  width: 95px;
-  height: 100vh;
-  background-color: #f4f4f6;
+  width: 5.9rem;
+  height: 89vh;
+  background-color: white;
   border-right: 1px solid #e6e6e6;
-  padding-top: 30px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 30px;
+  justify-content: space-around;
   position: fixed;
-  top: 64px;
+  top: 4rem;
   left: 0;
-  z-index: 50;
+  z-index: 1;
 }
 
 /* Menu Item */
@@ -20,18 +19,17 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: 0.7em;
   cursor: pointer;
   color: #6b7280;
-  font-size: 13px;
+  font-size: 1rem;
   transition: all 0.2s ease;
 }
 
-
 /* Icon Circle */
 .iconCircle {
-  width: 60px;
-  height: 60px;
+  width: 3em;
+  height: 3em;
   border-radius: 50%;
   background-color: transparent;
   border: 1px solid #d8dbe2;
@@ -61,4 +59,40 @@
 
 .menuItem:hover {
   color: #1f2937;
+}
+
+/* media queries */
+
+@media (max-width: 768px) {
+  .sidebar {
+    width: 100vw;
+    height: 2.5em;
+    background-color: white;
+    border-right: none;
+    border-bottom: 1px solid #e6e6e6;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    position: fixed;
+    top: 4rem;
+    overflow-x: auto;
+    padding: 0 1em;
+  }
+
+  .menuItem {
+    flex-direction: row;
+    margin-right: 2.5em;
+  }
+
+  .iconCircle {
+    width: 2em;
+    height: 2em;
+  }
+}
+
+@media (max-width: 500px) {
+  .sidebar {
+    top: 3.5rem;
+  }
 }

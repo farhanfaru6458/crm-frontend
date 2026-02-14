@@ -1,7 +1,8 @@
 .paginationContainer {
   display: flex;
   align-items: center;
-  gap: 0.25rem;
+  justify-content: center;
+  gap: 0.5em;
 }
 
 .pageButton,
@@ -12,51 +13,47 @@
   border: none;
   background: transparent;
   cursor: pointer;
-  font-size: 0.8125rem;
-  font-weight: 500;
-  color: #64748b;
+  font-size: 0.875rem;
+  color: #4b5563;
   transition: all 0.2s;
-  height: 2.25rem;
-  padding: 0 0.875rem;
-  border-radius: 8px;
-}
-
-.pageButton {
-  min-width: 2.25rem;
-  padding: 0;
+  height: 2em;
+  border-radius: 0.375em;
 }
 
 .pageButton:hover:not(.active) {
-  background-color: #f1f5f9;
-  color: #1e293b;
+  background-color: #f3f4f6;
+  color: #111827;
 }
 
 .active {
-  background-color: #5a4bff;
+  background-color: #6366f1;
   color: #ffffff;
   font-weight: 600;
 }
 
 .navButton {
-  gap: 0.5rem;
+  padding: 0 0.85em;
+  gap: 0.3em;
+  color: #6b7280;
 }
 
 .navButton:hover:not(:disabled) {
-  color: #5a4bff;
+  color: #4f46e5;
+  background-color: #eef2ff;
 }
 
 .navButton:disabled {
   cursor: not-allowed;
-  opacity: 0.4;
+  opacity: 0.5;
+  color: #9ca3af;
 }
 
 .dots {
-  color: #94a3b8;
-  padding: 0 0.5rem;
-  font-size: 0.8125rem;
+  color: #6b7280;
+  padding: 0 0.25em;
 }
 
 .arrowIcon {
-  width: 1rem;
-  height: 1rem;
+  width: 1.2em;
+  height: 1.2em;
 }
