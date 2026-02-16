@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import styles from "./Leads.module.css";
 import Table from "../../../components/ui/Table";
 import Pagination from "../../../components/ui/Pagination";
@@ -46,7 +47,18 @@ export default function Leads() {
   };
 
   const columns = [
-    { key: "name", label: "NAME" },
+    {
+      key: "name",
+      label: "NAME",
+      render: (row) => (
+        <Link
+          to={`/leads/${row._id}`}
+          style={{ textDecoration: "none", color: "#5a4bff", fontWeight: 600 }}
+        >
+          {row.name}
+        </Link>
+      ),
+    },
     { key: "email", label: "EMAIL" },
     { key: "phone", label: "PHONE NUMBER" },
     { key: "createdDate", label: "CREATED DATE" },
