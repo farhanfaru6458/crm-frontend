@@ -66,15 +66,11 @@ const Table = ({
               />
             </th>
             {columns.map((col) => (
-              <th
-                key={col.key}
-                className={styles.th}
-                style={{ width: col.width, textAlign: col.align || 'left' }}
-              >
+              <th key={col.key} className={styles.th}>
                 {col.label}
               </th>
             ))}
-            {(onEdit || onDelete) && <th className={styles.th} style={{ width: '80px', textAlign: 'center' }}>ACTIONS</th>}
+            {(onEdit || onDelete) && <th className={styles.th}>Actions</th>}
           </tr>
         </thead>
         <tbody>
@@ -87,7 +83,7 @@ const Table = ({
           ) : (
             data.map((row) => (
               <tr key={row._id} className={styles.tr}>
-                <td className={styles.td} style={{ textAlign: 'center' }}>
+                <td className={styles.td}>
                   <input
                     type="checkbox"
                     className={styles.checkbox}
@@ -96,11 +92,7 @@ const Table = ({
                   />
                 </td>
                 {columns.map((col) => (
-                  <td
-                    key={`${row._id}-${col.key}`}
-                    className={styles.td}
-                    style={{ textAlign: col.align || 'left' }}
-                  >
+                  <td key={`${row._id}-${col.key}`} className={styles.td}>
                     {col.render ? col.render(row) : row[col.key]}
                   </td>
                 ))}
