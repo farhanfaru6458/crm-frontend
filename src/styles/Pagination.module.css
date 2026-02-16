@@ -26,7 +26,7 @@
 }
 
 .active {
-  background-color: #6366f1;
+  background-color: #5a4bff;
   color: #ffffff;
   font-weight: 600;
 }
@@ -38,8 +38,8 @@
 }
 
 .navButton:hover:not(:disabled) {
-  color: #4f46e5;
-  background-color: #eef2ff;
+  color: #5a4bff;
+  background-color: #f5f3ff;
 }
 
 .navButton:disabled {

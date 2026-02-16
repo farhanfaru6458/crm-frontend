@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import GenericDetails from "../../../components/common/GenericDetails/GenericDetails";
@@ -82,11 +83,11 @@ const TicketDetails = () => {
     subTitleField: "status",
     showAvatar: true,
     detailsFields: [
-      { key: "name", label: "Ticket Name" },
-      { key: "status", label: "Status" },
+      { key: "description", label: "Ticket Description" },
+      { key: "owner", label: "Ticket Owner" },
       { key: "priority", label: "Priority" },
       { key: "source", label: "Source" },
-      { key: "owner", label: "Owner" },
+      { key: "status", label: "Status" },
       { key: "createdAt", label: "Created Date" },
     ],
     editFields: [
@@ -94,6 +95,7 @@ const TicketDetails = () => {
       { key: "status", label: "Status" },
       { key: "priority", label: "Priority" },
       { key: "source", label: "Source" },
+      { key: "description", label: "Description" },
     ],
   };
 

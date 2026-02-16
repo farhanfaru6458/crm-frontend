@@ -29,6 +29,21 @@ textarea {
     line-height: inherit;
 }
 
+select {
+    cursor: pointer;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    transition: all 0.2s;
+    outline: none;
+    background-color: white;
+}
+
+select:focus {
+    border-color: #5a4bff;
+    box-shadow: 0 0 0 4px rgba(90, 75, 255, 0.1);
+}
+
 h1,
 h2,
 h3,

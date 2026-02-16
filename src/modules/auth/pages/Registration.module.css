@@ -78,6 +78,17 @@ select:focus {
   background-color: #ffffff;
 }
 
+input.invalid,
+select.invalid {
+  border-color: #dc2626;
+}
+
+.errorText {
+  color: #dc2626;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
 
 .button {
   height: 45px;

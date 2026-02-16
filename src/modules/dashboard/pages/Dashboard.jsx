@@ -1,7 +1,76 @@
 import styles from "./Dashboard.module.css";
 import { Users, Briefcase, DollarSign, TrendingUp } from "lucide-react";
 
+const TEAM_PERFORMANCE_DATA = [
+  {
+    employee: "Ethan Harper",
+    activeDeals: 25,
+    closedDeals: 10,
+    revenue: 12000,
+    trend: "+3.4%",
+    isPositive: true,
+  },
+  {
+    employee: "Olivia Bennett",
+    activeDeals: 30,
+    closedDeals: 15,
+    revenue: 15000,
+    trend: "-0.1%",
+    isPositive: false,
+  },
+  {
+    employee: "Liam Carter",
+    activeDeals: 22,
+    closedDeals: 12,
+    revenue: 10000,
+    trend: "+3.4%",
+    isPositive: true,
+  },
+  {
+    employee: "Sophia Evans",
+    activeDeals: 28,
+    closedDeals: 14,
+    revenue: 14000,
+    trend: "-0.1%",
+    isPositive: false,
+  },
+];
+
 export default function Dashboard() {
+  const handleExportCSV = () => {
+    const headers = ["Employee", "Active Deals", "Closed Deals", "Revenue", "Trend"];
+    const rows = TEAM_PERFORMANCE_DATA.map((item) => [
+      item.employee,
+      item.activeDeals,
+      item.closedDeals,
+      item.revenue,
+      item.trend,
+    ]);
+
+    const csvContent = [
+      headers.join(","),
+      ...rows.map((row) => row.join(",")),
+    ].join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", "team_performance.csv");
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      minimumFractionDigits: 0,
+    }).format(amount);
+  };
+
   return (
     <div className={styles.dashboard}>
       {/* ================= TOP CARDS ================= */}
@@ -192,7 +261,7 @@ export default function Dashboard() {
       <div className={styles.tableCard}>
         <div className={styles.tableHeader}>
           <h3>Team Performance Tracking</h3>
-          <button className={styles.exportBtn}>Export CSV</button>
+          <button className={styles.exportBtn} onClick={handleExportCSV}>Export CSV</button>
         </div>
 
         <div className={styles.tableWrapper}>
@@ -207,53 +276,25 @@ export default function Dashboard() {
             </thead>
 
             <tbody>
-              <tr>
-                <td>Ethan Harper</td>
-                <td>25</td>
-                <td>10</td>
-                <td>
-                  <div className={styles.revenueCell}>
-                    $12,000
-                    <span className={styles.positive}>+3.4%</span>
-                  </div>
-                </td>
-              </tr>
-
-              <tr>
-                <td>Olivia Bennett</td>
-                <td>30</td>
-                <td>15</td>
-                <td>
-                  <div className={styles.revenueCell}>
-                    $15,000
-                    <span className={styles.negative}>-0.1%</span>
-                  </div>
-                </td>
-              </tr>
-
-              <tr>
-                <td>Liam Carter</td>
-                <td>22</td>
-                <td>12</td>
-                <td>
-                  <div className={styles.revenueCell}>
-                    $10,000
-                    <span className={styles.positive}>+3.4%</span>
-                  </div>
-                </td>
-              </tr>
-
-              <tr>
-                <td>Sophia Evans</td>
-                <td>28</td>
-                <td>14</td>
-                <td>
-                  <div className={styles.revenueCell}>
-                    $14,000
-                    <span className={styles.negative}>-0.1%</span>
-                  </div>
-                </td>
-              </tr>
+              {TEAM_PERFORMANCE_DATA.map((row, index) => (
+                <tr key={index}>
+                  <td>{row.employee}</td>
+                  <td>{row.activeDeals}</td>
+                  <td>{row.closedDeals}</td>
+                  <td>
+                    <div className={styles.revenueCell}>
+                      {formatCurrency(row.revenue)}
+                      <span
+                        className={
+                          row.isPositive ? styles.positive : styles.negative
+                        }
+                      >
+                        {row.trend}
+                      </span>
+                    </div>
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>

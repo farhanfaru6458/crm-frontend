@@ -1,14 +1,42 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
 import styles from "./Leads.module.css";
 import Table from "../../../components/ui/Table";
 import Pagination from "../../../components/ui/Pagination";
 import SearchInput from "../../../components/ui/SearchInput";
 import ImportButton from "../../../components/ui/buttons/ImportButton";
 import CreateButton from "../../../components/ui/buttons/CreateButton";
+import { useNavigate, Link } from "react-router-dom";
 
 export default function Leads() {
-  const [leads, setLeads] = useState([]);
+  const [leads, setLeads] = useState([
+    {
+      _id: "1",
+      name: "Maria Johnson",
+      email: "maria.j@clientedge.com",
+      phone: "+1 234 567 890",
+      createdDate: "04/08/2025",
+      status: "New",
+      owner: "Jane Cooper",
+    },
+    {
+      _id: "2",
+      name: "Michael Chen",
+      email: "m.chen@techsolutions.io",
+      phone: "+1 987 654 321",
+      createdDate: "05/08/2025",
+      status: "In Progress",
+      owner: "Wade Warren",
+    },
+    {
+      _id: "3",
+      name: "Sarah Williams",
+      email: "sarah.w@trustsphere.com",
+      phone: "+1 555 123 456",
+      createdDate: "06/08/2025",
+      status: "Open",
+      owner: "Brooklyn Simmons",
+    }
+  ]);
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8; // Adjust based on design height
@@ -43,7 +71,9 @@ export default function Leads() {
   };
 
   const handleDelete = (row) => {
-    console.log("Delete row:", row);
+    if (window.confirm(`Are you sure you want to delete ${row.name}?`)) {
+      setLeads(leads.filter((lead) => lead._id !== row._id));
+    }
   };
 
   const columns = [
@@ -51,13 +81,10 @@ export default function Leads() {
       key: "name",
       label: "NAME",
       render: (row) => (
-        <Link
-          to={`/leads/${row._id}`}
-          style={{ textDecoration: "none", color: "#5a4bff", fontWeight: 600 }}
-        >
+        <Link to={`/leads/${row._id}`} className={styles.leadLink}>
           {row.name}
         </Link>
-      ),
+      )
     },
     { key: "email", label: "EMAIL" },
     { key: "phone", label: "PHONE NUMBER" },
@@ -67,9 +94,8 @@ export default function Leads() {
       label: "LEAD STATUS",
       render: (row) => (
         <span
-          className={`${styles.statusBadge} ${
-            styles[row.status.toLowerCase().replace(" ", "")]
-          }`}
+          className={`${styles.statusBadge} ${styles[row.status.toLowerCase().replace(" ", "")]
+            }`}
         >
           {row.status}
         </span>
