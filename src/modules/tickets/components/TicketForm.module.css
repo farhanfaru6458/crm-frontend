@@ -1,0 +1,87 @@
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.row {
+    display: flex;
+    gap: 1.25rem;
+}
+
+.field { 
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+input,
+select,
+textarea {
+  height: 44px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  padding: 0 14px;
+  font-size: 14px;
+  background: #f9fafc;
+  outline: none;
+  transition: 0.2s;
+}
+
+textarea {
+  height: 110px;
+  padding-top: 12px;
+  resize: none;
+}
+
+.input::placeholder {
+    color: #94a3b8;
+}
+
+.input:focus,
+.select:focus,
+.textarea {
+    outline: none;
+    border-color: #5a4bff;
+    box-shadow: 0 0 0 2px rgba(90, 75, 255, 0.1);
+}
+
+.select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b' stroke-width='1.5'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='m19.5 8.25-7.5 7.5-7.5-7.5'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 1rem;
+    padding-right: 2.5rem;
+}
+
+.phoneInput {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.flagSelector {
+    width: auto;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0 0.75rem;
+    cursor: pointer;
+}
+
+.flag {
+    font-size: 1.25rem;
+}
+
+.chevron {
+    width: 1rem;
+    height: 1rem;
+    color: #64748b;
+}

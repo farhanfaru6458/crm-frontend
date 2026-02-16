@@ -1,0 +1,146 @@
+.container {
+    padding: 0.75rem 1rem;
+    /* Reduced padding from 1.5rem 2rem to 0.75rem 1rem */
+    background-color: #f8f9fb;
+    min-height: calc(100vh - 64px);
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.title {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #111827;
+}
+
+.headerActions {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.importBtn,
+.addBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem 1.5rem;
+    /* Reduced padding from 0.625rem 2.5rem */
+    border-radius: 0.5rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.importBtn {
+    background-color: #ffffff;
+    border: 1px solid #5a4bff;
+    color: #5a4bff;
+}
+
+.addBtn {
+    background-color: #5a4bff;
+    border: 1px solid #5a4bff;
+    color: #ffffff;
+}
+
+.addBtn:hover {
+    background-color: #4838e5;
+}
+
+.icon {
+    width: 0.875rem;
+    height: 0.875rem;
+    margin-right: 0.4rem;
+}
+
+.content {
+    background-color: #ffffff;
+    border-radius: 0.75rem;
+    border: 1px solid #f1f5f9;
+    padding: 1rem;
+    /* Reduced padding from 1.5rem */
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.topFiltersRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.25rem;
+}
+
+.search {
+    max-width: 280px;
+    /* Slightly reduced */
+}
+
+.dropdownFiltersRow {
+    display: flex;
+    gap: 0.5rem;
+    /* Reduced gap */
+    margin-bottom: 1.25rem;
+    flex-wrap: wrap;
+}
+
+.filterSelect,
+.datePicker {
+    height: 34px;
+    /* Slightly reduced height */
+    padding: 0 0.75rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    /* Smaller font */
+    color: #64748b;
+    background-color: #ffffff;
+}
+
+.filterSelect {
+    min-width: 120px;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b' stroke-width='1.5'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='m19.5 8.25-7.5 7.5-7.5-7.5'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.5rem center;
+    background-size: 0.875rem;
+}
+
+.datePicker {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-width: 150px;
+    cursor: pointer;
+}
+
+.calendarIcon {
+    width: 0.875rem;
+    height: 0.875rem;
+    color: #94a3b8;
+}
+
+.companyLink {
+    color: #111827;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.companyLink:hover {
+    color: #5a4bff;
+}
+
+
+.ticketLink {
+  text-decoration: none;
+  color: #111827;
+  font-weight: 500;
+}
+
+.ticketLink:hover {
+  color: #5a4bff;
+}

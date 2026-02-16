@@ -10,8 +10,11 @@ import Login from "../modules/auth/pages/Login";
 import Dashboard from "../modules/dashboard/pages/Dashboard";
 import Leads from "../modules/leads/pages/Leads";
 import Companies from "../modules/companies/pages/Companies";
+import CompanyDetails from "../modules/companies/pages/CompanyDetails";
 import Deals from "../modules/deals/pages/Deals";
 import Tickets from "../modules/tickets/pages/Tickets";
+import TicketDetails from "../modules/tickets/pages/TicketDetails";
+
 
 export default function AppRoutes() {
   return (
@@ -26,8 +29,11 @@ export default function AppRoutes() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/leads" element={<Leads />} />
         <Route path="/companies" element={<Companies />} />
+        <Route path="/companies/:id" element={<CompanyDetails />} />
         <Route path="/deals" element={<Deals />} />
         <Route path="/tickets" element={<Tickets />} />
+        <Route path="/tickets/:id" element={<TicketDetails />} />
+
       </Route>
 
     </Routes>
