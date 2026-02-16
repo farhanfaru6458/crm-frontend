@@ -47,27 +47,33 @@
     margin-bottom: 2rem;
 }
 
-.avatarSquare {
+.avatarCircle {
     width: 56px;
     height: 56px;
     background-color: #e2e8f0;
-    border-radius: 10px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    color: #64748b;
+    font-size: 1.25rem;
 }
 
-.companyTitle {
+.leadTitle {
     font-size: 1.125rem;
     font-weight: 700;
     color: #0f172a;
     margin: 0;
 }
 
-.industrySub {
+.jobSub {
     font-size: 0.75rem;
     color: #64748b;
     margin: 3px 0;
 }
 
-.websiteLinkRow {
+.emailLinkRow {
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -123,7 +129,7 @@
     color: #64748b;
 }
 
-/* DETAILS LIST - COMPACT */
+/* DETAILS LIST */
 .sectionCollapse {
     display: flex;
     align-items: center;
@@ -179,6 +185,7 @@
     font-size: 0.8125rem;
     font-weight: 600;
     color: #334155;
+    word-break: break-all;
 }
 
 /* CENTER CONTENT */
@@ -883,14 +890,22 @@
     cursor: pointer;
 }
 
+.emailActions span {
+    cursor: pointer;
+}
+
+.emailEditor {
+    padding: 1rem 0;
+}
+
 .emailEditor textarea {
     width: 100%;
-    min-height: 250px;
+    min-height: 300px;
     border: none;
     outline: none;
-    font-size: 0.875rem;
-    padding: 1rem 0;
+    font-size: 0.9375rem;
     resize: none;
+    line-height: 1.6;
 }
 
 .emailFooter {
@@ -913,28 +928,30 @@
     border: none;
     padding: 0.625rem 1.5rem;
     border-radius: 8px;
-    font-size: 0.9375rem;
     font-weight: 600;
+    font-size: 0.875rem;
+    cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 10px;
-    cursor: pointer;
+    gap: 0.5rem;
 }
 
 .footerIcons {
     display: flex;
+    gap: 1.25rem;
     align-items: center;
-    gap: 1rem;
-    color: #94a3b8;
 }
 
 .footerIcons span {
+    font-size: 0.875rem;
+    color: #64748b;
+    font-weight: 600;
     cursor: pointer;
+    transition: color 0.2s;
 }
 
-.footerRight svg {
-    color: #94a3b8;
-    cursor: pointer;
+.footerIcons span:hover {
+    color: #5a4bff;
 }
 
 .deleteBtn {

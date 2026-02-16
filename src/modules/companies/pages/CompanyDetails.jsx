@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import React, { useState, useEffect, useRef } from "react";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import styles from "./CompanyDetails.module.css";
 
 const MOCK_COMPANIES = [
@@ -49,7 +49,9 @@ const MOCK_COMPANIES = [
 
 const CompanyDetails = () => {
     const { id } = useParams();
+    const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState("Activity");
+    const fileInputRef = useRef(null);
 
     // Drawer/Modal States
     const [isNoteDrawerOpen, setIsNoteDrawerOpen] = useState(false);
@@ -61,6 +63,28 @@ const CompanyDetails = () => {
 
     const [company, setCompany] = useState(MOCK_COMPANIES.find(c => c._id === id) || MOCK_COMPANIES[2]);
     const [activities, setActivities] = useState([]);
+    const [attachments, setAttachments] = useState([]);
+
+    const handleFileChange = (e) => {
+        if (e.target.files) {
+            const newFiles = Array.from(e.target.files).map(file => ({
+                id: Math.random().toString(36).substr(2, 9),
+                name: file.name,
+                size: (file.size / 1024).toFixed(2) + " KB",
+                type: file.type,
+                date: new Date().toLocaleDateString()
+            }));
+            setAttachments(prev => [...prev, ...newFiles]);
+        }
+    };
+
+    const triggerFileInput = () => {
+        fileInputRef.current?.click();
+    };
+
+    const deleteAttachment = (id) => {
+        setAttachments(prev => prev.filter(a => a.id !== id));
+    };
 
     const generateActivities = (compName) => [
         {
@@ -247,6 +271,13 @@ const CompanyDetails = () => {
         setCompany(prev => ({ ...prev, [field]: value }));
     };
 
+    const handleDeleteCompany = () => {
+        if (window.confirm(`Are you sure you want to delete ${company.name}?`)) {
+            alert(`${company.name} deleted successfully.`);
+            navigate("/companies");
+        }
+    };
+
     return (
         <div className={styles.container}>
             <Link to="/companies" className={styles.breadcrumb}>
@@ -377,9 +408,9 @@ const CompanyDetails = () => {
                             {(activeTab === "Calls" || activeTab === "Tasks" || activeTab === "Meetings") && (
                                 <div className={styles.callsHeader}>
                                     <h3 className={styles.groupTitle}>{activeTab === "Activity" ? "" : activeTab}</h3>
-                                    {activeTab === "Calls" && <button className={styles.makeCallBtn} onClick={() => setIsCallDrawerOpen(true)}>Make a Phone Call</button>}
+                                    {activeTab === "Calls" && <button className={styles.makeCallBtn} onClick={() => setIsCallDrawerOpen(true)}>Log a Phone Call</button>}
                                     {activeTab === "Tasks" && <button className={styles.makeCallBtn} onClick={() => setIsTaskDrawerOpen(true)}>Create Task</button>}
-                                    {activeTab === "Meetings" && <button className={styles.makeCallBtn} onClick={() => setIsMeetingDrawerOpen(true)}>Create Meeting</button>}
+                                    {activeTab === "Meetings" && <button className={styles.makeCallBtn} onClick={() => setIsMeetingDrawerOpen(true)}>Schedule Meeting</button>}
                                 </div>
                             )}
 
@@ -508,9 +539,27 @@ const CompanyDetails = () => {
                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M19 9l-7 7-7-7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
                                 Attachments
                             </div>
-                            <span className={styles.addBtn}>+ Add</span>
+                            <span className={styles.addBtn} onClick={triggerFileInput}>+ Add</span>
+                            <input type="file" ref={fileInputRef} style={{ display: 'none' }} onChange={handleFileChange} multiple />
                         </div>
-                        <p className={styles.emptyAttach}>See the files attached to your activities or uploaded to this record.</p>
+                        {attachments.length === 0 ? (
+                            <p className={styles.emptyAttach}>See the files attached to your activities or uploaded to this record.</p>
+                        ) : (
+                            <div className={styles.attachmentList}>
+                                {attachments.map(file => (
+                                    <div key={file.id} className={styles.attachmentItem}>
+                                        <div className={styles.fileIcon}>
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><path d="M14 2v6h6" /></svg>
+                                        </div>
+                                        <div className={styles.fileInfo}>
+                                            <span className={styles.fileName}>{file.name}</span>
+                                            <span className={styles.fileSize}>{file.size}</span>
+                                        </div>
+                                        <button className={styles.deleteFileBtn} onClick={() => deleteAttachment(file.id)}>×</button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </aside>
             </div>
@@ -524,18 +573,12 @@ const CompanyDetails = () => {
                         <div className={styles.drawerBody}>
                             <div className={styles.field}>
                                 <label>Note <span>*</span></label>
-                                <div className={styles.richTextEditor}>
-                                    <div className={styles.editorToolbar}>
-                                        <span>Normal text</span>
-                                        <button><b>B</b></button><button><i>I</i></button><button><u>U</u></button><button>🔗</button><button>🖼️</button>
-                                    </div>
-                                    <textarea placeholder="Enter"></textarea>
-                                </div>
+                                <textarea className={styles.simpleTextarea} placeholder="Enter your note here..."></textarea>
                             </div>
                         </div>
                         <div className={styles.drawerFooter}>
                             <button className={styles.cancelBtn} onClick={() => setIsNoteDrawerOpen(false)}>Cancel</button>
-                            <button className={styles.saveBtn}>Save</button>
+                            <button className={styles.saveBtn} onClick={() => setIsNoteDrawerOpen(false)}>Save</button>
                         </div>
                     </div>
                 </>
@@ -550,27 +593,17 @@ const CompanyDetails = () => {
                             <div className={styles.field}><label>Task Name <span>*</span></label><input type="text" placeholder="Enter" /></div>
                             <div className={styles.row}>
                                 <div className={styles.field}><label>Due Date <span>*</span></label>
-                                    <div className={styles.iconInput}><select><option>Choose</option></select><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg></div>
+                                    <div className={styles.iconInput}><input type="date" /><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg></div>
                                 </div>
                                 <div className={styles.field}><label>Time <span>*</span></label>
-                                    <div className={styles.iconInput}><select><option>Choose</option></select><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></div>
+                                    <div className={styles.iconInput}><input type="time" /><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></div>
                                 </div>
                             </div>
-                            <div className={styles.row}>
-                                <div className={styles.field}><label>Task Type <span>*</span></label><select><option>Choose</option></select></div>
-                                <div className={styles.field}><label>Priority <span>*</span></label><select><option>Choose</option></select></div>
-                            </div>
-                            <div className={styles.field}><label>Assigned to <span>*</span></label><select><option>Maria Johnson</option></select></div>
-                            <div className={styles.field}><label>Note <span>*</span></label>
-                                <div className={styles.richTextEditor}>
-                                    <div className={styles.editorToolbar}><span>Normal text</span><button>B</button><button>I</button><button>U</button><button>🔗</button></div>
-                                    <textarea placeholder="Enter"></textarea>
-                                </div>
-                            </div>
+                            <div className={styles.field}><label>Note <span>*</span></label><textarea className={styles.simpleTextarea} placeholder="Enter note details..."></textarea></div>
                         </div>
                         <div className={styles.drawerFooter}>
                             <button className={styles.cancelBtn} onClick={() => setIsTaskDrawerOpen(false)}>Cancel</button>
-                            <button className={styles.saveBtn}>Save</button>
+                            <button className={styles.saveBtn} onClick={() => setIsTaskDrawerOpen(false)}>Save</button>
                         </div>
                     </div>
                 </>
@@ -584,26 +617,21 @@ const CompanyDetails = () => {
                         <div className={styles.drawerBody}>
                             <div className={styles.field}><label>Title <span>*</span></label><input type="text" placeholder="Enter" /></div>
                             <div className={styles.field}><label>Start Date <span>*</span></label>
-                                <div className={styles.iconInput}><select><option>Choose</option></select><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg></div>
+                                <div className={styles.iconInput}><input type="date" /><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg></div>
                             </div>
                             <div className={styles.row}>
                                 <div className={styles.field}><label>Start Time <span>*</span></label>
-                                    <div className={styles.iconInput}><select><option>Choose</option></select><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></div>
+                                    <div className={styles.iconInput}><input type="time" /><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></div>
                                 </div>
                                 <div className={styles.field}><label>End Time <span>*</span></label>
-                                    <div className={styles.iconInput}><select><option>Choose</option></select><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></div>
+                                    <div className={styles.iconInput}><input type="time" /><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></div>
                                 </div>
                             </div>
-                            <div className={styles.field}><label>Attendees <span>*</span></label><select><option>Choose</option></select></div>
-                            <div className={styles.field}><label>Location</label><select><option>Choose</option></select></div>
-                            <div className={styles.field}><label>Reminder</label><select><option>Choose</option></select></div>
-                            <div className={styles.field}><label>Note <span>*</span></label>
-                                <div className={styles.richTextEditor}><div className={styles.editorToolbar}><span>Normal text</span><button>B</button><button>I</button><button>U</button></div><textarea placeholder="Enter"></textarea></div>
-                            </div>
+                            <div className={styles.field}><label>Note <span>*</span></label><textarea className={styles.simpleTextarea} placeholder="Enter meeting details..."></textarea></div>
                         </div>
                         <div className={styles.drawerFooter}>
                             <button className={styles.cancelBtn} onClick={() => setIsMeetingDrawerOpen(false)}>Cancel</button>
-                            <button className={styles.saveBtn}>Save</button>
+                            <button className={styles.saveBtn} onClick={() => setIsMeetingDrawerOpen(false)}>Save</button>
                         </div>
                     </div>
                 </>
@@ -619,22 +647,17 @@ const CompanyDetails = () => {
                             <div className={styles.field}><label>Call Outcome <span>*</span></label><select><option>Choose</option><option>Busy</option><option>Connected</option></select></div>
                             <div className={styles.row}>
                                 <div className={styles.field}><label>Date <span>*</span></label>
-                                    <div className={styles.iconInput}><select><option>Choose</option></select><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg></div>
+                                    <div className={styles.iconInput}><input type="date" /><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg></div>
                                 </div>
                                 <div className={styles.field}><label>Time <span>*</span></label>
-                                    <div className={styles.iconInput}><select><option>Choose</option></select><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></div>
+                                    <div className={styles.iconInput}><input type="time" /><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></div>
                                 </div>
                             </div>
-                            <div className={styles.field}><label>Note <span>*</span></label>
-                                <div className={styles.richTextEditor}>
-                                    <div className={styles.editorToolbar}><span>Normal text</span><button>B</button><button>I</button><button>U</button></div>
-                                    <textarea placeholder="Enter"></textarea>
-                                </div>
-                            </div>
+                            <div className={styles.field}><label>Note <span>*</span></label><textarea className={styles.simpleTextarea} placeholder="Enter call notes..."></textarea></div>
                         </div>
                         <div className={styles.drawerFooter}>
                             <button className={styles.cancelBtn} onClick={() => setIsCallDrawerOpen(false)}>Cancel</button>
-                            <button className={styles.saveBtn}>Save</button>
+                            <button className={styles.saveBtn} onClick={() => setIsCallDrawerOpen(false)}>Save</button>
                         </div>
                     </div>
                 </>
@@ -652,6 +675,8 @@ const CompanyDetails = () => {
                             <div className={styles.field}><label>Phone number</label><input type="text" value={company.phone} onChange={(e) => handleFieldChange("phone", e.target.value)} /></div>
                         </div>
                         <div className={styles.drawerFooter}>
+                            <button className={styles.deleteBtn} onClick={handleDeleteCompany}>Delete Company</button>
+                            <div style={{ flex: 1 }}></div>
                             <button className={styles.cancelBtn} onClick={() => setIsEditCompanyDrawerOpen(false)}>Cancel</button>
                             <button className={styles.saveBtn} onClick={handleEditSave}>Save</button>
                         </div>
@@ -670,10 +695,9 @@ const CompanyDetails = () => {
                         </div>
                         <div className={styles.emailFooter}>
                             <div className={styles.footerLeft}>
-                                <button className={styles.sendBtn}>Send <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white"><path d="M19 9l-7 7-7-7" /></svg></button>
-                                <div className={styles.footerIcons}><span>A</span><span>🔗</span><span>📎</span><span>😊</span><span>🖼️</span></div>
+                                <button className={styles.sendBtn}>Send</button>
+                                <div className={styles.footerIcons}><span onClick={triggerFileInput}>Clip</span></div>
                             </div>
-                            <div className={styles.footerRight}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#94a3b8"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></div>
                         </div>
                     </div>
                 </div>

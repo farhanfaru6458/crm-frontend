@@ -354,36 +354,36 @@ const TicketDetails = () => {
               {(activeTab === "Calls" ||
                 activeTab === "Tasks" ||
                 activeTab === "Meetings") && (
-                <div className={styles.callsHeader}>
-                  <h3 className={styles.groupTitle}>
-                    {activeTab === "Activity" ? "" : activeTab}
-                  </h3>
-                  {activeTab === "Calls" && (
-                    <button
-                      className={styles.makeCallBtn}
-                      onClick={() => setIsCallDrawerOpen(true)}
-                    >
-                      Make a Phone Call
-                    </button>
-                  )}
-                  {activeTab === "Tasks" && (
-                    <button
-                      className={styles.makeCallBtn}
-                      onClick={() => setIsTaskDrawerOpen(true)}
-                    >
-                      Create Task
-                    </button>
-                  )}
-                  {activeTab === "Meetings" && (
-                    <button
-                      className={styles.makeCallBtn}
-                      onClick={() => setIsMeetingDrawerOpen(true)}
-                    >
-                      Create Meeting
-                    </button>
-                  )}
-                </div>
-              )}
+                  <div className={styles.callsHeader}>
+                    <h3 className={styles.groupTitle}>
+                      {activeTab === "Activity" ? "" : activeTab}
+                    </h3>
+                    {activeTab === "Calls" && (
+                      <button
+                        className={styles.makeCallBtn}
+                        onClick={() => setIsCallDrawerOpen(true)}
+                      >
+                        Make a Phone Call
+                      </button>
+                    )}
+                    {activeTab === "Tasks" && (
+                      <button
+                        className={styles.makeCallBtn}
+                        onClick={() => setIsTaskDrawerOpen(true)}
+                      >
+                        Create Task
+                      </button>
+                    )}
+                    {activeTab === "Meetings" && (
+                      <button
+                        className={styles.makeCallBtn}
+                        onClick={() => setIsMeetingDrawerOpen(true)}
+                      >
+                        Create Meeting
+                      </button>
+                    )}
+                  </div>
+                )}
 
               <div className={styles.feed}>
                 {["Upcoming", "June 2025"].map((group) => {
