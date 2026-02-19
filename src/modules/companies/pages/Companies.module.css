@@ -152,7 +152,7 @@
     .headerActions {
         width: 100%;
         flex-direction: column;
-                gap: 8px;
+        gap: 8px;
         padding: 6px;
     }
 

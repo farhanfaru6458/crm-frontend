@@ -129,6 +129,40 @@
   margin-bottom: 5px;
 }
 
+.convertSaveBtn {
+ background-color: #ffffff;
+  color: #6366f1;
+  border: 1px solid #6366f1;
+  padding: 0.6em 2.8em;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+.convertSaveBtn {
+  background-color: #6366f1;
+  color: #ffffff;
+  border: 1px solid transparent;
+  padding: 0.6em 1.8em;
+  border-radius: 0.5em;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.convertSaveBtn:hover {
+  background-color: #4f46e5;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.4);
+}
+
+.convertSaveBtn:active {
+  transform: translateY(0);
+  background-color: #4338ca;
+}
+
 .toolLabel {
   font-size: 0.625rem;
   font-weight: 600;
@@ -761,14 +795,16 @@
 }
 
 .cancelBtn {
-  flex: 1;
-  height: 46px;
-  border: 1px solid #e2e8f0;
-  background: white;
-  border-radius: 9px;
+   background-color: #ffffff;
+  color: #6366f1;
+  border: 1px solid #6366f1;
+  padding: 0.6em 2.8em;
+  border-radius: 6px;
   font-weight: 600;
-  color: #64748b;
+  font-size: 0.875rem;
   cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  flex: 1;
 }
 
 .saveBtn {

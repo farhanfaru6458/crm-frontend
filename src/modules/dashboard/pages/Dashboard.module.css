@@ -96,6 +96,18 @@
   border: 1px solid #f1f3f7;
 }
 
+@media (max-width: 640px) {
+  .conversionCard {
+    width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .conversionCard {
+    width: 52%;
+  }
+}
+
 .conversionCard h3 {
   font-size: 16px;
   font-weight: 600;
@@ -143,9 +155,10 @@
 .salesSelect:focus {
   border-color: #6d5dfc;
 }
-@media (max-width: 626px){
-  .salesCard{
-    width: 60%;
+
+@media (max-width: 626px) {
+  .salesCard {
+    width: 52%;
   }
 }
 
@@ -420,6 +433,7 @@ tbody tr td:last-child {
 
   .middleSection {
     grid-template-columns: 1fr;
+
   }
 }
 
@@ -496,7 +510,7 @@ tbody tr td:last-child {
   .conversionCard {
     padding: 16px;
     overflow: hidden;
-    width: 60%;
+    width: 52%;
     /* Ensure bars don't overflow */
   }
 
