@@ -5,6 +5,13 @@
     min-height: calc(100vh - 64px);
 }
 
+.mainCard {
+    background-color: white;
+    border-radius: 0.5em;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    padding: 0.63em 1em;
+}
+
 .header {
     display: flex;
     justify-content: space-between;
@@ -13,9 +20,10 @@
 }
 
 .title {
-    font-size: 1.125rem;
-    font-weight: 700;
+    font-size: 1.5rem;
+    font-weight: 600;
     color: #111827;
+    margin: 0;
 }
 
 .headerActions {
@@ -151,4 +159,32 @@
 
 .ticketLink:hover {
     color: #5a4bff;
+}
+
+@media (max-width: 768px) {
+    .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .headerActions {
+        width: 100%;
+        flex-direction: column;
+    }
+
+    .importBtn,
+    .addBtn {
+        width: 100%;
+    }
+
+    .topFiltersRow {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+    }
+
+    .search {
+        max-width: 100%;
+    }
 }

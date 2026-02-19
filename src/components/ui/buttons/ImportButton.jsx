@@ -1,8 +1,8 @@
 import styles from "../../../styles/buttons/ImportButton.module.css";
 
-const ImportButton = () => {
+const ImportButton = ({ className }) => {
   return (
-    <button type={"button"} className={`${styles.importButton}`}>
+    <button type={"button"} className={`${styles.importButton} ${className || ""}`}>
       Import
     </button>
   );

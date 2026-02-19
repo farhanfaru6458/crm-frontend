@@ -9,8 +9,41 @@
 }
 
 .activityHeader {
-    padding: 1.5rem;
+    padding: 1rem 1.5rem;
     border-bottom: 1px solid #f1f5f9;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    justify-content: space-between;
+}
+
+.convertBtn {
+    background: linear-gradient(135deg, #5a4bff, #7c6fff);
+    color: white;
+    border: none;
+    padding: 0.6rem 1.5rem;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+    box-shadow: 0 2px 8px rgba(90, 75, 255, 0.3);
+    flex-shrink: 0;
+}
+
+.convertBtn:hover {
+    background: linear-gradient(135deg, #493cd9, #6b5aee);
+    box-shadow: 0 4px 12px rgba(90, 75, 255, 0.4);
+    transform: translateY(-1px);
+}
+
+.convertBtn:disabled {
+    background: #e2e8f0;
+    color: #94a3b8;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
 }
 
 .activitySearchWrapper {
@@ -296,4 +329,49 @@
     color: #1e293b;
     font-weight: 500;
     outline: none;
+}
+
+@media (max-width: 768px) {
+    .activityCard {
+        min-height: auto;
+    }
+
+    .activityHeader {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+    }
+
+    .feed {
+        padding: 1.25rem;
+    }
+
+    .infoBox {
+        flex-direction: column;
+        gap: 1.25rem;
+        padding: 1rem;
+    }
+
+    .tabsContainer {
+        gap: 1rem;
+        padding: 0 1rem;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+
+    .tabsContainer::-webkit-scrollbar {
+        display: none;
+    }
+}
+
+@media (max-width: 480px) {
+    .outcomeRow {
+        flex-direction: column;
+    }
+
+    .itemHeader {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
 }

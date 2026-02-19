@@ -95,7 +95,9 @@ export default function Login() {
           <div className={styles.inputGroup}>
             <div className={styles.passwordLabel}>
               <label>Password</label>
-              <span className={styles.forgot}>Forgot password?</span>
+              <Link to="/forgot-password" className={styles.forgot}>
+                Forgot password?
+              </Link> 
             </div>
 
             <div className={styles.inputWrapper}>

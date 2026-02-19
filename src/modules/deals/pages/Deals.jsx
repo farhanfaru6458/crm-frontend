@@ -10,88 +10,33 @@ import CreateButton from "../../../components/ui/buttons/CreateButton";
 import Modal from "../../../components/ui/Modal";
 import DealForm from "../components/DealForm";
 
-export default function Deals() {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [formData, setFormData] = useState({});
+import { useSelector, useDispatch } from "react-redux";
+import { setDeals, removeDeal, addDeal, updateDeal } from "../../../redux/dealsSlice";
 
-  // Dummy data with MongoDB-like structure (_id)
-  const [deals, setDeals] = useState([
-    {
-      _id: "1",
-      dealName: "Website Revamp - Atlas Corp",
-      dealStage: "Presentation Scheduled",
-      closeDate: "Apr 8, 2025",
-      dealOwner: "Jane Cooper",
-      amount: 12500,
-    },
-    {
-      _id: "2",
-      dealName: "Mobile App for FitBuddy",
-      dealStage: "Qualified to Buy",
-      closeDate: "Apr 8, 2025",
-      dealOwner: "Wade Warren",
-      amount: 25000,
-    },
-    {
-      _id: "3",
-      dealName: "HR Software License - ZenoHR",
-      dealStage: "Contract Sent",
-      closeDate: "Apr 8, 2025",
-      dealOwner: "Brooklyn Simmons",
-      amount: 18750,
-    },
-    {
-      _id: "4",
-      dealName: "CRM Onboarding - NexTech",
-      dealStage: "Closed Won",
-      closeDate: "Apr 8, 2025",
-      dealOwner: "Leslie Alexander",
-      amount: 32000,
-    },
-    {
-      _id: "5",
-      dealName: "Marketing Suite - QuickAdz",
-      dealStage: "Appointment Scheduled",
-      closeDate: "Apr 8, 2025",
-      dealOwner: "Jenny Wilson",
-      amount: 14800,
-    },
-    {
-      _id: "6",
-      dealName: "Inventory Tool - GreenMart",
-      dealStage: "Decision Maker Bought In",
-      closeDate: "Apr 8, 2025",
-      dealOwner: "Guy Hawkins",
-      amount: 9300,
-    },
-    {
-      _id: "7",
-      dealName: "ERP Integration - BlueChip",
-      dealStage: "Qualified to Buy",
-      closeDate: "Apr 8, 2025",
-      dealOwner: "Robert Fox",
-      amount: 41000,
-    },
-    {
-      _id: "8",
-      dealName: "Loyalty Program - FoodieFox",
-      dealStage: "Closed Lost",
-      closeDate: "Apr 8, 2025",
-      dealOwner: "Cameron Williamson",
-      amount: 11000,
-    },
-  ]);
+export default function Deals() {
+  const dispatch = useDispatch();
+  const deals = useSelector((state) => state.deals.deals);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingDeal, setEditingDeal] = useState(null);
+  const [formData, setFormData] = useState({});
 
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [ownerFilter, setOwnerFilter] = useState("");
+  const [stageFilter, setStageFilter] = useState("");
+  const [closeDateFilter, setCloseDateFilter] = useState("");
   const itemsPerPage = 8;
 
   // Filtering Logic
-  const filteredDeals = deals.filter(
-    (deal) =>
+  const filteredDeals = deals.filter((deal) => {
+    const matchesSearch =
       deal.dealName.toLowerCase().includes(search.toLowerCase()) ||
-      deal.dealOwner.toLowerCase().includes(search.toLowerCase()),
-  );
+      deal.dealOwner.toLowerCase().includes(search.toLowerCase());
+    const matchesOwner = !ownerFilter || deal.dealOwner === ownerFilter;
+    const matchesStage = !stageFilter || deal.dealStage === stageFilter;
+    const matchesDate = !closeDateFilter || deal.closeDate === closeDateFilter;
+    return matchesSearch && matchesOwner && matchesStage && matchesDate;
+  });
 
   // Pagination Logic
   const totalPages = Math.ceil(filteredDeals.length / itemsPerPage);
@@ -111,16 +56,21 @@ export default function Deals() {
   };
 
   const handleEdit = (row) => {
-    console.log("Edit row:", row);
+    setEditingDeal(row);
+    setFormData(row);
+    setIsModalOpen(true);
   };
 
   const handleDelete = (row) => {
-    console.log("Delete row:", row);
+    if (window.confirm(`Are you sure you want to delete ${row.dealName}?`)) {
+      dispatch(removeDeal(row._id));
+    }
   };
 
   const handleOpenModal = () => {
-    setIsModalOpen(true);
+    setEditingDeal(null);
     setFormData({}); // Reset form
+    setIsModalOpen(true);
   };
 
   const handleCloseModal = () => {
@@ -132,25 +82,26 @@ export default function Deals() {
   };
 
   const handleSaveDeal = () => {
-    const newDeal = {
-      _id: Date.now().toString(), // Temporary ID generation
-      ...formData,
-      amount: Number(formData.amount), // Ensure amount is number
-    };
+    if (editingDeal) {
+      dispatch(updateDeal(formData));
+    } else {
+      const newDeal = {
+        _id: Date.now().toString(),
+        ...formData,
+        amount: Number(formData.amount),
+      };
 
-    // Format date for display if needed, or keep as YYYY-MM-DD
-    // For consistency with dummy data (e.g., "Apr 8, 2025")
-    if (newDeal.closeDate) {
-      const dateObj = new Date(newDeal.closeDate);
-      newDeal.closeDate = dateObj.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      });
+      if (newDeal.closeDate) {
+        const dateObj = new Date(newDeal.closeDate);
+        newDeal.closeDate = dateObj.toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        });
+      }
+
+      dispatch(addDeal(newDeal));
     }
-
-    setDeals((prev) => [newDeal, ...prev]);
-    console.log("Saved Deal:", newDeal);
     handleCloseModal();
   };
 
@@ -192,12 +143,11 @@ export default function Deals() {
         {/* Header */}
         <div className={styles.header}>
           <h1 className={styles.title}>Deals</h1>
-          <div className={styles.actions}>
-            <ImportButton />
-            <div className={styles.spacer}></div>
-            <div onClick={handleOpenModal}>
-              <CreateButton />
-            </div>
+          <div className={styles.headerActions}>
+            <ImportButton className={styles.importBtn} />
+            <button className={styles.addBtn} onClick={handleOpenModal}>
+              Create
+            </button>
           </div>
         </div>
 
@@ -225,10 +175,20 @@ export default function Deals() {
         {/* Filter Row */}
         <div className={styles.filterRow}>
           <div className={styles.selectWrapper}>
-            <select className={styles.select}>
-              <option>Deal Owner</option>
-              <option>Jane Cooper</option>
-              <option>Wade Warren</option>
+            <select
+              className={styles.select}
+              value={ownerFilter}
+              onChange={(e) => { setOwnerFilter(e.target.value); setCurrentPage(1); }}
+            >
+              <option value="">Deal Owner</option>
+              <option value="Jane Cooper">Jane Cooper</option>
+              <option value="Wade Warren">Wade Warren</option>
+              <option value="Brooklyn Simmons">Brooklyn Simmons</option>
+              <option value="Leslie Alexander">Leslie Alexander</option>
+              <option value="Jenny Wilson">Jenny Wilson</option>
+              <option value="Guy Hawkins">Guy Hawkins</option>
+              <option value="Robert Fox">Robert Fox</option>
+              <option value="Cameron Williamson">Cameron Williamson</option>
             </select>
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -247,11 +207,19 @@ export default function Deals() {
           </div>
 
           <div className={styles.selectWrapper}>
-            <select className={styles.select}>
-              <option>Deal Stage</option>
-              <option>Qualified to Buy</option>
-              <option>Closed Won</option>
-              <option>Closed Lost</option>
+            <select
+              className={styles.select}
+              value={stageFilter}
+              onChange={(e) => { setStageFilter(e.target.value); setCurrentPage(1); }}
+            >
+              <option value="">Deal Stage</option>
+              <option value="Presentation Scheduled">Presentation Scheduled</option>
+              <option value="Qualified to Buy">Qualified to Buy</option>
+              <option value="Contract Sent">Contract Sent</option>
+              <option value="Appointment Scheduled">Appointment Scheduled</option>
+              <option value="Decision Maker Bought In">Decision Maker Bought In</option>
+              <option value="Closed Won">Closed Won</option>
+              <option value="Closed Lost">Closed Lost</option>
             </select>
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -269,25 +237,7 @@ export default function Deals() {
             </svg>
           </div>
 
-          <div className={styles.selectWrapper}>
-            <div className={styles.dateDisplay}>
-              Close Date
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={1.5}
-                stroke="currentColor"
-                className={styles.calendarIcon}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5"
-                />
-              </svg>
-            </div>
-          </div>
+
 
           <div className={styles.selectWrapper}>
             <div className={styles.dateDisplay}>
@@ -325,7 +275,7 @@ export default function Deals() {
       <Modal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
-        title="Create Deal"
+        title={editingDeal ? "Edit Deal" : "Create Deal"}
         onSave={handleSaveDeal}
       >
         <DealForm formData={formData} onChange={handleInputChange} />

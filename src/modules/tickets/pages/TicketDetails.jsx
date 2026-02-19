@@ -1,78 +1,72 @@
-
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
+import { updateTicket } from "../../../redux/ticketsSlice";
 import GenericDetails from "../../../components/common/GenericDetails/GenericDetails";
-
-const MOCK_TICKETS = [
-  {
-    _id: "1",
-    name: "Payment Failure Issue",
-    description: "Customer unable to complete payment.",
-    status: "New",
-    owner: "Jane Cooper",
-    priority: "High",
-    source: "Email",
-    createdAt: "04/08/2025 2:31 PM GMT+5:30",
-  },
-  {
-    _id: "2",
-    name: "Product Inquiry",
-    status: "Waiting on us",
-    priority: "Medium",
-    source: "Email",
-    owner: "Wade Warren",
-    createdAt: "Apr 8, 2025 2:35 PM",
-  },
-];
-
-const DEFAULT_TICKET = MOCK_TICKETS[0];
 
 const TicketDetails = () => {
   const { id } = useParams();
-  const [ticket, setTicket] = useState(DEFAULT_TICKET);
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  const tickets = useSelector(state => state.tickets.tickets);
+  const ticketData = tickets.find(t => t._id === id);
+
+  const [ticket, setTicket] = useState(null);
   const [activities, setActivities] = useState([]);
+
+  useEffect(() => {
+    if (ticketData) {
+      setTicket(ticketData);
+      setActivities(generateActivities(ticketData.name));
+    }
+  }, [ticketData, id]);
 
   const generateActivities = (ticketName) => [
     {
       id: 1,
       group: "Upcoming",
       type: "Task",
-      title: `Task assigned to Maria Johnson`,
+      title: `Task assigned to IT Team`,
       time: "June 24, 2025 at 5:30PM",
       overdue: true,
       content: `Investigate ${ticketName}`,
       isTask: true,
       completed: false,
       priority: "High",
-      taskType: "To-Do",
+      taskType: "To-Do"
     },
     {
       id: 2,
+      group: "Recent",
+      type: "Call",
+      title: "Discovery Call",
+      time: "June 23, 2025 at 11:00 AM",
+      content: `Initial discovery call for ${ticketName}. Customer explained the issue in detail.`,
+      outcome: "Connected",
+      duration: "15 mins"
+    },
+    {
+      id: 3,
       group: "June 2025",
       type: "Note",
-      title: "Note by Maria Johnson",
-      time: "June 24, 2025 at 5:30PM",
-      content: `Customer reported issue via email.`,
+      title: "Note by Support System",
+      time: "June 22, 2025 at 9:30 AM",
+      content: `Internal ticket created for ${ticketData?.source || 'Source'} issue.`,
     },
   ];
 
-  useEffect(() => {
-    const found = MOCK_TICKETS.find((t) => t._id === id);
-    if (found) {
-      setTicket(found);
-      setActivities(generateActivities(found.name));
-    } else {
-      setTicket(DEFAULT_TICKET);
-      setActivities(generateActivities(DEFAULT_TICKET.name));
-    }
-  }, [id]);
-
   const handleFieldChange = (field, value) => {
-    setTicket((prev) => ({ ...prev, [field]: value }));
+    setTicket(prev => ({ ...prev, [field]: value }));
   };
 
   const handleSaveEdit = () => {
-    console.log("Saved Ticket:", ticket);
+    dispatch(updateTicket(ticket));
+  };
+
+  const handleDeleteTicket = () => {
+    alert(`${ticket.name} deleted successfully.`);
+    navigate("/tickets");
   };
 
   const config = {
@@ -80,32 +74,37 @@ const TicketDetails = () => {
     entityName: "Ticket",
     backLink: "/tickets",
     titleField: "name",
-    subTitleField: "status",
+    subTitleRender: (entity) => `Status: ${entity.status} | Priority: ${entity.priority}`,
     showAvatar: true,
     detailsFields: [
-      { key: "description", label: "Ticket Description" },
-      { key: "owner", label: "Ticket Owner" },
+      { key: "name", label: "Ticket Name" },
+      { key: "description", label: "Description" },
+      { key: "status", label: "Status" },
       { key: "priority", label: "Priority" },
       { key: "source", label: "Source" },
-      { key: "status", label: "Status" },
+      { key: "owner", label: "Owner" },
       { key: "createdAt", label: "Created Date" },
     ],
     editFields: [
       { key: "name", label: "Ticket Name" },
+      { key: "description", label: "Description" },
       { key: "status", label: "Status" },
       { key: "priority", label: "Priority" },
       { key: "source", label: "Source" },
-      { key: "description", label: "Description" },
+      { key: "owner", label: "Owner" },
     ],
   };
 
+  if (!ticket) return <div>Loading...</div>;
+
   return (
     <GenericDetails
-      entity={ticket}
+    entity={ticket}
       activities={activities}
       config={config}
       onFieldChange={handleFieldChange}
       onSaveEdit={handleSaveEdit}
+      onDelete={handleDeleteTicket}
     />
   );
 };

@@ -1,91 +1,62 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
+import { updateDeal } from "../../../redux/dealsSlice";
 import GenericDetails from "../../../components/common/GenericDetails/GenericDetails";
-
-const MOCK_DEALS = [
-  {
-    _id: "1",
-    dealName: "Website Revamp - Atlas Corp",
-    dealStage: "Presentation Scheduled",
-    closeDate: "Apr 8, 2025",
-    dealOwner: "Jane Cooper",
-    amount: 12500,
-    priority: "High",
-    createdDate: "04/08/2025 2:31 PM GMT+5:30",
-  },
-  {
-    _id: "2",
-    dealName: "Mobile App for FitBuddy",
-    dealStage: "Qualified to Buy",
-    closeDate: "Apr 8, 2025",
-    dealOwner: "Wade Warren",
-    amount: 25000,
-    priority: "Medium",
-    createdDate: "04/08/2025 2:45 PM GMT+5:30",
-  },
-];
-
-const DEFAULT_DEAL = MOCK_DEALS[0];
 
 const DealDetails = () => {
   const { id } = useParams();
-  const [deal, setDeal] = useState(DEFAULT_DEAL);
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  const deals = useSelector(state => state.deals.deals);
+  const dealData = deals.find(d => d._id === id);
+
+  const [deal, setDeal] = useState(null);
   const [activities, setActivities] = useState([]);
+
+  useEffect(() => {
+    if (dealData) {
+      setDeal(dealData);
+      setActivities(generateActivities(dealData.dealName));
+    }
+  }, [dealData, id]);
 
   const generateActivities = (dealName) => [
     {
       id: 1,
       group: "Upcoming",
       type: "Task",
-      title: `Task assigned to Maria Johnson`,
+      title: `Follow up on requirements for ${dealName}`,
       time: "June 24, 2025 at 5:30PM",
       overdue: true,
       content: `Prepare quote for ${dealName}`,
       isTask: true,
       completed: false,
       priority: "High",
-      taskType: "To-Do",
-    },
-    {
-      id: 2,
-      group: "Upcoming",
-      type: "Task",
-      title: `Task assigned to Maria Johnson`,
-      time: "June 24, 2025 at 5:30PM",
-      overdue: true,
-      content: `Follow up on requirements for ${dealName}`,
-      isTask: true,
-      completed: false,
-      priority: "Medium",
-      taskType: "Follow-up",
+      taskType: "To-Do"
     },
     {
       id: 3,
       group: "June 2025",
       type: "Call",
-      title: "Call from Maria Johnson",
-      time: "June 24, 2025 at 5:30PM",
-      content: `Discussed requirement for ${dealName}.`,
+      title: "Negotiation Call",
+      time: "June 20, 2025 at 2:30PM",
+      content: `Discussed pricing terms for ${dealName}.`,
     },
   ];
 
-  useEffect(() => {
-    const found = MOCK_DEALS.find((c) => c._id === id);
-    if (found) {
-      setDeal(found);
-      setActivities(generateActivities(found.dealName));
-    } else {
-      setDeal(DEFAULT_DEAL);
-      setActivities(generateActivities(DEFAULT_DEAL.dealName));
-    }
-  }, [id]);
-
   const handleFieldChange = (field, value) => {
-    setDeal((prev) => ({ ...prev, [field]: value }));
+    setDeal(prev => ({ ...prev, [field]: value }));
   };
 
   const handleSaveEdit = () => {
-    console.log("Saved Deal:", deal);
+    dispatch(updateDeal(deal));
+  };
+
+  const handleDeleteDeal = () => {
+    alert(`${deal.dealName} deleted successfully.`);
+    navigate("/deals");
   };
 
   const formatCurrency = (amount) => {
@@ -102,7 +73,6 @@ const DealDetails = () => {
     entityName: "Deal",
     backLink: "/deals",
     titleField: "dealName",
-
     showAvatar: true,
     detailsFields: [
       { key: "dealName", label: "Deal Name" },
@@ -121,6 +91,8 @@ const DealDetails = () => {
     ],
   };
 
+  if (!deal) return <div>Loading...</div>;
+
   return (
     <GenericDetails
       entity={deal}
@@ -128,6 +100,7 @@ const DealDetails = () => {
       config={config}
       onFieldChange={handleFieldChange}
       onSaveEdit={handleSaveEdit}
+      onDelete={handleDeleteDeal}
     />
   );
 };

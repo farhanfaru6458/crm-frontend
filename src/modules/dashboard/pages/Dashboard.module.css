@@ -62,10 +62,21 @@
 }
 
 
-.purple { background: linear-gradient(135deg, #7c6cff, #5a4bff); }
-.green  { background: linear-gradient(135deg, #34d399, #10b981); }
-.red    { background: linear-gradient(135deg, #fb7185, #ef4444); }
-.yellow { background: linear-gradient(135deg, #facc15, #f59e0b); }
+.purple {
+  background: linear-gradient(135deg, #7c6cff, #5a4bff);
+}
+
+.green {
+  background: linear-gradient(135deg, #34d399, #10b981);
+}
+
+.red {
+  background: linear-gradient(135deg, #fb7185, #ef4444);
+}
+
+.yellow {
+  background: linear-gradient(135deg, #facc15, #f59e0b);
+}
 
 /* ================= MIDDLE SECTION ================= */
 
@@ -85,7 +96,7 @@
   border: 1px solid #f1f3f7;
 }
 
-.conversionCard h3{
+.conversionCard h3 {
   font-size: 16px;
   font-weight: 600;
   color: #1f2937;
@@ -101,6 +112,7 @@
   border-radius: 20px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
   border: 1px solid #eef1f6;
+  width: 60%;
 }
 
 .salesHeader {
@@ -173,11 +185,9 @@
   position: absolute;
   bottom: 22px;
   width: 22px;
-  background: linear-gradient(
-    180deg,
-    rgba(139, 124, 255, 0.25),
-    rgba(90, 75, 255, 0.15)
-  );
+  background: linear-gradient(180deg,
+      rgba(139, 124, 255, 0.25),
+      rgba(90, 75, 255, 0.15));
   border-radius: 14px;
   z-index: 1;
 }
@@ -227,11 +237,25 @@
   transition: width 0.3s ease;
 }
 
-.purpleBar { background: #6d5dfc; }
-.blueBar   { background: #3b82f6; }
-.greenBar  { background: #22c55e; }
-.yellowBar { background: #f59e0b; }
-.redBar    { background: #ef4444; }
+.purpleBar {
+  background: #6d5dfc;
+}
+
+.blueBar {
+  background: #3b82f6;
+}
+
+.greenBar {
+  background: #22c55e;
+}
+
+.yellowBar {
+  background: #f59e0b;
+}
+
+.redBar {
+  background: #ef4444;
+}
 
 
 .chartPlaceholder {
@@ -298,7 +322,7 @@
 table {
   width: 100%;
   border-collapse: separate;
-  border-spacing: 0 12px; 
+  border-spacing: 0 12px;
 }
 
 
@@ -369,6 +393,21 @@ tbody tr td:last-child {
 
 /* ================= RESPONSIVE ================= */
 
+@media (max-width: 1200px) {
+  .chartContainer {
+    gap: 15px;
+  }
+
+  .barWrapper {
+    width: 30px;
+  }
+
+  .mainBar,
+  .lightBar {
+    width: 16px;
+  }
+}
+
 @media (max-width: 1024px) {
   .cardGrid {
     grid-template-columns: repeat(2, 1fr);
@@ -379,12 +418,114 @@ tbody tr td:last-child {
   }
 }
 
+@media (max-width: 768px) {
+  .dashboard {
+    padding: 24px;
+  }
+
+  .chartBars {
+    overflow-x: auto;
+    gap: 10px;
+    padding-bottom: 20px;
+  }
+
+  .barWrapper {
+    min-width: 35px;
+  }
+}
+
 @media (max-width: 640px) {
   .dashboard {
-    padding: 20px;
+    padding: 16px;
   }
 
   .cardGrid {
     grid-template-columns: 1fr;
+  }
+
+  .metricCard h2 {
+    font-size: 20px;
+  }
+
+  .iconCircle {
+    width: 44px;
+    height: 44px;
+    font-size: 16px;
+  }
+
+  .salesHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  /* Fix for charts on mobile */
+  .chartContainer {
+    display: block;
+    width: 100%;
+    margin-top: 15px;
+    overflow: hidden;
+    /* Prevent horizontal scroll on container itself */
+  }
+
+  .yAxis {
+    display: none;
+  }
+
+  .chartBars {
+    display: flex;
+    overflow-x: auto;
+    padding-bottom: 30px;
+    height: 220px;
+    gap: 12px;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+    border-bottom: 1px solid #f1f3f7;
+  }
+
+  .barWrapper {
+    min-width: 40px;
+    flex-shrink: 0;
+  }
+
+  .conversionCard {
+    padding: 16px;
+    overflow: hidden;
+    width: 60%;
+    /* Ensure bars don't overflow */
+  }
+
+  .progressBar {
+    width: 100%;
+  }
+
+  .tableCard {
+    padding: 16px;
+    margin-top: 20px;
+  }
+
+  .tableHeader {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .exportBtn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard {
+    padding: 12px;
+  }
+
+  .metricCard {
+    padding: 16px;
+  }
+
+  .salesHeader h3,
+  .conversionCard h3 {
+    font-size: 15px;
   }
 }

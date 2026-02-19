@@ -21,7 +21,7 @@ export default function Sidebar() {
         <div className={styles.iconCircle}>
           <LayoutDashboard size={20} />
         </div>
-        <span>Dashboard</span>
+        <span className={styles.menuText}>Dashboard</span>
       </NavLink>
 
       <NavLink
@@ -33,7 +33,7 @@ export default function Sidebar() {
         <div className={styles.iconCircle}>
           <Users size={20} />
         </div>
-        <span>Leads</span>
+        <span className={styles.menuText}>Leads</span>
       </NavLink>
 
       <NavLink
@@ -45,7 +45,7 @@ export default function Sidebar() {
         <div className={styles.iconCircle}>
           <Building2 size={20} />
         </div>
-        <span>Companies</span>
+        <span className={styles.menuText}>Companies</span>
       </NavLink>
 
       <NavLink
@@ -57,7 +57,7 @@ export default function Sidebar() {
         <div className={styles.iconCircle}>
           <ClipboardList size={20} />
         </div>
-        <span>Deals</span>
+        <span className={styles.menuText}>Deals</span>
       </NavLink>
 
       <NavLink
@@ -69,7 +69,7 @@ export default function Sidebar() {
         <div className={styles.iconCircle}>
           <Ticket size={20} />
         </div>
-        <span>Tickets</span>
+        <span className={styles.menuText}>Tickets</span>
       </NavLink>
 
     </aside>

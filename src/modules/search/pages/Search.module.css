@@ -1,0 +1,170 @@
+.searchContainer {
+    padding: 40px;
+    max-width: 1000px;
+    margin: 0 auto;
+    animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.header {
+    margin-bottom: 30px;
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: 20px;
+}
+
+.title {
+    font-size: 24px;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 8px;
+}
+
+.query {
+    color: #4f46e5;
+    font-style: italic;
+}
+
+.count {
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.resultsList {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.resultItem {
+    display: flex;
+    align-items: center;
+    padding: 20px;
+    background: white;
+    border-radius: 12px;
+    border: 1px solid #f3f4f6;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.resultItem:hover {
+    transform: translateX(4px);
+    border-color: #4f46e5;
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.1);
+}
+
+.itemIcon {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    background: #f3f4f6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    color: #4f46e5;
+    margin-right: 20px;
+    transition: all 0.2s ease;
+}
+
+.resultItem:hover .itemIcon {
+    background: #4f46e5;
+    color: white;
+}
+
+.itemContent {
+    flex: 1;
+}
+
+.itemTop {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 4px;
+}
+
+.itemName {
+    font-weight: 600;
+    color: #111827;
+    font-size: 16px;
+}
+
+.itemType {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 4px;
+    letter-spacing: 0.05em;
+}
+
+.lead {
+    background: #e0e7ff;
+    color: #4338ca;
+}
+
+.company {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.deal {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.ticket {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.itemDetails {
+    font-size: 14px;
+    color: #6b7280;
+}
+
+.itemArrow {
+    color: #d1d5db;
+    font-size: 20px;
+    transition: color 0.2s ease;
+}
+
+.resultItem:hover .itemArrow {
+    color: #4f46e5;
+}
+
+.noResults {
+    text-align: center;
+    padding: 80px 20px;
+    background: #f9fafb;
+    border-radius: 20px;
+    border: 2px dashed #e5e7eb;
+}
+
+.noResultsIcon {
+    font-size: 48px;
+    margin-bottom: 16px;
+}
+
+.noResults p {
+    font-size: 18px;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 4px;
+}
+
+.noResults span {
+    color: #6b7280;
+    font-size: 14px;
+}

@@ -83,6 +83,7 @@
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -95,5 +96,17 @@
 
   to {
     transform: translateX(0);
+  }
+}
+
+@media (max-width: 640px) {
+  .modal {
+    max-width: 100%;
+  }
+
+  .header,
+  .body,
+  .footer {
+    padding: 1.25rem;
   }
 }

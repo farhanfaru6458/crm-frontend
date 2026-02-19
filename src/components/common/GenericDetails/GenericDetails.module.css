@@ -7,6 +7,12 @@
   gap: 1.25rem;
 }
 
+.activityAccordionTitle {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #131415;
+}
+
 .breadcrumb {
   display: flex;
   align-items: center;
@@ -905,4 +911,79 @@
 
 .footerRight svg {
   cursor: pointer;
+}
+
+/* RESPONSIVE STYLES */
+
+@media (max-width: 1200px) {
+  .mainLayout {
+    grid-template-columns: 280px 1fr;
+  }
+
+  .rightSidebar {
+    grid-column: span 2;
+    order: 3;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+  }
+}
+
+@media (max-width: 992px) {
+  .mainLayout {
+    grid-template-columns: 1fr;
+  }
+
+  .leftSidebar,
+  .centerContent,
+  .rightSidebar {
+    grid-column: span 1;
+  }
+
+  .rightSidebar {
+    grid-template-columns: 1fr;
+  }
+
+  .container {
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .actionButtons {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .infoBox {
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .outcomeRow {
+    flex-direction: column;
+  }
+
+  .rightDrawer {
+    width: 100%;
+  }
+
+  .emailModal {
+    width: 95%;
+  }
+
+  .tabsContainer {
+    gap: 1rem;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .tabsContainer::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .actionButtons {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }

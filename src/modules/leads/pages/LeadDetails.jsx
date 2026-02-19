@@ -1,54 +1,27 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
+import { updateLead } from "../../../redux/leadsSlice";
+import { addDeal } from "../../../redux/dealsSlice";
 import GenericDetails from "../../../components/common/GenericDetails/GenericDetails";
-
-const MOCK_LEADS = [
-    {
-        _id: "1",
-        name: "Maria Johnson",
-        email: "maria.j@clientedge.com",
-        phone: "+1 234 567 890",
-        jobTitle: "Marketing Manager",
-        company: "ClientEdge",
-        status: "New",
-        owner: "Jane Cooper",
-        city: "Toronto",
-        country: "Canada",
-        createdAt: "04/08/2025 2:35 PM GMT+5:30",
-    },
-    {
-        _id: "2",
-        name: "Michael Chen",
-        email: "m.chen@techsolutions.io",
-        phone: "+1 987 654 321",
-        jobTitle: "Software Engineer",
-        company: "TechSolutions",
-        status: "In Progress",
-        owner: "Wade Warren",
-        city: "Amsterdam",
-        country: "Netherlands",
-        createdAt: "04/10/2025 10:15 AM GMT+5:30",
-    },
-    {
-        _id: "3",
-        name: "Sarah Williams",
-        email: "sarah.w@trustsphere.com",
-        phone: "+1 555 123 456",
-        jobTitle: "Operations Lead",
-        company: "TrustSphere",
-        status: "Open",
-        owner: "Brooklyn Simmons",
-        city: "Bangalore",
-        country: "India",
-        createdAt: "04/12/2025 9:00 AM GMT+5:30",
-    },
-];
 
 const LeadDetails = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    const [lead, setLead] = useState(MOCK_LEADS.find(l => l._id === id) || MOCK_LEADS[0]);
+    const dispatch = useDispatch();
+
+    const leads = useSelector(state => state.leads.leads);
+    const leadData = leads.find(l => l._id === id);
+
+    const [lead, setLead] = useState(null);
     const [activities, setActivities] = useState([]);
+
+    useEffect(() => {
+        if (leadData) {
+            setLead(leadData);
+            setActivities(generateActivities(leadData.name));
+        }
+    }, [leadData, id]);
 
     const generateActivities = (leadName) => [
         {
@@ -93,24 +66,12 @@ const LeadDetails = () => {
         },
     ];
 
-    useEffect(() => {
-        const found = MOCK_LEADS.find(l => l._id === id);
-        if (found) {
-            setLead(found);
-            setActivities(generateActivities(found.name));
-        } else {
-            setLead(MOCK_LEADS[0]);
-            setActivities(generateActivities(MOCK_LEADS[0].name));
-        }
-    }, [id]);
-
     const handleFieldChange = (field, value) => {
         setLead(prev => ({ ...prev, [field]: value }));
     };
 
     const handleSaveEdit = () => {
-        // Logic to save the lead
-        console.log("Saved lead:", lead);
+        dispatch(updateLead(lead));
     };
 
     const handleDeleteLead = () => {
@@ -124,7 +85,7 @@ const LeadDetails = () => {
         entityName: "Lead",
         backLink: "/leads",
         titleField: "name",
-        subTitleRender: (entity) => `${entity.jobTitle} at ${entity.company}`,
+        subTitleRender: (entity) => `${entity.jobTitle || "Lead"} at ${entity.company || "Unknown Company"}`,
         showAvatar: true,
         detailsFields: [
             { key: "name", label: "Name" },
@@ -146,6 +107,30 @@ const LeadDetails = () => {
         ],
     };
 
+    const handleConvertLead = (convertData) => {
+        // Create the deal
+        const newDeal = {
+            _id: Date.now().toString(),
+            dealName: convertData.dealName,
+            dealStage: convertData.dealStage,
+            amount: convertData.amount,
+            closeDate: convertData.closeDate,
+            dealOwner: convertData.dealOwner,
+            associatedLeadId: lead._id
+        };
+
+        dispatch(addDeal(newDeal));
+
+        // Update lead status
+        const updatedLead = { ...lead, status: "Converted" };
+        dispatch(updateLead(updatedLead));
+
+        alert(`Lead "${lead.name}" has been converted to Deal: "${convertData.dealName}"!`);
+        navigate("/deals");
+    };
+
+    if (!lead) return <div>Loading...</div>;
+
     return (
         <GenericDetails
             entity={lead}
@@ -154,6 +139,8 @@ const LeadDetails = () => {
             onFieldChange={handleFieldChange}
             onSaveEdit={handleSaveEdit}
             onDelete={handleDeleteLead}
+            showConvertButton={lead.status !== "Converted"}
+            onConvert={handleConvertLead}
         />
     );
 };

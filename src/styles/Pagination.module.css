@@ -5,7 +5,20 @@
   gap: 0.5em;
 }
 
-.pageButton,
+.pageButton{
+   display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: #4b5563;
+  transition: all 0.2s;
+  height: 20px;
+  width: 20px;
+  border-radius: 50%;
+}
 .navButton {
   display: inline-flex;
   align-items: center;
@@ -23,12 +36,19 @@
 .pageButton:hover:not(.active) {
   background-color: #f3f4f6;
   color: #111827;
+  height: 20px;
+  width: 20px;
+  border-radius: 50%;
 }
 
 .active {
   background-color: #5a4bff;
   color: #ffffff;
+  height: 20px;
+  width: 20px;
+  border-radius: 50%;
   font-weight: 600;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
 .navButton {

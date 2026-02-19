@@ -1,141 +1,62 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
+import { updateCompany } from "../../../redux/companiesSlice";
 import GenericDetails from "../../../components/common/GenericDetails/GenericDetails";
-
-const MOCK_COMPANIES = [
-  {
-    _id: "1",
-    name: "ClientEdge",
-    industry: "Legal Services",
-    website: "clientedge.com",
-    domain: "clientedge.com",
-    phone: "078 5432 8505",
-    owner: "Jane Cooper",
-    city: "Toronto",
-    country: "Canada",
-    employees: "50-100",
-    revenue: "10,00,000",
-    createdAt: "04/08/2025 2:35 PM GMT+5:30",
-  },
-  {
-    _id: "2",
-    name: "Relatia",
-    industry: "Healthcare",
-    website: "relatia.io",
-    domain: "relatia.io",
-    phone: "077 5465 8785",
-    owner: "Wade Warren",
-    city: "Amsterdam",
-    country: "Netherlands",
-    employees: "10-20",
-    revenue: "5,00,000",
-    createdAt: "04/08/2025 2:35 PM GMT+5:30",
-  },
-  {
-    _id: "3",
-    name: "TrustSphere",
-    industry: "Real Estate",
-    website: "trustsphere.com",
-    domain: "trustsphere.com",
-    phone: "078 5432 8505",
-    owner: "Brooklyn Simmons",
-    city: "Bangalore",
-    country: "India",
-    employees: "100-120",
-    revenue: "20,00,00,000.00",
-    createdAt: "04/08/2025 2:31 PM GMT+5:30",
-  },
-];
 
 const CompanyDetails = () => {
   const { id } = useParams();
-  const [company, setCompany] = useState(
-    MOCK_COMPANIES.find((c) => c._id === id) || MOCK_COMPANIES[2],
-  );
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  const companies = useSelector(state => state.companies.companies);
+  const companyData = companies.find(c => c._id === id);
+
+  const [company, setCompany] = useState(null);
   const [activities, setActivities] = useState([]);
+
+  useEffect(() => {
+    if (companyData) {
+      setCompany(companyData);
+      setActivities(generateActivities(companyData.name));
+    }
+  }, [companyData, id]);
 
   const generateActivities = (compName) => [
     {
       id: 1,
       group: "Upcoming",
       type: "Task",
-      title: `Task assigned to Maria Johnson`,
+      title: `Follow up with ${compName}`,
       time: "June 24, 2025 at 5:30PM",
       overdue: true,
       content: `Prepare quote for ${compName}`,
       isTask: true,
       completed: false,
       priority: "High",
-      taskType: "To-Do",
-    },
-    {
-      id: 2,
-      group: "Upcoming",
-      type: "Task",
-      title: `Task assigned to Maria Johnson`,
-      time: "June 24, 2025 at 5:30PM",
-      overdue: true,
-      content: `Prepare quote for ${compName}`,
-      isTask: true,
-      completed: false,
-      priority: "High",
-      taskType: "To-Do",
+      taskType: "To-Do"
     },
     {
       id: 3,
       group: "June 2025",
       type: "Call",
-      title: "Call from Maria Johnson",
-      time: "June 24, 2025 at 5:30PM",
-      content: `Brought Maria through our latest product line. She's interested and is going to get back to me.`,
-    },
-    {
-      id: 4,
-      group: "June 2025",
-      type: "Meeting",
-      title: `Meeting Maria Johnson and Jane Cooper`,
-      time: "June 24, 2025 at 5:30PM",
-      content: "Let's discuss our new product line.",
-      duration: "1 hr",
-      attendees: "2",
-      organizedBy: "Maria",
-    },
-    {
-      id: 5,
-      group: "June 2025",
-      type: "Email tracking",
-      title: "Email tracking",
-      time: "June 24, 2025 at 5:30PM",
-      content: "Jane Cooper opened Hello there",
-    },
-    {
-      id: 6,
-      group: "June 2025",
-      type: "Note",
-      title: "Note by Maria Johnson",
-      time: "June 24, 2025 at 5:30PM",
-      content: "Sample Note",
+      title: "Discovery Call",
+      time: "June 20, 2025 at 10:30AM",
+      content: `Discussed potential partnership with ${compName}.`,
     },
   ];
 
-  useEffect(() => {
-    const found = MOCK_COMPANIES.find((c) => c._id === id);
-    if (found) {
-      setCompany(found);
-      setActivities(generateActivities(found.name));
-    } else {
-      setCompany(MOCK_COMPANIES[2]);
-      setActivities(generateActivities(MOCK_COMPANIES[2].name));
-    }
-  }, [id]);
-
   const handleFieldChange = (field, value) => {
-    setCompany((prev) => ({ ...prev, [field]: value }));
+    setCompany(prev => ({ ...prev, [field]: value }));
   };
 
   const handleSaveEdit = () => {
-    console.log("Saved Company:", company);
-    // Implement save logic here
+    dispatch(updateCompany(company));
+  };
+
+  const handleDeleteCompany = () => {
+    alert(`${company.name} deleted successfully.`);
+    navigate("/companies");
   };
 
   const config = {
@@ -147,9 +68,9 @@ const CompanyDetails = () => {
     websiteField: "website",
     showAvatar: true,
     detailsFields: [
-      { key: "domain", label: "Company Domain Name" },
       { key: "name", label: "Company Name" },
       { key: "industry", label: "Industry" },
+      { key: "website", label: "Website" },
       { key: "phone", label: "Phone number" },
       { key: "owner", label: "Company Owner" },
       { key: "city", label: "City" },
@@ -166,6 +87,8 @@ const CompanyDetails = () => {
     ],
   };
 
+  if (!company) return <div>Loading...</div>;
+
   return (
     <GenericDetails
       entity={company}
@@ -173,6 +96,7 @@ const CompanyDetails = () => {
       config={config}
       onFieldChange={handleFieldChange}
       onSaveEdit={handleSaveEdit}
+      onDelete={handleDeleteCompany}
     />
   );
 };

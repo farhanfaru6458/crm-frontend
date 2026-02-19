@@ -167,3 +167,27 @@
 .saveBtn:hover {
     background: #4a3ecc;
 }
+
+@media (max-width: 640px) {
+    .container {
+        padding: 1rem;
+    }
+
+    .profileCard {
+        padding: 1.5rem;
+    }
+
+    .row {
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .formActions {
+        flex-direction: column;
+    }
+
+    .cancelBtn,
+    .saveBtn {
+        width: 100%;
+    }
+}

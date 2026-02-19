@@ -7,57 +7,18 @@ import Modal from "../../../components/ui/Modal";
 import CompanyForm from "../components/CompanyForm";
 import styles from "./Companies.module.css";
 
-const INITIAL_COMPANIES = [
-  {
-    _id: "1",
-    name: "ClientEdge",
-    owner: "Jane Cooper",
-    phone: "078 5432 8505",
-    industry: "Legal Services",
-    city: "Toronto",
-    country: "Canada",
-    domain: "clientedge.com",
-    type: "Client",
-    employees: "50-100",
-    revenue: "10,00,000",
-    createdAt: "Apr 8, 2025 2:35 PM GMT+5:30",
-  },
-  {
-    _id: "2",
-    name: "Relatia",
-    owner: "Wade Warren",
-    phone: "077 5465 8785",
-    industry: "Healthcare",
-    city: "Amsterdam",
-    country: "Netherlands",
-    domain: "relatia.io",
-    type: "Partner",
-    employees: "10-20",
-    revenue: "5,00,000",
-    createdAt: "Apr 8, 2025 2:35 PM GMT+5:30",
-  },
-  {
-    _id: "3",
-    name: "TrustSphere",
-    owner: "Brooklyn Simmons",
-    phone: "070 4531 9507",
-    industry: "Real Estate",
-    city: "Bangalore",
-    country: "India",
-    domain: "trustsphere.com",
-    type: "Client",
-    employees: "100-120",
-    revenue: "20,00,00,000",
-    createdAt: "Apr 8, 2025 2:35 PM GMT+5:30",
-  },
-];
+import { useSelector, useDispatch } from "react-redux";
+import { setCompanies, removeCompany, addCompany, updateCompany } from "../../../redux/companiesSlice";
+import ImportButton from "../../../components/ui/buttons/ImportButton";
 
 const Companies = () => {
-  const [companies, setCompanies] = useState(INITIAL_COMPANIES);
+  const dispatch = useDispatch();
+  const companies = useSelector((state) => state.companies.companies);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCompany, setEditingCompany] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 8;
   const [filters, setFilters] = useState({
     industry: "",
     city: "",
@@ -86,9 +47,7 @@ const Companies = () => {
   const handleSave = () => {
     if (editingCompany) {
       // Update
-      setCompanies((prev) =>
-        prev.map((c) => (c._id === editingCompany._id ? { ...formData } : c))
-      );
+      dispatch(updateCompany(formData));
     } else {
       // Create
       const newCompany = {
@@ -96,19 +55,20 @@ const Companies = () => {
         _id: Math.random().toString(36).substr(2, 9),
         createdAt: new Date().toLocaleString(),
       };
-      setCompanies((prev) => [newCompany, ...prev]);
+      dispatch(addCompany(newCompany));
     }
     setIsModalOpen(false);
   };
 
   const handleDelete = (id) => {
     if (window.confirm("Are you sure you want to delete this company?")) {
-      setCompanies((prev) => prev.filter((c) => c._id !== id));
+      dispatch(removeCompany(id));
     }
   };
 
   const handleFilterChange = (name, value) => {
     setFilters((prev) => ({ ...prev, [name]: value }));
+    setCurrentPage(1);
   };
 
   // Filtered Data
@@ -126,6 +86,11 @@ const Companies = () => {
       return matchesSearch && matchesIndustry && matchesCity && matchesCountry;
     });
   }, [companies, searchTerm, filters]);
+
+  // Pagination Logic
+  const totalPages = Math.ceil(filteredCompanies.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const currentCompanies = filteredCompanies.slice(startIndex, startIndex + itemsPerPage);
 
   const columns = [
     {
@@ -148,119 +113,118 @@ const Companies = () => {
 
   return (
     <div className={styles.container}>
-      <header className={styles.header}>
-        <h1 className={styles.title}>Companies</h1>
-        <div className={styles.headerActions}>
-          <button className={styles.importBtn}>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.5}
-              stroke="currentColor"
-              className={styles.icon}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"
-              />
-            </svg>
-            Import
-          </button>
-          <button className={styles.addBtn} onClick={handleOpenCreate}>
-            Create
-          </button>
-        </div>
-      </header>
-
-      <div className={styles.content}>
-        <div className={styles.topFiltersRow}>
-          <SearchInput
-            placeholder="Search phone, name, city"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className={styles.search}
-          />
-          <Pagination
-            totalPages={1}
-            currentPage={currentPage}
-            onPageChange={(page) => setCurrentPage(page)}
-          />
-        </div>
-
-        <div className={styles.dropdownFiltersRow}>
-          <select
-            className={styles.filterSelect}
-            value={filters.industry}
-            onChange={(e) => handleFilterChange("industry", e.target.value)}
-          >
-            <option value="">Industry Type</option>
-            <option value="Real Estate">Real Estate</option>
-            <option value="Technology">Technology</option>
-            <option value="Healthcare">Healthcare</option>
-            <option value="Legal Services">Legal Services</option>
-          </select>
-          <select
-            className={styles.filterSelect}
-            value={filters.city}
-            onChange={(e) => handleFilterChange("city", e.target.value)}
-          >
-            <option value="">City</option>
-            <option value="Bangalore">Bangalore</option>
-            <option value="Toronto">Toronto</option>
-            <option value="Amsterdam">Amsterdam</option>
-          </select>
-          <select
-            className={styles.filterSelect}
-            value={filters.country}
-            onChange={(e) => handleFilterChange("country", e.target.value)}
-          >
-            <option value="">Country/Region</option>
-            <option value="India">India</option>
-            <option value="Canada">Canada</option>
-            <option value="Netherlands">Netherlands</option>
-          </select>
-          <div className={styles.datePicker}>
-            <span>Created Date</span>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.5}
-              stroke="currentColor"
-              className={styles.calendarIcon}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5"
-              />
-            </svg>
+      <div className={styles.mainCard}>
+        <header className={styles.header}>
+          <h1 className={styles.title}>Companies</h1>
+          <div className={styles.headerActions}>
+            <ImportButton className={styles.importBtn} />
+            <button className={styles.addBtn} onClick={handleOpenCreate}>
+              Create
+            </button>
           </div>
+        </header>
+
+        <div className={styles.content}>
+          <div className={styles.topFiltersRow}>
+            <SearchInput
+              placeholder="Search phone, name, city"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className={styles.search}
+            />
+            <Pagination
+              totalPages={totalPages}
+              currentPage={currentPage}
+              onPageChange={(page) => setCurrentPage(page)}
+            />
+          </div>
+
+          <div className={styles.dropdownFiltersRow}>
+            <select
+              className={styles.filterSelect}
+              value={filters.industry}
+              onChange={(e) => handleFilterChange("industry", e.target.value)}
+            >
+              <option value="">Industry Type</option>
+              <option value="Real Estate">Real Estate</option>
+              <option value="Technology">Technology</option>
+              <option value="Healthcare">Healthcare</option>
+              <option value="Legal Services">Legal Services</option>
+            </select>
+            <select
+              className={styles.filterSelect}
+              value={filters.city}
+              onChange={(e) => handleFilterChange("city", e.target.value)}
+            >
+              <option value="">City</option>
+              <option value="Bangalore">Bangalore</option>
+              <option value="Toronto">Toronto</option>
+              <option value="Amsterdam">Amsterdam</option>
+              <option value="San Francisco">San Francisco</option>
+              <option value="New York">New York</option>
+              <option value="London">London</option>
+              <option value="Sydney">Sydney</option>
+              <option value="Berlin">Berlin</option>
+              <option value="Mumbai">Mumbai</option>
+              <option value="Singapore">Singapore</option>
+              <option value="Dubai">Dubai</option>
+            </select>
+            <select
+              className={styles.filterSelect}
+              value={filters.country}
+              onChange={(e) => handleFilterChange("country", e.target.value)}
+            >
+              <option value="">Country/Region</option>
+              <option value="India">India</option>
+              <option value="Canada">Canada</option>
+              <option value="Netherlands">Netherlands</option>
+              <option value="USA">USA</option>
+              <option value="UK">UK</option>
+              <option value="Australia">Australia</option>
+              <option value="Germany">Germany</option>
+              <option value="Singapore">Singapore</option>
+              <option value="UAE">UAE</option>
+            </select>
+            <div className={styles.datePicker}>
+              <span>Created Date</span>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className={styles.calendarIcon}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5"
+                />
+              </svg>
+            </div>
+          </div>
+
+          <Table
+            columns={columns}
+            data={currentCompanies}
+            onEdit={handleOpenEdit}
+            onDelete={(row) => handleDelete(row._id)}
+          />
         </div>
 
-        <Table
-          columns={columns}
-          data={filteredCompanies}
-          onEdit={handleOpenEdit}
-          onDelete={(row) => handleDelete(row._id)}
-        />
+        <Modal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          title={editingCompany ? "Edit Company" : "Create Company"}
+          onSave={handleSave}
+        >
+          <CompanyForm formData={formData} onChange={handleFormChange} />
+        </Modal>
       </div>
-
-      <Modal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        title={editingCompany ? "Edit Company" : "Create Company"}
-        onSave={handleSave}
-      >
-        <CompanyForm formData={formData} onChange={handleFormChange} />
-      </Modal>
     </div>
   );
 };
 
 export default Companies;
-      
 
-     
+

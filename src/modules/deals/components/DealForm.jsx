@@ -1,6 +1,10 @@
+import { useSelector } from "react-redux";
 import styles from "./DealForm.module.css";
 
 const DealForm = ({ formData, onChange }) => {
+  const leads = useSelector((state) => state.leads.leads);
+  const qualifiedLeads = leads.filter((lead) => lead.status === "Qualified");
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     onChange(name, value);
@@ -8,6 +12,23 @@ const DealForm = ({ formData, onChange }) => {
 
   return (
     <form className={styles.form}>
+      <div className={styles.field}>
+        <label className={styles.label}>Associated Lead</label>
+        <select
+          name="associatedLeadId"
+          className={styles.select}
+          value={formData.associatedLeadId || ""}
+          onChange={handleChange}
+        >
+          <option value="">Select Qualified Lead</option>
+          {qualifiedLeads.map((lead) => (
+            <option key={lead._id} value={lead._id}>
+              {lead.name} ({lead.company})
+            </option>
+          ))}
+        </select>
+      </div>
+
       <div className={styles.field}>
         <label className={styles.label}>Deal Name *</label>
         <input
@@ -29,15 +50,10 @@ const DealForm = ({ formData, onChange }) => {
           onChange={handleChange}
         >
           <option value="">Choose</option>
-          <option value="Presentation Scheduled">Presentation Scheduled</option>
-          <option value="Qualified to Buy">Qualified to Buy</option>
-          <option value="Contract Sent">Contract Sent</option>
+          <option value="Proposal Sent">Proposal Sent</option>
+          <option value="Negotiation">Negotiation</option>
           <option value="Closed Won">Closed Won</option>
           <option value="Closed Lost">Closed Lost</option>
-          <option value="Appointment Scheduled">Appointment Scheduled</option>
-          <option value="Decision Maker Bought In">
-            Decision Maker Bought In
-          </option>
         </select>
       </div>
 

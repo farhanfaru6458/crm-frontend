@@ -10,6 +10,8 @@ const GenericDetails = ({
   onFieldChange,
   onSaveEdit,
   onDelete,
+  showConvertButton = false,
+  onConvert,
 }) => {
   const [activeTab, setActiveTab] = useState("Activity");
   const [activities, setActivities] = useState(initialActivities || []);
@@ -21,6 +23,19 @@ const GenericDetails = ({
   const [isEditDrawerOpen, setIsEditDrawerOpen] = useState(false);
   const [isMeetingDrawerOpen, setIsMeetingDrawerOpen] = useState(false);
   const [isTaskDrawerOpen, setIsTaskDrawerOpen] = useState(false);
+  const [isConvertDrawerOpen, setIsConvertDrawerOpen] = useState(false);
+
+  // Accordion state for activity buttons
+  const [isActivityOpen, setIsActivityOpen] = useState(true);
+
+  // Convert form state
+  const [convertForm, setConvertForm] = useState({
+    dealName: "",
+    dealStage: "Appointment Scheduled",
+    amount: "",
+    closeDate: "",
+    dealOwner: "",
+  });
 
   const fileInputRef = useRef(null);
   const [attachments, setAttachments] = useState([]);
@@ -56,6 +71,42 @@ const GenericDetails = ({
         a.id === taskId ? { ...a, completed: !a.completed } : a,
       ),
     );
+  };
+
+  const updateActivity = (id, updates) => {
+    setActivities(
+      activities.map((a) => (a.id === id ? { ...a, ...updates } : a)),
+    );
+  };
+
+  const [callFormData, setCallFormData] = useState({
+    outcome: "",
+    duration: "",
+    date: new Date().toISOString().split('T')[0],
+    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }),
+    note: ""
+  });
+
+  const handleLogCall = () => {
+    const newCall = {
+      id: Date.now(),
+      type: "Call",
+      title: "Call logged",
+      time: `${callFormData.date} at ${callFormData.time}`,
+      group: "Recent",
+      content: callFormData.note,
+      outcome: callFormData.outcome,
+      duration: callFormData.duration
+    };
+    setActivities([newCall, ...activities]);
+    setIsCallDrawerOpen(false);
+    setCallFormData({
+      outcome: "",
+      duration: "",
+      date: new Date().toISOString().split('T')[0],
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }),
+      note: ""
+    });
   };
 
   const tabs = config.tabs || [
@@ -196,42 +247,67 @@ const GenericDetails = ({
               </div>
             </div>
 
-            <div className={styles.actionButtons}>
-              <button
-                className={styles.toolBtn}
-                onClick={() => setIsNoteDrawerOpen(true)}
+            {/* Activity Buttons Accordion */}
+            <div className={styles.activityAccordion}>
+              <div
+                className={styles.activityAccordionHeader}
+                onClick={() => setIsActivityOpen(!isActivityOpen)}
               >
-                {icons.Note}
-                <span className={styles.toolLabel}>Note</span>
-              </button>
-              <button
-                className={styles.toolBtn}
-                onClick={() => setIsEmailModalOpen(true)}
-              >
-                {icons.Email}
-                <span className={styles.toolLabel}>Email</span>
-              </button>
-              <button
-                className={styles.toolBtn}
-                onClick={() => setIsCallDrawerOpen(true)}
-              >
-                {icons.Call}
-                <span className={styles.toolLabel}>Call</span>
-              </button>
-              <button
-                className={styles.toolBtn}
-                onClick={() => setIsTaskDrawerOpen(true)}
-              >
-                {icons.Task}
-                <span className={styles.toolLabel}>Task</span>
-              </button>
-              <button
-                className={styles.toolBtn}
-                onClick={() => setIsMeetingDrawerOpen(true)}
-              >
-                {icons.Meeting}
-                <span className={styles.toolLabel}>Meeting</span>
-              </button>
+                <span className={styles.activityAccordionTitle}>
+                  <svg
+                    width="12" height="12" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" strokeWidth="3"
+                    style={{
+                      transform: isActivityOpen ? "rotate(0deg)" : "rotate(-90deg)",
+                      transition: "transform 0.25s ease",
+                      color: "#5a4bff",
+                      flexShrink: 0,
+                    }}
+                  >
+                    <path d="M19 9l-7 7-7-7" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  Activities
+                </span>
+              </div>
+              {isActivityOpen && (
+                <div className={styles.actionButtons}>
+                  <button
+                    className={styles.toolBtn}
+                    onClick={() => setIsNoteDrawerOpen(true)}
+                  >
+                    {icons.Note}
+                    <span className={styles.toolLabel}>Note</span>
+                  </button>
+                  <button
+                    className={styles.toolBtn}
+                    onClick={() => setIsEmailModalOpen(true)}
+                  >
+                    {icons.Email}
+                    <span className={styles.toolLabel}>Email</span>
+                  </button>
+                  <button
+                    className={styles.toolBtn}
+                    onClick={() => setIsCallDrawerOpen(true)}
+                  >
+                    {icons.Call}
+                    <span className={styles.toolLabel}>Call</span>
+                  </button>
+                  <button
+                    className={styles.toolBtn}
+                    onClick={() => setIsTaskDrawerOpen(true)}
+                  >
+                    {icons.Task}
+                    <span className={styles.toolLabel}>Task</span>
+                  </button>
+                  <button
+                    className={styles.toolBtn}
+                    onClick={() => setIsMeetingDrawerOpen(true)}
+                  >
+                    {icons.Meeting}
+                    <span className={styles.toolLabel}>Meeting</span>
+                  </button>
+                </div>
+              )}
             </div>
 
             <div
@@ -293,10 +369,14 @@ const GenericDetails = ({
             activeTab={activeTab}
             setActiveTab={setActiveTab}
             onToggleTask={toggleTask}
+            onUpdateActivity={updateActivity}
             onOpenCallDrawer={() => setIsCallDrawerOpen(true)}
             onOpenTaskDrawer={() => setIsTaskDrawerOpen(true)}
             onOpenMeetingDrawer={() => setIsMeetingDrawerOpen(true)}
             tabs={tabs}
+            showConvertButton={showConvertButton}
+            onConvert={() => setIsConvertDrawerOpen(true)}
+            convertDisabled={config.moduleName === "Leads" && entity.status !== "Qualified"}
           />
         </section>
 
@@ -584,11 +664,42 @@ const GenericDetails = ({
                 <label>
                   Call Outcome <span>*</span>
                 </label>
-                <select>
-                  <option>Choose</option>
-                  <option>Busy</option>
-                  <option>Connected</option>
+                <select
+                  className={styles.formSelect}
+                  value={callFormData.outcome}
+                  onChange={(e) => setCallFormData({ ...callFormData, outcome: e.target.value })}
+                >
+                  <option value="">Choose</option>
+                  <option value="Busy">Busy</option>
+                  <option value="Connected">Connected</option>
+                  <option value="No Answer">No Answer</option>
+                  <option value="Left Message">Left Message</option>
+                  <option value="Wrong Number">Wrong Number</option>
                 </select>
+              </div>
+              <div className={styles.field}>
+                <label>
+                  Duration <span>*</span>
+                </label>
+                <div className={styles.iconInput}>
+                  <select
+                    className={styles.formSelect}
+                    value={callFormData.duration}
+                    onChange={(e) => setCallFormData({ ...callFormData, duration: e.target.value })}
+                  >
+                    <option value="">Choose Duration</option>
+                    <option value="1 min">1 min</option>
+                    <option value="2 mins">2 mins</option>
+                    <option value="5 mins">5 mins</option>
+                    <option value="10 mins">10 mins</option>
+                    <option value="15 mins">15 mins</option>
+                    <option value="30 mins">30 mins</option>
+                    <option value="1 hour">1 hour</option>
+                  </select>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
               </div>
               <div className={styles.row}>
                 <div className={styles.field}>
@@ -596,7 +707,11 @@ const GenericDetails = ({
                     Date <span>*</span>
                   </label>
                   <div className={styles.iconInput}>
-                    <input type="date" />
+                    <input
+                      type="date"
+                      value={callFormData.date}
+                      onChange={(e) => setCallFormData({ ...callFormData, date: e.target.value })}
+                    />
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                       <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
@@ -607,7 +722,11 @@ const GenericDetails = ({
                     Time <span>*</span>
                   </label>
                   <div className={styles.iconInput}>
-                    <input type="time" />
+                    <input
+                      type="time"
+                      value={callFormData.time}
+                      onChange={(e) => setCallFormData({ ...callFormData, time: e.target.value })}
+                    />
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                       <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
@@ -621,6 +740,8 @@ const GenericDetails = ({
                 <textarea
                   className={styles.simpleTextarea}
                   placeholder="Enter call notes..."
+                  value={callFormData.note}
+                  onChange={(e) => setCallFormData({ ...callFormData, note: e.target.value })}
                 ></textarea>
               </div>
             </div>
@@ -631,7 +752,7 @@ const GenericDetails = ({
               >
                 Cancel
               </button>
-              <button className={styles.saveBtn} onClick={() => setIsCallDrawerOpen(false)}>Save</button>
+              <button className={styles.saveBtn} onClick={handleLogCall}>Save</button>
             </div>
           </div>
         </>
@@ -725,6 +846,111 @@ const GenericDetails = ({
             </div>
           </div>
         </div>
+      )}
+
+      {/* ===== CONVERT LEAD TO DEAL DRAWER ===== */}
+      {isConvertDrawerOpen && (
+        <>
+          <div
+            className={styles.drawerOverlay}
+            onClick={() => setIsConvertDrawerOpen(false)}
+          ></div>
+          <div className={styles.rightDrawer}>
+            <div className={styles.drawerHeader}>
+              <h3>Convert Lead to Deal</h3>
+              <button onClick={() => setIsConvertDrawerOpen(false)}>×</button>
+            </div>
+            <div className={styles.drawerBody}>
+              <div className={styles.convertBanner}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                <span>Converting <strong>{entity?.[config?.titleField]}</strong> to a Deal</span>
+              </div>
+              <div className={styles.field}>
+                <label>Deal Name <span>*</span></label>
+                <input
+                  type="text"
+                  placeholder={`Deal with ${entity?.[config?.titleField] || "Lead"}`}
+                  value={convertForm.dealName}
+                  onChange={(e) => setConvertForm(prev => ({ ...prev, dealName: e.target.value }))}
+                />
+              </div>
+              <div className={styles.field}>
+                <label>Deal Stage <span>*</span></label>
+                <select
+                  value={convertForm.dealStage}
+                  onChange={(e) => setConvertForm(prev => ({ ...prev, dealStage: e.target.value }))}
+                >
+                  <option value="Appointment Scheduled">Appointment Scheduled</option>
+                  <option value="Qualified to Buy">Qualified to Buy</option>
+                  <option value="Presentation Scheduled">Presentation Scheduled</option>
+                  <option value="Decision Maker Bought In">Decision Maker Bought In</option>
+                  <option value="Contract Sent">Contract Sent</option>
+                  <option value="Closed Won">Closed Won</option>
+                  <option value="Closed Lost">Closed Lost</option>
+                </select>
+              </div>
+              <div className={styles.row}>
+                <div className={styles.field}>
+                  <label>Amount (USD)</label>
+                  <input
+                    type="number"
+                    placeholder="0"
+                    value={convertForm.amount}
+                    onChange={(e) => setConvertForm(prev => ({ ...prev, amount: e.target.value }))}
+                  />
+                </div>
+                <div className={styles.field}>
+                  <label>Close Date <span>*</span></label>
+                  <input
+                    type="date"
+                    value={convertForm.closeDate}
+                    onChange={(e) => setConvertForm(prev => ({ ...prev, closeDate: e.target.value }))}
+                  />
+                </div>
+              </div>
+              <div className={styles.field}>
+                <label>Deal Owner</label>
+                <select
+                  value={convertForm.dealOwner}
+                  onChange={(e) => setConvertForm(prev => ({ ...prev, dealOwner: e.target.value }))}
+                >
+                  <option value="">Select Owner</option>
+                  <option value="Jane Cooper">Jane Cooper</option>
+                  <option value="Wade Warren">Wade Warren</option>
+                  <option value="Brooklyn Simmons">Brooklyn Simmons</option>
+                  <option value="Leslie Alexander">Leslie Alexander</option>
+                  <option value="Jenny Wilson">Jenny Wilson</option>
+                  <option value="Guy Hawkins">Guy Hawkins</option>
+                  <option value="Robert Fox">Robert Fox</option>
+                </select>
+              </div>
+            </div>
+            <div className={styles.drawerFooter}>
+              <button
+                className={styles.cancelBtn}
+                onClick={() => setIsConvertDrawerOpen(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className={styles.convertSaveBtn}
+                onClick={() => {
+                  if (!convertForm.dealName || !convertForm.closeDate) {
+                    alert("Please fill in Deal Name and Close Date.");
+                    return;
+                  }
+                  alert(`Lead successfully converted to Deal: "${convertForm.dealName}"!`);
+                  setIsConvertDrawerOpen(false);
+                  if (onConvert) onConvert(convertForm);
+                }}
+              >
+                Convert to Deal
+              </button>
+            </div>
+          </div>
+        </>
       )}
     </div>
   );

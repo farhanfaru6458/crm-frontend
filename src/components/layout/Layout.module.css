@@ -19,6 +19,20 @@
   flex-direction: column;
 }
 
+@media (max-width: 768px) {
+  .content {
+    margin-left: 0;
+    margin-top: 2.5em;
+    /* Account for horizontal sidebar */
+  }
+}
+
+@media (max-width: 500px) {
+  .content {
+    margin-top: 2.5em;
+  }
+}
+
 /* Original classes for compatibility */
 .container {
   display: flex;

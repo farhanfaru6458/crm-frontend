@@ -190,7 +190,7 @@ export default function Dashboard() {
 
             <select className={styles.salesSelect}>
               <option>Monthly</option>
-              <option>Weekly</option>
+              <option>Yearly</option>
             </select>
           </div>
 

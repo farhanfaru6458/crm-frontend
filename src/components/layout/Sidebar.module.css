@@ -39,6 +39,10 @@
   transition: all 0.2s ease;
 }
 
+.menuText{
+  font-size: 12px;
+}
+
 /* Active State */
 .active .iconCircle {
   background: linear-gradient(135deg, #6d5dfc, #5a4bff);
@@ -54,7 +58,7 @@
 /* Hover */
 .menuItem:hover .iconCircle {
   border-color: #5a4bff;
-  color: #5a4bff;
+  color: #ffffff;
 }
 
 .menuItem:hover {
