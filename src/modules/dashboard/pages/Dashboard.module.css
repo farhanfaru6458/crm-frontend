@@ -112,7 +112,7 @@
   border-radius: 20px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
   border: 1px solid #eef1f6;
-  width: 60%;
+
 }
 
 .salesHeader {
@@ -142,6 +142,11 @@
 
 .salesSelect:focus {
   border-color: #6d5dfc;
+}
+@media (max-width: 626px){
+  .salesCard{
+    width: 60%;
+  }
 }
 
 /* ================= CHART ================= */
