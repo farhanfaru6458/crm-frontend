@@ -1,6 +1,8 @@
-
 import React, { useState } from 'react';
 import styles from './ActivityFeed.module.css';
+import { toast } from 'react-hot-toast';
+import { useDispatch } from 'react-redux';
+import { addNotification } from '../../../redux/notificationsSlice';
 
 const ActivityFeed = ({
     activities = [],
@@ -16,7 +18,7 @@ const ActivityFeed = ({
     onConvert,
     convertDisabled = false,
 }) => {
-
+    const dispatch = useDispatch();
     // Track which accordion items are expanded (open by default)
     const [expandedItems, setExpandedItems] = useState(() => {
         const initial = {};
@@ -26,6 +28,16 @@ const ActivityFeed = ({
 
     const toggleExpand = (id) => {
         setExpandedItems(prev => ({ ...prev, [id]: !prev[id] }));
+    };
+
+    const handleCall = () => {
+        toast.success("Calling...");
+        dispatch(addNotification({
+            id: Date.now(),
+            message: "Calling...",
+            type: "call",
+            timestamp: new Date().toLocaleString()
+        }));
     };
 
     const filteredActivities = activities.filter((a) => {

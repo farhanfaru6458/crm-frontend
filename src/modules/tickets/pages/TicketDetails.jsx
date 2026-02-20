@@ -2,7 +2,9 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { updateTicket } from "../../../redux/ticketsSlice";
+import { addNotification } from "../../../redux/notificationsSlice";
 import GenericDetails from "../../../components/common/GenericDetails/GenericDetails";
+import { toast } from "react-hot-toast";
 
 const TicketDetails = () => {
   const { id } = useParams();
@@ -65,7 +67,13 @@ const TicketDetails = () => {
   };
 
   const handleDeleteTicket = () => {
-    alert(`${ticket.name} deleted successfully.`);
+    toast.success(`${ticket.name} deleted successfully.`);
+    dispatch(addNotification({
+      id: Date.now(),
+      message: `Ticket ${ticket.name} deleted successfully!`,
+      type: "delete",
+      timestamp: new Date().toLocaleString()
+    }));
     navigate("/tickets");
   };
 
@@ -99,7 +107,7 @@ const TicketDetails = () => {
 
   return (
     <GenericDetails
-    entity={ticket}
+      entity={ticket}
       activities={activities}
       config={config}
       onFieldChange={handleFieldChange}

@@ -2,6 +2,10 @@ import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import styles from "./GenericDetails.module.css";
 import ActivityFeed from "../../common/ActivityFeed/ActivityFeed";
+import { toast } from "react-hot-toast";
+import { useDispatch } from "react-redux";
+import { addNotification } from "../../../redux/notificationsSlice";
+import ConfirmDialog from "../../ui/ConfirmDialog";
 
 const GenericDetails = ({
   entity,
@@ -13,6 +17,7 @@ const GenericDetails = ({
   showConvertButton = false,
   onConvert,
 }) => {
+  const dispatch = useDispatch();
   const [activeTab, setActiveTab] = useState("Activity");
   const [activities, setActivities] = useState(initialActivities || []);
 
@@ -24,9 +29,11 @@ const GenericDetails = ({
   const [isMeetingDrawerOpen, setIsMeetingDrawerOpen] = useState(false);
   const [isTaskDrawerOpen, setIsTaskDrawerOpen] = useState(false);
   const [isConvertDrawerOpen, setIsConvertDrawerOpen] = useState(false);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
   // Accordion state for activity buttons
   const [isActivityOpen, setIsActivityOpen] = useState(true);
+  const [isAboutOpen, setIsAboutOpen] = useState(true);
 
   // Convert form state
   const [convertForm, setConvertForm] = useState({
@@ -51,6 +58,16 @@ const GenericDetails = ({
       }));
       setAttachments((prev) => [...prev, ...newFiles]);
     }
+  };
+
+  const handleCall = () => {
+    toast.success("Calling...");
+    dispatch(addNotification({
+      id: Date.now(),
+      message: "Calling...",
+      type: "call",
+      timestamp: new Date().toLocaleString()
+    }));
   };
 
   const triggerFileInput = () => {
@@ -287,7 +304,7 @@ const GenericDetails = ({
                   </button>
                   <button
                     className={styles.toolBtn}
-                    onClick={() => setIsCallDrawerOpen(true)}
+                    onClick={handleCall}
                   >
                     {icons.Call}
                     <span className={styles.toolLabel}>Call</span>
@@ -312,7 +329,7 @@ const GenericDetails = ({
 
             <div
               className={styles.sectionCollapse}
-              onClick={() => setIsEditDrawerOpen(true)}
+              onClick={() => setIsAboutOpen(!isAboutOpen)}
             >
               <span className={styles.sectionTitle}>
                 <svg
@@ -321,7 +338,10 @@ const GenericDetails = ({
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
-                  style={{ transform: "rotate(-90deg)" }}
+                  style={{
+                    transform: isAboutOpen ? "rotate(0deg)" : "rotate(-90deg)",
+                    transition: "transform 0.2s ease"
+                  }}
                 >
                   <path
                     d="M19 9l-7 7-7-7"
@@ -339,6 +359,10 @@ const GenericDetails = ({
                 strokeWidth={1.5}
                 stroke="currentColor"
                 className={styles.editIcon}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsEditDrawerOpen(true);
+                }}
               >
                 <path
                   strokeLinecap="round"
@@ -348,18 +372,20 @@ const GenericDetails = ({
               </svg>
             </div>
 
-            <div className={styles.detailsList}>
-              {config.detailsFields.map((field, idx) => (
-                <div key={idx} className={styles.detailItem}>
-                  <span className={styles.detailLabel}>{field.label}</span>
-                  <span className={styles.detailValue}>
-                    {field.render
-                      ? field.render(entity[field.key])
-                      : entity[field.key]}
-                  </span>
-                </div>
-              ))}
-            </div>
+            {isAboutOpen && (
+              <div className={styles.detailsList}>
+                {config.detailsFields.map((field, idx) => (
+                  <div key={idx} className={styles.detailItem}>
+                    <span className={styles.detailLabel}>{field.label}</span>
+                    <span className={styles.detailValue}>
+                      {field.render
+                        ? field.render(entity[field.key])
+                        : entity[field.key]}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </aside>
 
@@ -785,15 +811,7 @@ const GenericDetails = ({
               {onDelete && (
                 <button
                   className={styles.deleteBtn}
-                  onClick={() => {
-                    if (
-                      window.confirm(
-                        `Are you sure you want to delete ${entity[config.titleField]}?`
-                      )
-                    ) {
-                      onDelete();
-                    }
-                  }}
+                  onClick={() => setIsConfirmOpen(true)}
                 >
                   Delete {config.entityName}
                 </button>
@@ -938,10 +956,16 @@ const GenericDetails = ({
                 className={styles.convertSaveBtn}
                 onClick={() => {
                   if (!convertForm.dealName || !convertForm.closeDate) {
-                    alert("Please fill in Deal Name and Close Date.");
+                    toast.error("Please fill in Deal Name and Close Date.");
                     return;
                   }
-                  alert(`Lead successfully converted to Deal: "${convertForm.dealName}"!`);
+                  toast.success(`Lead successfully converted to Deal!`);
+                  dispatch(addNotification({
+                    id: Date.now(),
+                    message: `Lead ${entity?.[config?.titleField]} successfully converted to Deal: "${convertForm.dealName}"!`,
+                    type: "convert",
+                    timestamp: new Date().toLocaleString()
+                  }));
                   setIsConvertDrawerOpen(false);
                   if (onConvert) onConvert(convertForm);
                 }}
@@ -952,6 +976,14 @@ const GenericDetails = ({
           </div>
         </>
       )}
+
+      <ConfirmDialog
+        isOpen={isConfirmOpen}
+        onClose={() => setIsConfirmOpen(false)}
+        onConfirm={onDelete}
+        title={`Delete ${config.entityName}`}
+        message={`Are you sure you want to delete ${entity[config.titleField]}?`}
+      />
     </div>
   );
 };

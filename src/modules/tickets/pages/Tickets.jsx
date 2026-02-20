@@ -9,12 +9,17 @@ import styles from "./Tickets.module.css";
 
 import { useSelector, useDispatch } from "react-redux";
 import { setTickets, removeTicket, addTicket, updateTicket } from "../../../redux/ticketsSlice";
+import { addNotification } from "../../../redux/notificationsSlice";
+import { toast } from "react-hot-toast";
 import ImportButton from "../../../components/ui/buttons/ImportButton";
+import ConfirmDialog from "../../../components/ui/ConfirmDialog";
 
 const Tickets = () => {
   const dispatch = useDispatch();
   const tickets = useSelector((state) => state.tickets.tickets);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [ticketToDelete, setTicketToDelete] = useState(null);
   const [editingTicket, setEditingTicket] = useState(null);
   const [formData, setFormData] = useState({});
   const [searchTerm, setSearchTerm] = useState("");
@@ -65,8 +70,20 @@ const Tickets = () => {
   };
 
   const handleDelete = (id) => {
-    if (window.confirm("Are you sure you want to delete this ticket?")) {
-      dispatch(removeTicket(id));
+    setTicketToDelete(id);
+    setIsConfirmOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (ticketToDelete) {
+      dispatch(removeTicket(ticketToDelete));
+      toast.success("Ticket deleted successfully");
+      dispatch(addNotification({
+        id: Date.now(),
+        message: `Ticket deleted successfully!`,
+        type: "delete",
+        timestamp: new Date().toLocaleString()
+      }));
     }
   };
 
@@ -234,6 +251,14 @@ const Tickets = () => {
         >
           <TicketForm formData={formData} onChange={handleFormChange} />
         </Modal>
+
+        <ConfirmDialog
+          isOpen={isConfirmOpen}
+          onClose={() => setIsConfirmOpen(false)}
+          onConfirm={confirmDelete}
+          title="Delete Ticket"
+          message="Are you sure you want to delete this ticket?"
+        />
       </div>
     </div>
   );

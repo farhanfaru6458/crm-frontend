@@ -9,6 +9,9 @@ import CreateButton from "../../../components/ui/buttons/CreateButton";
 
 import Modal from "../../../components/ui/Modal";
 import DealForm from "../components/DealForm";
+import ConfirmDialog from "../../../components/ui/ConfirmDialog";
+import { toast } from "react-hot-toast";
+import { addNotification } from "../../../redux/notificationsSlice";
 
 import { useSelector, useDispatch } from "react-redux";
 import { setDeals, removeDeal, addDeal, updateDeal } from "../../../redux/dealsSlice";
@@ -17,6 +20,8 @@ export default function Deals() {
   const dispatch = useDispatch();
   const deals = useSelector((state) => state.deals.deals);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [dealToDelete, setDealToDelete] = useState(null);
   const [editingDeal, setEditingDeal] = useState(null);
   const [formData, setFormData] = useState({});
 
@@ -62,8 +67,20 @@ export default function Deals() {
   };
 
   const handleDelete = (row) => {
-    if (window.confirm(`Are you sure you want to delete ${row.dealName}?`)) {
-      dispatch(removeDeal(row._id));
+    setDealToDelete(row);
+    setIsConfirmOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (dealToDelete) {
+      dispatch(removeDeal(dealToDelete._id));
+      toast.success("Deal deleted successfully");
+      dispatch(addNotification({
+        id: Date.now(),
+        message: `Deal ${dealToDelete.dealName} deleted successfully!`,
+        type: "delete",
+        timestamp: new Date().toLocaleString()
+      }));
     }
   };
 
@@ -280,6 +297,14 @@ export default function Deals() {
       >
         <DealForm formData={formData} onChange={handleInputChange} />
       </Modal>
+
+      <ConfirmDialog
+        isOpen={isConfirmOpen}
+        onClose={() => setIsConfirmOpen(false)}
+        onConfirm={confirmDelete}
+        title="Delete Deal"
+        message={`Are you sure you want to delete ${dealToDelete?.dealName}?`}
+      />
     </div>
   );
 }

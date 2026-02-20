@@ -9,14 +9,19 @@ import { useNavigate, Link } from "react-router-dom";
 
 import { useSelector, useDispatch } from "react-redux";
 import { setLeads, removeLead, addLead, updateLead } from "../../../redux/leadsSlice";
+import { addNotification } from "../../../redux/notificationsSlice";
+import { toast } from "react-hot-toast";
 import Modal from "../../../components/ui/Modal";
 import LeadForm from "../components/LeadForm";
+import ConfirmDialog from "../../../components/ui/ConfirmDialog";
 
 export default function Leads() {
   const dispatch = useDispatch();
   const leads = useSelector((state) => state.leads.leads);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [leadToDelete, setLeadToDelete] = useState(null);
   const [editingLead, setEditingLead] = useState(null);
   const [formData, setFormData] = useState({});
   const [search, setSearch] = useState("");
@@ -44,6 +49,13 @@ export default function Leads() {
   const handleSave = () => {
     if (editingLead) {
       dispatch(updateLead(formData));
+      toast.success("Lead updated successfully!");
+      dispatch(addNotification({
+        id: Date.now(),
+        message: `Lead ${formData.name} updated successfully!`,
+        type: "update",
+        timestamp: new Date().toLocaleString()
+      }));
     } else {
       const newLead = {
         ...formData,
@@ -51,6 +63,13 @@ export default function Leads() {
         createdAt: new Date().toLocaleString(),
       };
       dispatch(addLead(newLead));
+      toast.success("Lead created successfully!");
+      dispatch(addNotification({
+        id: Date.now(),
+        message: `Lead ${newLead.name} created successfully!`,
+        type: "create",
+        timestamp: new Date().toLocaleString()
+      }));
     }
     setIsModalOpen(false);
   };
@@ -86,8 +105,20 @@ export default function Leads() {
 
 
   const handleDelete = (row) => {
-    if (window.confirm(`Are you sure you want to delete ${row.name}?`)) {
-      dispatch(removeLead(row._id));
+    setLeadToDelete(row);
+    setIsConfirmOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (leadToDelete) {
+      dispatch(removeLead(leadToDelete._id));
+      toast.success("Lead deleted successfully");
+      dispatch(addNotification({
+        id: Date.now(),
+        message: `Lead ${leadToDelete.name} deleted successfully!`,
+        type: "delete",
+        timestamp: new Date().toLocaleString()
+      }));
     }
   };
 
@@ -224,6 +255,14 @@ export default function Leads() {
       >
         <LeadForm formData={formData} onChange={handleInputChange} />
       </Modal>
+
+      <ConfirmDialog
+        isOpen={isConfirmOpen}
+        onClose={() => setIsConfirmOpen(false)}
+        onConfirm={confirmDelete}
+        title="Delete Lead"
+        message={`Are you sure you want to delete ${leadToDelete?.name}?`}
+      />
     </div>
   );
 }

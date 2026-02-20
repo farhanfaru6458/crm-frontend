@@ -1,0 +1,47 @@
+.footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    width: 100%;
+}
+
+.cancelBtn {
+    padding: 8px 16px;
+    border: 1px solid #e2e8f0;
+    background-color: #ffffff;
+    color: #64748b;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.cancelBtn:hover {
+    background-color: #f1f5f9;
+    border-color: #cbd5e1;
+}
+
+.confirmBtn {
+    padding: 8px 16px;
+    border: none;
+    background-color: #ef4444;
+    color: #ffffff;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.confirmBtn:hover {
+    background-color: #dc2626;
+    box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.4);
+}
+
+.message {
+    font-size: 1rem;
+    color: #334155;
+    line-height: 1.5;
+    margin: 0;
+}

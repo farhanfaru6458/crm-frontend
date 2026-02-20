@@ -3,7 +3,9 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { updateLead } from "../../../redux/leadsSlice";
 import { addDeal } from "../../../redux/dealsSlice";
+import { addNotification } from "../../../redux/notificationsSlice";
 import GenericDetails from "../../../components/common/GenericDetails/GenericDetails";
+import { toast } from "react-hot-toast";
 
 const LeadDetails = () => {
     const { id } = useParams();
@@ -76,7 +78,13 @@ const LeadDetails = () => {
 
     const handleDeleteLead = () => {
         // In a real app, you'd call an API here
-        alert(`${lead.name} deleted successfully.`);
+        toast.success(`${lead.name} deleted successfully.`);
+        dispatch(addNotification({
+            id: Date.now(),
+            message: `Lead ${lead.name} deleted successfully!`,
+            type: "delete",
+            timestamp: new Date().toLocaleString()
+        }));
         navigate("/leads");
     };
 
@@ -125,7 +133,7 @@ const LeadDetails = () => {
         const updatedLead = { ...lead, status: "Converted" };
         dispatch(updateLead(updatedLead));
 
-        alert(`Lead "${lead.name}" has been converted to Deal: "${convertData.dealName}"!`);
+        toast.success(`Lead converted to Deal successfully!`);
         navigate("/deals");
     };
 

@@ -2,7 +2,9 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { updateCompany } from "../../../redux/companiesSlice";
+import { addNotification } from "../../../redux/notificationsSlice";
 import GenericDetails from "../../../components/common/GenericDetails/GenericDetails";
+import { toast } from "react-hot-toast";
 
 const CompanyDetails = () => {
   const { id } = useParams();
@@ -55,7 +57,13 @@ const CompanyDetails = () => {
   };
 
   const handleDeleteCompany = () => {
-    alert(`${company.name} deleted successfully.`);
+    toast.success(`${company.name} deleted successfully.`);
+    dispatch(addNotification({
+      id: Date.now(),
+      message: `Company ${company.name} deleted successfully!`,
+      type: "delete",
+      timestamp: new Date().toLocaleString()
+    }));
     navigate("/companies");
   };
 

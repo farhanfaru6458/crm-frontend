@@ -18,6 +18,9 @@ import ticketsReducer from "./ticketsSlice";
 // Global Search
 import searchReducer from "./searchSlice";
 
+// Notifications
+import notificationsReducer from "./notificationsSlice";
+
 const store = configureStore({
   reducer: {
     auth: authReducer,
@@ -26,6 +29,7 @@ const store = configureStore({
     companies: companiesReducer,
     tickets: ticketsReducer,
     search: searchReducer,
+    notifications: notificationsReducer,
   },
   devTools: process.env.NODE_ENV !== "production",
 });

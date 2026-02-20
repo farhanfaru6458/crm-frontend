@@ -130,7 +130,7 @@
 }
 
 .convertSaveBtn {
- background-color: #ffffff;
+  background-color: #ffffff;
   color: #6366f1;
   border: 1px solid #6366f1;
   padding: 0.6em 2.8em;
@@ -140,6 +140,7 @@
   cursor: pointer;
   transition: all 0.2s ease-in-out;
 }
+
 .convertSaveBtn {
   background-color: #6366f1;
   color: #ffffff;
@@ -195,6 +196,7 @@
   color: #5a4bff;
   opacity: 0.6;
   transition: opacity 0.2s;
+  cursor: pointer;
 }
 
 .sectionCollapse:hover .editIcon {
@@ -794,22 +796,35 @@
   gap: 1rem;
 }
 
-.cancelBtn {
-   background-color: #ffffff;
+.deleteBtn {
+  background-color: #ffffff;
   color: #6366f1;
   border: 1px solid #6366f1;
-  padding: 0.6em 2.8em;
+  padding: 0.6em 0.8em;
   border-radius: 6px;
   font-weight: 600;
   font-size: 0.875rem;
   cursor: pointer;
   transition: all 0.2s ease-in-out;
-  flex: 1;
+
+}
+
+.cancelBtn {
+  background-color: #ffffff;
+  color: #6366f1;
+  border: 1px solid #6366f1;
+  padding: 0.6em 1.8em;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
 }
 
 .saveBtn {
-  flex: 1;
+
   height: 46px;
+  width: 80px;
   border: none;
   background: #5a4bff;
   color: white;

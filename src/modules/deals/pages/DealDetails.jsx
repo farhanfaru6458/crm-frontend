@@ -2,7 +2,9 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { updateDeal } from "../../../redux/dealsSlice";
+import { addNotification } from "../../../redux/notificationsSlice";
 import GenericDetails from "../../../components/common/GenericDetails/GenericDetails";
+import { toast } from "react-hot-toast";
 
 const DealDetails = () => {
   const { id } = useParams();
@@ -55,7 +57,13 @@ const DealDetails = () => {
   };
 
   const handleDeleteDeal = () => {
-    alert(`${deal.dealName} deleted successfully.`);
+    toast.success(`${deal.dealName} deleted successfully.`);
+    dispatch(addNotification({
+      id: Date.now(),
+      message: `Deal ${deal.dealName} deleted successfully!`,
+      type: "delete",
+      timestamp: new Date().toLocaleString()
+    }));
     navigate("/deals");
   };
 

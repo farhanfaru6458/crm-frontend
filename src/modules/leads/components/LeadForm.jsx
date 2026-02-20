@@ -9,7 +9,7 @@ const LeadForm = ({ formData, onChange }) => {
         { name: "company", label: "Company", placeholder: "Enter company name" },
         { name: "jobTitle", label: "Job Title", placeholder: "Enter job title" },
         { name: "status", label: "Status", type: "select", options: ["New", "Contacted", "Qualified", "Converted", "Unqualified"] },
-        { name: "owner", label: "Owner", placeholder: "Enter owner name" },
+        { name: "owner", label: "Owner", type: "select", options: ["John Doe", "Jane Smith", "Mike Johnson"] },
         { name: "city", label: "City", placeholder: "Enter city" },
         { name: "country", label: "Country", placeholder: "Enter country" },
     ];

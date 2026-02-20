@@ -9,12 +9,17 @@ import styles from "./Companies.module.css";
 
 import { useSelector, useDispatch } from "react-redux";
 import { setCompanies, removeCompany, addCompany, updateCompany } from "../../../redux/companiesSlice";
+import { addNotification } from "../../../redux/notificationsSlice";
+import { toast } from "react-hot-toast";
 import ImportButton from "../../../components/ui/buttons/ImportButton";
+import ConfirmDialog from "../../../components/ui/ConfirmDialog";
 
 const Companies = () => {
   const dispatch = useDispatch();
   const companies = useSelector((state) => state.companies.companies);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [companyToDelete, setCompanyToDelete] = useState(null);
   const [editingCompany, setEditingCompany] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -61,8 +66,20 @@ const Companies = () => {
   };
 
   const handleDelete = (id) => {
-    if (window.confirm("Are you sure you want to delete this company?")) {
-      dispatch(removeCompany(id));
+    setCompanyToDelete(id);
+    setIsConfirmOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (companyToDelete) {
+      dispatch(removeCompany(companyToDelete));
+      toast.success("Company deleted successfully");
+      dispatch(addNotification({
+        id: Date.now(),
+        message: `Company deleted successfully!`,
+        type: "delete",
+        timestamp: new Date().toLocaleString()
+      }));
     }
   };
 
@@ -220,6 +237,14 @@ const Companies = () => {
         >
           <CompanyForm formData={formData} onChange={handleFormChange} />
         </Modal>
+
+        <ConfirmDialog
+          isOpen={isConfirmOpen}
+          onClose={() => setIsConfirmOpen(false)}
+          onConfirm={confirmDelete}
+          title="Delete Company"
+          message="Are you sure you want to delete this company?"
+        />
       </div>
     </div>
   );
