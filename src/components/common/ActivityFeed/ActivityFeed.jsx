@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import styles from './ActivityFeed.module.css';
 import { toast } from 'react-hot-toast';
 import { useDispatch } from 'react-redux';
@@ -50,7 +50,19 @@ const ActivityFeed = ({
         return true;
     });
 
-    const groups = ["Upcoming", "June 2025"];
+    const groups = useMemo(() => {
+        const uniqueGroups = Array.from(new Set(activities.map(a => a.group)));
+        // Sort groups: Upcoming first, Recent second, then others (e.g., specific months)
+        const order = ["Upcoming", "Recent"];
+        return uniqueGroups.sort((a, b) => {
+            const idxA = order.indexOf(a);
+            const idxB = order.indexOf(b);
+            if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+            if (idxA !== -1) return -1;
+            if (idxB !== -1) return 1;
+            return b.localeCompare(a); // Default sort for others
+        });
+    }, [activities]);
 
     return (
         <div className={styles.activityCard}>
@@ -89,7 +101,7 @@ const ActivityFeed = ({
                 {(activeTab === "Calls" || activeTab === "Tasks" || activeTab === "Meetings") && (
                     <div className={styles.callsHeader}>
                         <h3 className={styles.groupTitle}>{activeTab}</h3>
-                        {activeTab === "Calls" && <button className={styles.makeCallBtn} onClick={onOpenCallDrawer}>Log a Phone Call</button>}
+                        {activeTab === "Calls" && <button className={styles.makeCallBtn} onClick={handleCall}>Make a phone call</button>}
                         {activeTab === "Tasks" && <button className={styles.makeCallBtn} onClick={onOpenTaskDrawer}>Create Task</button>}
                         {activeTab === "Meetings" && <button className={styles.makeCallBtn} onClick={onOpenMeetingDrawer}>Schedule Meeting</button>}
                     </div>

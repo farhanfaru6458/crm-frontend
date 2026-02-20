@@ -21,6 +21,10 @@ const GenericDetails = ({
   const [activeTab, setActiveTab] = useState("Activity");
   const [activities, setActivities] = useState(initialActivities || []);
 
+  useEffect(() => {
+    setActivities(initialActivities || []);
+  }, [initialActivities]);
+
   // Drawer/Modal States
   const [isNoteDrawerOpen, setIsNoteDrawerOpen] = useState(false);
   const [isCallDrawerOpen, setIsCallDrawerOpen] = useState(false);
@@ -32,7 +36,7 @@ const GenericDetails = ({
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
   // Accordion state for activity buttons
-  const [isActivityOpen, setIsActivityOpen] = useState(true);
+  const [isActivityOpen, setIsActivityOpen] = useState(false);
   const [isAboutOpen, setIsAboutOpen] = useState(true);
 
   // Convert form state
@@ -83,16 +87,17 @@ const GenericDetails = ({
   }, [initialActivities]);
 
   const toggleTask = (taskId) => {
-    setActivities(
-      activities.map((a) =>
-        a.id === taskId ? { ...a, completed: !a.completed } : a,
-      ),
+    setActivities((prev) =>
+      prev.map((a) =>
+        a.id === taskId ? { ...a, completed: !a.completed } : a
+      )
     );
+    toast.success("Task status updated");
   };
 
   const updateActivity = (id, updates) => {
-    setActivities(
-      activities.map((a) => (a.id === id ? { ...a, ...updates } : a)),
+    setActivities((prev) =>
+      prev.map((a) => (a.id === id ? { ...a, ...updates } : a))
     );
   };
 
@@ -104,25 +109,162 @@ const GenericDetails = ({
     note: ""
   });
 
+  const [noteFormData, setNoteFormData] = useState({
+    note: ""
+  });
+
+  const [taskFormData, setTaskFormData] = useState({
+    name: "",
+    date: new Date().toISOString().split('T')[0],
+    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }),
+    note: "",
+    priority: "Medium",
+    type: "To-Do"
+  });
+
+  const [meetingFormData, setMeetingFormData] = useState({
+    title: "",
+    date: new Date().toISOString().split('T')[0],
+    startTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }),
+    endTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }),
+    note: ""
+  });
+
+  const [emailFormData, setEmailFormData] = useState({
+    to: entity.email || "",
+    subject: "",
+    body: ""
+  });
+
   const handleLogCall = () => {
+    if (!callFormData.outcome) {
+      toast.error("Please choose a call outcome");
+      return;
+    }
     const newCall = {
       id: Date.now(),
       type: "Call",
       title: "Call logged",
       time: `${callFormData.date} at ${callFormData.time}`,
       group: "Recent",
-      content: callFormData.note,
+      content: callFormData.note || "No notes provided.",
       outcome: callFormData.outcome,
-      duration: callFormData.duration
+      duration: callFormData.duration || "N/A"
     };
     setActivities([newCall, ...activities]);
     setIsCallDrawerOpen(false);
+    toast.success("Call logged successfully");
     setCallFormData({
       outcome: "",
       duration: "",
       date: new Date().toISOString().split('T')[0],
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }),
       note: ""
+    });
+  };
+
+  const handleLogNote = () => {
+    if (!noteFormData.note.trim()) {
+      toast.error("Note content cannot be empty");
+      return;
+    }
+    const newNote = {
+      id: Date.now(),
+      type: "Note",
+      title: `Note by ${entity.owner || "User"}`,
+      time: new Date().toLocaleString([], { month: 'long', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
+      group: "Recent",
+      content: noteFormData.note,
+    };
+    setActivities([newNote, ...activities]);
+    setIsNoteDrawerOpen(false);
+    toast.success("Note saved successfully");
+    setNoteFormData({ note: "" });
+  };
+
+  const handleLogTask = () => {
+    if (!taskFormData.name.trim()) {
+      toast.error("Task name is required");
+      return;
+    }
+    const newTask = {
+      id: Date.now(),
+      type: "Task",
+      title: taskFormData.name,
+      time: `${taskFormData.date} at ${taskFormData.time}`,
+      group: "Upcoming",
+      content: taskFormData.note || "No description provided.",
+      completed: false,
+      priority: taskFormData.priority,
+      taskType: taskFormData.type
+    };
+    setActivities([newTask, ...activities]);
+    setIsTaskDrawerOpen(false);
+    toast.success("Task created successfully");
+    setTaskFormData({
+      name: "",
+      date: new Date().toISOString().split('T')[0],
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }),
+      note: "",
+      priority: "Medium",
+      type: "To-Do"
+    });
+  };
+
+  const handleLogMeeting = () => {
+    if (!meetingFormData.title.trim()) {
+      toast.error("Meeting title is required");
+      return;
+    }
+    const newMeeting = {
+      id: Date.now(),
+      type: "Meeting",
+      title: meetingFormData.title,
+      time: `${meetingFormData.date} at ${meetingFormData.startTime}`,
+      group: "Upcoming",
+      content: meetingFormData.note || "No description provided.",
+      duration: "N/A", // Calculated later if needed
+      attendees: "1",
+      organizedBy: entity.owner || "User"
+    };
+    setActivities([newMeeting, ...activities]);
+    setIsMeetingDrawerOpen(false);
+    toast.success("Meeting scheduled successfully");
+    setMeetingFormData({
+      title: "",
+      date: new Date().toISOString().split('T')[0],
+      startTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }),
+      endTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }),
+      note: ""
+    });
+  };
+
+  const handleSendEmail = () => {
+    if (!emailFormData.subject.trim() || !emailFormData.body.trim()) {
+      toast.error("Subject and body are required");
+      return;
+    }
+    const newEmail = {
+      id: Date.now(),
+      type: "Email",
+      title: `Email to ${emailFormData.to}`,
+      time: new Date().toLocaleString([], {
+        month: "long",
+        day: "numeric",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+      group: "Recent",
+      content: emailFormData.body,
+    };
+    setActivities([newEmail, ...activities]);
+    setIsEmailModalOpen(false);
+    toast.success("Email sent successfully");
+    setEmailFormData({
+      to: entity.email || "",
+      subject: "",
+      body: "",
     });
   };
 
@@ -304,7 +446,7 @@ const GenericDetails = ({
                   </button>
                   <button
                     className={styles.toolBtn}
-                    onClick={handleCall}
+                    onClick={() => setIsCallDrawerOpen(true)}
                   >
                     {icons.Call}
                     <span className={styles.toolLabel}>Call</span>
@@ -511,6 +653,8 @@ const GenericDetails = ({
                 <textarea
                   className={styles.simpleTextarea}
                   placeholder="Enter your note here..."
+                  value={noteFormData.note}
+                  onChange={(e) => setNoteFormData({ note: e.target.value })}
                 ></textarea>
               </div>
             </div>
@@ -521,7 +665,7 @@ const GenericDetails = ({
               >
                 Cancel
               </button>
-              <button className={styles.saveBtn} onClick={() => setIsNoteDrawerOpen(false)}>Save</button>
+              <button className={styles.saveBtn} onClick={handleLogNote}>Save</button>
             </div>
           </div>
         </>
@@ -543,7 +687,12 @@ const GenericDetails = ({
                 <label>
                   Task Name <span>*</span>
                 </label>
-                <input type="text" placeholder="Enter" />
+                <input
+                  type="text"
+                  placeholder="Enter"
+                  value={taskFormData.name}
+                  onChange={(e) => setTaskFormData({ ...taskFormData, name: e.target.value })}
+                />
               </div>
               <div className={styles.row}>
                 <div className={styles.field}>
@@ -551,7 +700,11 @@ const GenericDetails = ({
                     Due Date <span>*</span>
                   </label>
                   <div className={styles.iconInput}>
-                    <input type="date" />
+                    <input
+                      type="date"
+                      value={taskFormData.date}
+                      onChange={(e) => setTaskFormData({ ...taskFormData, date: e.target.value })}
+                    />
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                       <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
@@ -562,7 +715,11 @@ const GenericDetails = ({
                     Time <span>*</span>
                   </label>
                   <div className={styles.iconInput}>
-                    <input type="time" />
+                    <input
+                      type="time"
+                      value={taskFormData.time}
+                      onChange={(e) => setTaskFormData({ ...taskFormData, time: e.target.value })}
+                    />
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                       <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
@@ -576,6 +733,8 @@ const GenericDetails = ({
                 <textarea
                   className={styles.simpleTextarea}
                   placeholder="Enter note details..."
+                  value={taskFormData.note}
+                  onChange={(e) => setTaskFormData({ ...taskFormData, note: e.target.value })}
                 ></textarea>
               </div>
             </div>
@@ -586,7 +745,7 @@ const GenericDetails = ({
               >
                 Cancel
               </button>
-              <button className={styles.saveBtn} onClick={() => setIsTaskDrawerOpen(false)}>Save</button>
+              <button className={styles.saveBtn} onClick={handleLogTask}>Save</button>
             </div>
           </div>
         </>
@@ -608,14 +767,23 @@ const GenericDetails = ({
                 <label>
                   Title <span>*</span>
                 </label>
-                <input type="text" placeholder="Enter" />
+                <input
+                  type="text"
+                  placeholder="Enter"
+                  value={meetingFormData.title}
+                  onChange={(e) => setMeetingFormData({ ...meetingFormData, title: e.target.value })}
+                />
               </div>
               <div className={styles.field}>
                 <label>
                   Start Date <span>*</span>
                 </label>
                 <div className={styles.iconInput}>
-                  <input type="date" />
+                  <input
+                    type="date"
+                    value={meetingFormData.date}
+                    onChange={(e) => setMeetingFormData({ ...meetingFormData, date: e.target.value })}
+                  />
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                     <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
@@ -627,7 +795,11 @@ const GenericDetails = ({
                     Start Time <span>*</span>
                   </label>
                   <div className={styles.iconInput}>
-                    <input type="time" />
+                    <input
+                      type="time"
+                      value={meetingFormData.startTime}
+                      onChange={(e) => setMeetingFormData({ ...meetingFormData, startTime: e.target.value })}
+                    />
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                       <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
@@ -638,7 +810,11 @@ const GenericDetails = ({
                     End Time <span>*</span>
                   </label>
                   <div className={styles.iconInput}>
-                    <input type="time" />
+                    <input
+                      type="time"
+                      value={meetingFormData.endTime}
+                      onChange={(e) => setMeetingFormData({ ...meetingFormData, endTime: e.target.value })}
+                    />
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                       <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
@@ -652,6 +828,8 @@ const GenericDetails = ({
                 <textarea
                   className={styles.simpleTextarea}
                   placeholder="Enter meeting details..."
+                  value={meetingFormData.note}
+                  onChange={(e) => setMeetingFormData({ ...meetingFormData, note: e.target.value })}
                 ></textarea>
               </div>
             </div>
@@ -662,7 +840,7 @@ const GenericDetails = ({
               >
                 Cancel
               </button>
-              <button className={styles.saveBtn} onClick={() => setIsMeetingDrawerOpen(false)}>Save</button>
+              <button className={styles.saveBtn} onClick={handleLogMeeting}>Save</button>
             </div>
           </div>
         </>
@@ -841,22 +1019,35 @@ const GenericDetails = ({
             <div className={styles.emailBody}>
               <div className={styles.emailRow}>
                 <label>Recipients</label>
-                <input type="text" />
+                <input
+                  type="text"
+                  value={emailFormData.to}
+                  onChange={(e) => setEmailFormData({ ...emailFormData, to: e.target.value })}
+                />
                 <div className={styles.emailActions}>
                   <span>Cc</span> <span>Bcc</span>
                 </div>
               </div>
               <div className={styles.emailRow}>
                 <label>Subject</label>
-                <input type="text" />
+                <input
+                  type="text"
+                  placeholder="Subject"
+                  value={emailFormData.subject}
+                  onChange={(e) => setEmailFormData({ ...emailFormData, subject: e.target.value })}
+                />
               </div>
               <div className={styles.emailEditor}>
-                <textarea placeholder="Body Text"></textarea>
+                <textarea
+                  placeholder="Body Text"
+                  value={emailFormData.body}
+                  onChange={(e) => setEmailFormData({ ...emailFormData, body: e.target.value })}
+                ></textarea>
               </div>
             </div>
             <div className={styles.emailFooter}>
               <div className={styles.footerLeft}>
-                <button className={styles.sendBtn}>Send</button>
+                <button className={styles.sendBtn} onClick={handleSendEmail}>Send</button>
                 <div className={styles.footerIcons}>
                   <span onClick={triggerFileInput}>Clip</span>
                 </div>

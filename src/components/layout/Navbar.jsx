@@ -22,6 +22,7 @@ export default function Navbar() {
   const handleClearNotifications = (e) => {
     e.stopPropagation();
     dispatch(clearNotifications());
+    setIsNotifyOpen(false);
   };
 
   return (

@@ -1,19 +1,12 @@
+.formContainer {
+    width: 100%;
+}
+
 .form {
     display: flex;
     flex-direction: column;
     gap: 1.25rem;
-    max-height: 480px;
-    overflow-y: auto;
-    padding-right: 8px;
-}
-
-.form::-webkit-scrollbar {
-    width: 6px;
-}
-
-.form::-webkit-scrollbar-thumb {
-    background: #e2e8f0;
-    border-radius: 10px;
+    padding-bottom: 1rem;
 }
 
 .field {
@@ -24,39 +17,205 @@
 
 .label {
     font-size: 0.875rem;
-    font-weight: 600;
-    color: #1e293b;
+    font-weight: 500;
+    color: #334155;
+    display: flex;
+    align-items: center;
+    gap: 4px;
 }
 
 .required {
     color: #ef4444;
 }
 
+.inputWrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.inputIcon {
+    position: absolute;
+    left: 1rem;
+    color: #94a3b8;
+}
+
 .input,
+.inputWithIcon,
 .select {
-    height: 44px;
-    padding: 0 1rem;
+    width: 100%;
+    height: 48px;
+    padding: 0.75rem 1rem;
     border: 1px solid #e2e8f0;
     border-radius: 0.5rem;
     font-size: 0.875rem;
     color: #1e293b;
     background-color: #ffffff;
-    width: 100%;
     transition: all 0.2s;
+    outline: none;
+}
+
+.inputWithIcon {
+    padding-left: 3rem;
 }
 
 .input:focus,
-.select:focus {
-    outline: none;
+.inputWithIcon:focus,
+.select:focus,
+.customSelect:focus {
     border-color: #5a4bff;
     box-shadow: 0 0 0 2px rgba(90, 75, 255, 0.1);
 }
 
+.input::placeholder,
+.placeholder {
+    color: #94a3b8;
+}
+
+/* Phone Input Styles */
+.phoneInput {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    height: 48px;
+}
+
+.phoneInput .input {
+    border: none;
+    height: 100%;
+}
+
+.flagSelector {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0 0.75rem;
+    border-right: 1px solid #e2e8f0;
+    background-color: #ffffff;
+    cursor: pointer;
+    height: 100%;
+}
+
+.flagIcon {
+    width: 24px;
+    height: 16px;
+    object-fit: contain;
+}
+
+.chevronIcon {
+    color: #64748b;
+}
+
+/* Custom Select Styles (Multi-selector) */
+.customSelectWrapper {
+    position: relative;
+}
+
+.customSelect {
+    min-height: 48px;
+    padding: 0.5rem 1rem;
+    padding-right: 2.5rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.5rem;
+    background-color: #ffffff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.selectChevron {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #64748b;
+    pointer-events: none;
+}
+
+.selectedTags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+}
+
+.tag {
+    background-color: #f1f5f9;
+    color: #475569;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.closeTag {
+    cursor: pointer;
+    color: #94a3b8;
+}
+
+.closeTag:hover {
+    color: #ef4444;
+}
+
+.dropdownOptions {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.5rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    z-index: 50;
+    max-height: 250px;
+    overflow-y: auto;
+}
+
+.option {
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    color: #1e293b;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.option:hover {
+    background-color: #f8fafc;
+}
+
+.selectedOption {
+    background-color: #f1f5f9;
+}
+
+.checkbox {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+/* Single Select Container */
+.selectContainer {
+    position: relative;
+}
+
 .select {
     appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b' stroke-width='1.5'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='m19.5 8.25-7.5 7.5-7.5-7.5'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 1rem center;
-    background-size: 1rem;
-    padding-right: 2.5rem;
+    cursor: pointer;
+}
+
+.selectChevronOverlay {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #64748b;
+    pointer-events: none;
 }

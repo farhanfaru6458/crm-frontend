@@ -58,7 +58,7 @@
 /* Hover */
 .menuItem:hover .iconCircle {
   border-color: #5a4bff;
-  color: #5a4bff;
+  color: #c3c2c6;
 }
 
 .menuItem:hover {

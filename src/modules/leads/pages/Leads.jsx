@@ -32,13 +32,28 @@ export default function Leads() {
 
   const handleOpenCreate = () => {
     setEditingLead(null);
-    setFormData({});
+    setFormData({
+      owner: [],
+      firstName: "",
+      lastName: "",
+      email: "",
+      phone: "",
+      jobTitle: "",
+      status: "New"
+    });
     setIsModalOpen(true);
   };
 
   const handleOpenEdit = (lead) => {
+    const names = (lead.name || "").split(" ");
+    const leadWithNames = {
+      ...lead,
+      firstName: names[0] || "",
+      lastName: names.slice(1).join(" ") || "",
+      owner: Array.isArray(lead.owner) ? lead.owner : (lead.owner ? [lead.owner] : [])
+    };
     setEditingLead(lead);
-    setFormData(lead);
+    setFormData(leadWithNames);
     setIsModalOpen(true);
   };
 
@@ -47,19 +62,26 @@ export default function Leads() {
   };
 
   const handleSave = () => {
+    const combinedName = `${formData.firstName || ""} ${formData.lastName || ""}`.trim();
+    const finalFormData = {
+      ...formData,
+      name: combinedName || "Unnamed Lead"
+    };
+
     if (editingLead) {
-      dispatch(updateLead(formData));
+      dispatch(updateLead(finalFormData));
       toast.success("Lead updated successfully!");
       dispatch(addNotification({
         id: Date.now(),
-        message: `Lead ${formData.name} updated successfully!`,
+        message: `Lead ${finalFormData.name} updated successfully!`,
         type: "update",
         timestamp: new Date().toLocaleString()
       }));
     } else {
       const newLead = {
-        ...formData,
+        ...finalFormData,
         _id: Math.random().toString(36).substr(2, 9),
+        createdDate: new Date().toLocaleDateString('en-GB'), // Matches 04/08/2025 format
         createdAt: new Date().toLocaleString(),
       };
       dispatch(addLead(newLead));
@@ -81,7 +103,14 @@ export default function Leads() {
       lead.email.toLowerCase().includes(search.toLowerCase()) ||
       lead.phone.includes(search);
     const matchesStatus = !statusFilter || lead.status === statusFilter;
-    const matchesDate = !dateFilter || lead.createdDate === dateFilter;
+
+    let matchesDate = true;
+    if (dateFilter) {
+      const [y, m, d] = dateFilter.split("-");
+      const formattedFilterDate = `${d}/${m}/${y}`;
+      matchesDate = lead.createdDate === formattedFilterDate;
+    }
+
     return matchesSearch && matchesStatus && matchesDate;
   });
 
@@ -214,23 +243,13 @@ export default function Leads() {
               </svg>
             </div>
             <div className={styles.selectWrapper}>
-              <div className={styles.dateDisplay}>
-                Created Date
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.5}
-                  stroke="currentColor"
-                  className={styles.calendarIcon}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5"
-                  />
-                </svg>
-              </div>
+              <input
+                type="date"
+                className={styles.dateInput}
+                value={dateFilter}
+                onChange={(e) => { setDateFilter(e.target.value); setCurrentPage(1); }}
+              />
+             
             </div>
           </div>
 
