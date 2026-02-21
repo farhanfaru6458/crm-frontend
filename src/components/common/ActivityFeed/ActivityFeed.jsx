@@ -20,11 +20,7 @@ const ActivityFeed = ({
 }) => {
     const dispatch = useDispatch();
     // Track which accordion items are expanded (open by default)
-    const [expandedItems, setExpandedItems] = useState(() => {
-        const initial = {};
-        activities.forEach(a => { initial[a.id] = true; });
-        return initial;
-    });
+    const [expandedItems, setExpandedItems] = useState({});
 
     const toggleExpand = (id) => {
         setExpandedItems(prev => ({ ...prev, [id]: !prev[id] }));
@@ -116,7 +112,7 @@ const ActivityFeed = ({
                             <div key={group} className={styles.feedGroup}>
                                 <h3 className={styles.groupTitle}>{activeTab === "Activity" ? group : ""}</h3>
                                 {groupItems.map((item) => {
-                                    const isExpanded = expandedItems[item.id] !== false;
+                                    const isExpanded = !!expandedItems[item.id];
                                     return (
                                         <div key={item.id} className={styles.feedItem}>
                                             {/* Accordion Header */}

@@ -36,7 +36,7 @@ const GenericDetails = ({
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
   // Accordion state for activity buttons
-  const [isActivityOpen, setIsActivityOpen] = useState(false);
+  const [isActivityOpen, setIsActivityOpen] = useState(true);
   const [isAboutOpen, setIsAboutOpen] = useState(true);
 
   // Convert form state
@@ -199,7 +199,7 @@ const GenericDetails = ({
       taskType: taskFormData.type
     };
     setActivities([newTask, ...activities]);
-    setIsTaskDrawerOpen(false);
+    setIsTaskDrawerOpen(true);
     toast.success("Task created successfully");
     setTaskFormData({
       name: "",
