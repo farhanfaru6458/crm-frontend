@@ -81,7 +81,8 @@ const DealDetails = () => {
     entityName: "Deal",
     backLink: "/deals",
     titleField: "dealName",
-    showAvatar: true,
+    showAvatar: false,
+    subTitleRender: (entity) => `Amount: ${entity.amount} | Stage: ${entity.dealStage}`,
     detailsFields: [
       { key: "dealName", label: "Deal Name" },
       { key: "dealStage", label: "Deal Stage" },

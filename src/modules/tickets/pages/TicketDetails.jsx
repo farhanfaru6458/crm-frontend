@@ -83,7 +83,7 @@ const TicketDetails = () => {
     backLink: "/tickets",
     titleField: "name",
     subTitleRender: (entity) => `Status: ${entity.status} | Priority: ${entity.priority}`,
-    showAvatar: true,
+    showAvatar: false,
     detailsFields: [
       { key: "name", label: "Ticket Name" },
       { key: "description", label: "Description" },
