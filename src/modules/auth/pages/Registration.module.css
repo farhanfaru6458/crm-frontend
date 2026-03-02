@@ -5,16 +5,24 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  padding: 40px 20px;
+  /* Added vertical padding and horizontal buffer */
+  overflow-y: auto;
+  /* Ensure scrollability */
 }
 
 
 .card {
-  width: 700px;
+  width: 100%;
+  max-width: 700px;
+  /* Use max-width for better responsiveness */
   background: #ffffff;
   padding: 35px 40px;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  margin-top: auto;
+  /* Vertical centering logic that works with overflow */
+  margin-bottom: auto;
 }
 
 
@@ -62,14 +70,17 @@ label {
 
 input,
 select {
-  height: 42px;
+  height: 44px;
   padding: 0 12px;
-  border-radius: 6px;
-  border: 1px solid #d9dce3;
-  background-color: #f9fafc;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  background-color: #f9fafb;
   font-size: 14px;
   outline: none;
-  transition: all 0.2s ease;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  width: 100%;
+  /* Ensure they don't exceed container */
+  max-width: 100%;
 }
 
 input:focus,
@@ -91,20 +102,35 @@ select.invalid {
 
 
 .button {
-  height: 45px;
-  margin-top: 10px;
+  height: 48px;
+  margin-top: 15px;
   border: none;
-  border-radius: 6px;
-  background: linear-gradient(90deg, #6d5dfc, #5a4bff);
+  border-radius: 8px;
+  background: linear-gradient(135deg, #6d5dfc 0%, #5a4bff 100%);
   color: white;
-  font-size: 15px;
-  font-weight: 500;
+  font-size: 16px;
+  font-weight: 600;
   cursor: pointer;
-  transition: 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 0 4px 12px rgba(109, 93, 252, 0.3);
+  letter-spacing: 0.5px;
 }
 
 .button:hover {
-  opacity: 0.9;
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 8px 20px rgba(109, 93, 252, 0.4);
+}
+
+.button:active {
+  transform: translateY(-1px) scale(1);
+  box-shadow: 0 4px 10px rgba(109, 93, 252, 0.3);
+}
+
+.button:disabled {
+  background: #cbd5e1;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 

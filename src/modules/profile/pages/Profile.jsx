@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { useAuth } from "../../../context/AuthContext";
 import styles from './Profile.module.css';
+import { countries } from "../../../utils/countries";
 
 const Profile = () => {
     const { user, updateUser } = useAuth();
@@ -117,12 +118,18 @@ const Profile = () => {
                             </div>
                             <div className={styles.formGroup}>
                                 <label>Country</label>
-                                <input
-                                    type="text"
+                                <select
                                     name="country"
                                     value={formData.country}
                                     onChange={handleChange}
-                                />
+                                >
+                                    <option value="">Choose Country</option>
+                                    {countries.map((country) => (
+                                        <option key={country} value={country}>
+                                            {country}
+                                        </option>
+                                    ))}
+                                </select>
                             </div>
 
                             <div className={styles.formActions}>

@@ -21,15 +21,17 @@ import ForgotPassword from "../modules/auth/pages/ForgotPassword";
 import Tickets from "../modules/tickets/pages/Tickets";
 import TicketDetails from "../modules/tickets/pages/TicketDetails";
 import Search from "../modules/search/pages/Search";
-
+import VerifyOtp from "../modules/auth/pages/VerifyOtp";
+import ResetPassword from "../modules/auth/pages/ResetPassword";
 export default function AppRoutes() {
   const { user } = useAuth();
 
   return (
     <Routes>
       <Route path="/" element={<Navigate to={user ? "/dashboard" : "/login"} />} />
-
+      <Route path="/verify-otp" element={<VerifyOtp />} />
       <Route path="/register" element={!user ? <Registration /> : <Navigate to="/dashboard" />} />
+      <Route path="/reset-password/:email" element={<ResetPassword />} />
       <Route path="/login" element={!user ? <Login /> : <Navigate to="/dashboard" />} />
       <Route path="/forgot-password" element={!user ? <ForgotPassword /> : <Navigate to="/dashboard" />} />
       <Route element={
@@ -43,7 +45,7 @@ export default function AppRoutes() {
         <Route path="/leads/:id" element={<LeadDetails />} />
         <Route path="/companies" element={<Companies />} />
         <Route path="/companies/:id" element={<CompanyDetails />} />
-<Route path="/search" element={<Search />} />
+        <Route path="/search" element={<Search />} />
         <Route path="/deals" element={<Deals />} />
         <Route path="/deals/:id" element={<DealDetails />} />
         <Route path="/tickets" element={<Tickets />} />

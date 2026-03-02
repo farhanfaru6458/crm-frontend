@@ -1,128 +1,65 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import axios from "../services/axiosInstance";
+
+//  FETCH
+export const fetchDeals = createAsyncThunk(
+  "deals/fetchDeals",
+  async () => {
+    console.log("Calling Fetch Deals API...");
+    const { data } = await axios.get("/deals");
+    console.log("Fetch Deals API Response:", data);
+    // Handle both cases: { data: [...] } and directly returning the array
+    return Array.isArray(data) ? data : data.data || [];
+  }
+);
+
+// CREATE
+export const addDeal = createAsyncThunk(
+  "deals/addDeal",
+  async (dealData) => {
+    const { data } = await axios.post("/deals", dealData);
+    return data.data;
+  }
+);
+
+// BULK CREATE
+export const bulkAddDeals = createAsyncThunk(
+  "deals/bulkAddDeals",
+  async (dealsData) => {
+    const { data } = await axios.post("/deals/bulk-create", dealsData);
+    return data.data;
+  }
+);
+
+// UPDATE
+export const updateDeal = createAsyncThunk(
+  "deals/updateDeal",
+  async (dealData) => {
+    const { data } = await axios.put(`/deals/${dealData._id}`, dealData);
+    return data.data;
+  }
+);
+
+// DELETE
+export const removeDeal = createAsyncThunk(
+  "deals/removeDeal",
+  async (id) => {
+    await axios.delete(`/deals/${id}`);
+    return id;
+  }
+);
+
+// BULK DELETE
+export const bulkDeleteDeals = createAsyncThunk(
+  "deals/bulkDeleteDeals",
+  async (ids) => {
+    await axios.post("/deals/bulk-delete", { ids });
+    return ids;
+  }
+);
 
 const initialState = {
-  deals: [
-    {
-      _id: "1",
-      dealName: "Website Revamp - Atlas Corp",
-      dealStage: "Negotiation",
-      closeDate: "Apr 8, 2025",
-      dealOwner: "Jane Cooper",
-      amount: 12500,
-    },
-    {
-      _id: "2",
-      dealName: "Mobile App for FitBuddy",
-      dealStage: "Proposal Sent",
-      closeDate: "Apr 8, 2025",
-      dealOwner: "Wade Warren",
-      amount: 25000,
-    },
-    {
-      _id: "3",
-      dealName: "HR Software License - ZenoHR",
-      dealStage: "Proposal Sent",
-      closeDate: "Apr 8, 2025",
-      dealOwner: "Brooklyn Simmons",
-      amount: 18750,
-    },
-    {
-      _id: "4",
-      dealName: "CRM Onboarding - NexTech",
-      dealStage: "Closed Won",
-      closeDate: "Apr 8, 2025",
-      dealOwner: "Leslie Alexander",
-      amount: 32000,
-    },
-    {
-      _id: "5",
-      dealName: "Marketing Suite - QuickAdz",
-      dealStage: "Negotiation",
-      closeDate: "Apr 8, 2025",
-      dealOwner: "Jenny Wilson",
-      amount: 14800,
-    },
-    {
-      _id: "6",
-      dealName: "Inventory Tool - GreenMart",
-      dealStage: "Negotiation",
-      closeDate: "Apr 8, 2025",
-      dealOwner: "Guy Hawkins",
-      amount: 9300,
-    },
-    {
-      _id: "7",
-      dealName: "ERP Integration - BlueChip",
-      dealStage: "Proposal Sent",
-      closeDate: "Apr 8, 2025",
-      dealOwner: "Robert Fox",
-      amount: 41000,
-    },
-    {
-      _id: "8",
-      dealName: "Loyalty Program - FoodieFox",
-      dealStage: "Closed Lost",
-      closeDate: "Apr 8, 2025",
-      dealOwner: "Cameron Williamson",
-      amount: 11000,
-    },
-    {
-      _id: "9",
-      dealName: "Cloud Migration - Relatia",
-      dealStage: "Proposal Sent",
-      closeDate: "May 2, 2025",
-      dealOwner: "Jane Cooper",
-      amount: 55000,
-    },
-    {
-      _id: "10",
-      dealName: "Analytics Dashboard - TrustSphere",
-      dealStage: "Negotiation",
-      closeDate: "May 5, 2025",
-      dealOwner: "Wade Warren",
-      amount: 22000,
-    },
-    {
-      _id: "11",
-      dealName: "Security Audit - ClientEdge",
-      dealStage: "Proposal Sent",
-      closeDate: "May 10, 2025",
-      dealOwner: "Brooklyn Simmons",
-      amount: 17500,
-    },
-    {
-      _id: "12",
-      dealName: "E-Commerce Platform - ShopNow",
-      dealStage: "Negotiation",
-      closeDate: "May 15, 2025",
-      dealOwner: "Leslie Alexander",
-      amount: 38000,
-    },
-    {
-      _id: "13",
-      dealName: "Data Warehouse - FinCore",
-      dealStage: "Closed Won",
-      closeDate: "May 20, 2025",
-      dealOwner: "Jenny Wilson",
-      amount: 62000,
-    },
-    {
-      _id: "14",
-      dealName: "DevOps Pipeline - BuildFast",
-      dealStage: "Negotiation",
-      closeDate: "May 25, 2025",
-      dealOwner: "Guy Hawkins",
-      amount: 29500,
-    },
-    {
-      _id: "15",
-      dealName: "AI Chatbot - SupportAI",
-      dealStage: "Proposal Sent",
-      closeDate: "Jun 1, 2025",
-      dealOwner: "Robert Fox",
-      amount: 47000,
-    },
-  ],
+  deals: [],
   loading: false,
   error: null,
 };
@@ -130,30 +67,45 @@ const initialState = {
 const dealsSlice = createSlice({
   name: "deals",
   initialState,
-  reducers: {
-    setDeals: (state, action) => {
-      state.deals = action.payload;
-    },
-    addDeal: (state, action) => {
-      state.deals.push(action.payload);
-    },
-    updateDeal: (state, action) => {
-      const index = state.deals.findIndex(
-        (deal) => deal._id === action.payload._id
-      );
-      if (index !== -1) {
-        state.deals[index] = action.payload;
-      }
-    },
-    removeDeal: (state, action) => {
-      state.deals = state.deals.filter(
-        (deal) => deal._id !== action.payload
-      );
-    },
+  reducers: {},
+  extraReducers: (builder) => {
+    builder
+      // FETCH
+      .addCase(fetchDeals.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchDeals.fulfilled, (state, action) => {
+        state.loading = false;
+        state.deals = action.payload;
+      })
+      .addCase(fetchDeals.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message;
+      })
+      // CREATE
+      .addCase(addDeal.fulfilled, (state, action) => {
+        state.deals.unshift(action.payload);
+      })
+      // BULK CREATE
+      .addCase(bulkAddDeals.fulfilled, (state, action) => {
+        state.deals.unshift(...action.payload);
+      })
+      // UPDATE
+      .addCase(updateDeal.fulfilled, (state, action) => {
+        const index = state.deals.findIndex((d) => d._id === action.payload._id);
+        if (index !== -1) {
+          state.deals[index] = action.payload;
+        }
+      })
+      // DELETE
+      .addCase(removeDeal.fulfilled, (state, action) => {
+        state.deals = state.deals.filter((d) => d._id !== action.payload);
+      })
+      // BULK DELETE
+      .addCase(bulkDeleteDeals.fulfilled, (state, action) => {
+        state.deals = state.deals.filter((d) => !action.payload.includes(d._id));
+      });
   },
 });
-
-export const { setDeals, addDeal, updateDeal, removeDeal } =
-  dealsSlice.actions;
 
 export default dealsSlice.reducer;

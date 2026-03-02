@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import styles from "./Deals.module.css";
 import Table from "../../../components/ui/Table";
@@ -14,16 +14,18 @@ import { toast } from "react-hot-toast";
 import { addNotification } from "../../../redux/notificationsSlice";
 
 import { useSelector, useDispatch } from "react-redux";
-import { setDeals, removeDeal, addDeal, updateDeal } from "../../../redux/dealsSlice";
+import { fetchDeals, removeDeal, addDeal, updateDeal, bulkDeleteDeals, bulkAddDeals } from "../../../redux/dealsSlice";
 
 export default function Deals() {
   const dispatch = useDispatch();
-  const deals = useSelector((state) => state.deals.deals);
+  const { deals, loading } = useSelector((state) => state.deals);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [dealToDelete, setDealToDelete] = useState(null);
   const [editingDeal, setEditingDeal] = useState(null);
   const [formData, setFormData] = useState({});
+  const [selectedDeals, setSelectedDeals] = useState([]);
+  const [errors, setErrors] = useState({});
 
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -32,26 +34,21 @@ export default function Deals() {
   const [closeDateFilter, setCloseDateFilter] = useState("");
   const itemsPerPage = 8;
 
+  useEffect(() => {
+    dispatch(fetchDeals());
+  }, [dispatch]);
+
   // Filtering Logic
-  const filteredDeals = deals.filter((deal) => {
+  const filteredDeals = (deals || []).filter((deal) => {
+    const searchTerm = (search || "").toLowerCase();
     const matchesSearch =
-      deal.dealName.toLowerCase().includes(search.toLowerCase()) ||
-      deal.dealOwner.toLowerCase().includes(search.toLowerCase());
+      (deal.dealName || "").toLowerCase().includes(searchTerm) ||
+      (deal.dealOwner || "").toLowerCase().includes(searchTerm);
+
     const matchesOwner = !ownerFilter || deal.dealOwner === ownerFilter;
     const matchesStage = !stageFilter || deal.dealStage === stageFilter;
 
-    let matchesDate = true;
-    if (closeDateFilter) {
-      const dateObj = new Date(closeDateFilter);
-      const formattedFilterDate = dateObj.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      });
-      matchesDate = deal.closeDate === formattedFilterDate;
-    }
-
-    return matchesSearch && matchesOwner && matchesStage && matchesDate;
+    return matchesSearch && matchesOwner && matchesStage;
   });
 
   // Pagination Logic
@@ -74,6 +71,7 @@ export default function Deals() {
   const handleEdit = (row) => {
     setEditingDeal(row);
     setFormData(row);
+    setErrors({});
     setIsModalOpen(true);
   };
 
@@ -82,22 +80,42 @@ export default function Deals() {
     setIsConfirmOpen(true);
   };
 
-  const confirmDelete = () => {
-    if (dealToDelete) {
-      dispatch(removeDeal(dealToDelete._id));
-      toast.success("Deal deleted successfully");
-      dispatch(addNotification({
-        id: Date.now(),
-        message: `Deal ${dealToDelete.dealName} deleted successfully!`,
-        type: "delete",
-        timestamp: new Date().toLocaleString()
-      }));
+  const confirmDelete = async () => {
+    try {
+      if (dealToDelete) {
+        if (Array.isArray(dealToDelete)) {
+          // Bulk delete
+          await dispatch(bulkDeleteDeals(dealToDelete)).unwrap();
+          toast.success(`${dealToDelete.length} deals deleted successfully`);
+          setSelectedDeals([]);
+        } else {
+          // Single delete
+          await dispatch(removeDeal(dealToDelete._id)).unwrap();
+          toast.success("Deal deleted successfully");
+          dispatch(addNotification({
+            id: Date.now(),
+            message: `Deal ${dealToDelete.dealName} deleted successfully!`,
+            type: "delete",
+            timestamp: new Date().toLocaleString()
+          }));
+        }
+        setDealToDelete(null);
+      }
+    } catch (error) {
+      toast.error("Delete failed");
     }
+    setIsConfirmOpen(false);
+  };
+
+  const handleBulkDelete = () => {
+    setDealToDelete(selectedDeals);
+    setIsConfirmOpen(true);
   };
 
   const handleOpenModal = () => {
     setEditingDeal(null);
     setFormData({}); // Reset form
+    setErrors({});
     setIsModalOpen(true);
   };
 
@@ -107,30 +125,57 @@ export default function Deals() {
 
   const handleInputChange = (name, value) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
+    if (errors[name]) {
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
   };
 
-  const handleSaveDeal = () => {
-    if (editingDeal) {
-      dispatch(updateDeal(formData));
-    } else {
-      const newDeal = {
-        _id: Date.now().toString(),
-        ...formData,
-        amount: Number(formData.amount),
-      };
+  const handleSaveDeal = async () => {
+    const newErrors = {};
+    if (!formData.dealName?.trim()) newErrors.dealName = "Deal name is required";
+    if (!formData.dealStage) newErrors.dealStage = "Deal stage is required";
+    if (!formData.amount) newErrors.amount = "Amount is required";
+    if (!formData.dealOwner) newErrors.dealOwner = "Deal owner is required";
+    if (!formData.closeDate) newErrors.closeDate = "Close date is required";
+    if (!formData.priority) newErrors.priority = "Priority is required";
 
-      if (newDeal.closeDate) {
-        const dateObj = new Date(newDeal.closeDate);
-        newDeal.closeDate = dateObj.toLocaleDateString("en-US", {
-          month: "short",
-          day: "numeric",
-          year: "numeric",
-        });
-      }
-
-      dispatch(addDeal(newDeal));
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      toast.error("Please fix the errors in the form");
+      return;
     }
-    handleCloseModal();
+
+    try {
+      if (editingDeal) {
+        await dispatch(updateDeal(formData)).unwrap();
+        toast.success("Deal updated successfully");
+      } else {
+        await dispatch(addDeal(formData)).unwrap();
+        toast.success("Deal created successfully");
+      }
+      handleCloseModal();
+    } catch (error) {
+      toast.error(error?.message || "Operation failed");
+    }
+  };
+
+  const handleImport = async (data) => {
+    try {
+      await dispatch(bulkAddDeals(data)).unwrap();
+      toast.success(`${data.length} deals imported successfully!`);
+      dispatch(addNotification({
+        id: Date.now(),
+        message: `${data.length} deals imported successfully!`,
+        type: "create",
+        timestamp: new Date().toLocaleString()
+      }));
+    } catch (error) {
+      toast.error("Bulk import failed. Please check the CSV format.");
+    }
   };
 
   const formatCurrency = (amount) => {
@@ -149,7 +194,7 @@ export default function Deals() {
       render: (row) => (
         <Link
           to={`/deals/${row._id}`}
-          style={{ textDecoration: "none", color: "#111827", fontWeight: 600 }}
+          className={styles.dealLink}
         >
           {row.dealName}
         </Link>
@@ -172,7 +217,12 @@ export default function Deals() {
         <div className={styles.header}>
           <h1 className={styles.title}>Deals</h1>
           <div className={styles.headerActions}>
-            <ImportButton className={styles.importBtn} />
+            {selectedDeals.length > 0 && (
+              <button className={styles.bulkDeleteBtn} onClick={handleBulkDelete}>
+                Delete Selected ({selectedDeals.length})
+              </button>
+            )}
+            <ImportButton className={styles.importBtn} onImport={handleImport} />
             <button className={styles.addBtn} onClick={handleOpenModal}>
               Create
             </button>
@@ -274,7 +324,7 @@ export default function Deals() {
               value={closeDateFilter}
               onChange={(e) => { setCloseDateFilter(e.target.value); setCurrentPage(1); }}
             />
-            
+
           </div>
         </div>
 
@@ -285,8 +335,9 @@ export default function Deals() {
             data={currentDeals}
             onEdit={handleEdit}
             onDelete={handleDelete}
-            onSelectionChange={(selected) => console.log("Selected:", selected)}
-          />  
+            onSelectionChange={setSelectedDeals}
+            selectedRows={selectedDeals}
+          />
         </div>
       </div>
 
@@ -296,7 +347,7 @@ export default function Deals() {
         title={editingDeal ? "Edit Deal" : "Create Deal"}
         onSave={handleSaveDeal}
       >
-        <DealForm formData={formData} onChange={handleInputChange} />
+        <DealForm formData={formData} onChange={handleInputChange} errors={errors} />
       </Modal>
 
       <ConfirmDialog

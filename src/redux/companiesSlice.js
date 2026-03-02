@@ -1,253 +1,109 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import axios from "../services/axiosInstance";
 
-const initialState = {
-  companies: [
-    {
-      _id: "1",
-      name: "ClientEdge",
-      owner: "Jane Cooper",
-      phone: "078 5432 8505",
-      industry: "Legal Services",
-      city: "Toronto",
-      country: "Canada",
-      domain: "clientedge.com",
-      type: "Client",
-      employees: "50-100",
-      revenue: "10,00,000",
-      createdAt: "Apr 8, 2025 2:35 PM GMT+5:30",
-    },
-    {
-      _id: "2",
-      name: "Relatia",
-      owner: "Wade Warren",
-      phone: "077 5465 8785",
-      industry: "Healthcare",
-      city: "Amsterdam",
-      country: "Netherlands",
-      domain: "relatia.io",
-      type: "Partner",
-      employees: "10-20",
-      revenue: "5,00,000",
-      createdAt: "Apr 8, 2025 2:35 PM GMT+5:30",
-    },
-    {
-      _id: "3",
-      name: "TrustSphere",
-      owner: "Brooklyn Simmons",
-      phone: "070 4531 9507",
-      industry: "Real Estate",
-      city: "Bangalore",
-      country: "India",
-      domain: "trustsphere.com",
-      type: "Client",
-      employees: "100-120",
-      revenue: "20,00,00,000",
-      createdAt: "Apr 8, 2025 2:35 PM GMT+5:30",
-    },
-    {
-      _id: "4",
-      name: "NexTech Solutions",
-      owner: "Leslie Alexander",
-      phone: "071 6543 2109",
-      industry: "Technology",
-      city: "San Francisco",
-      country: "USA",
-      domain: "nextech.io",
-      type: "Client",
-      employees: "200-500",
-      revenue: "50,00,000",
-      createdAt: "Apr 9, 2025 10:00 AM GMT+5:30",
-    },
-    {
-      _id: "5",
-      name: "QuickAdz Media",
-      owner: "Jenny Wilson",
-      phone: "072 7654 3210",
-      industry: "Technology",
-      city: "New York",
-      country: "USA",
-      domain: "quickadz.com",
-      type: "Partner",
-      employees: "20-50",
-      revenue: "8,00,000",
-      createdAt: "Apr 9, 2025 11:30 AM GMT+5:30",
-    },
-    {
-      _id: "6",
-      name: "GreenMart Retail",
-      owner: "Guy Hawkins",
-      phone: "073 8765 4321",
-      industry: "Real Estate",
-      city: "London",
-      country: "UK",
-      domain: "greenmart.co",
-      type: "Client",
-      employees: "500-1000",
-      revenue: "1,00,00,000",
-      createdAt: "Apr 10, 2025 9:15 AM GMT+5:30",
-    },
-    {
-      _id: "7",
-      name: "BlueChip Finance",
-      owner: "Robert Fox",
-      phone: "074 9876 5432",
-      industry: "Healthcare",
-      city: "Sydney",
-      country: "Australia",
-      domain: "bluechip.net",
-      type: "Client",
-      employees: "100-200",
-      revenue: "30,00,000",
-      createdAt: "Apr 10, 2025 2:00 PM GMT+5:30",
-    },
-    {
-      _id: "8",
-      name: "FoodieFox Delivery",
-      owner: "Cameron Williamson",
-      phone: "075 0987 6543",
-      industry: "Technology",
-      city: "Berlin",
-      country: "Germany",
-      domain: "foodiefox.com",
-      type: "Partner",
-      employees: "50-100",
-      revenue: "15,00,000",
-      createdAt: "Apr 11, 2025 8:45 AM GMT+5:30",
-    },
-    {
-      _id: "9",
-      name: "ZenoHR Systems",
-      owner: "Jane Cooper",
-      phone: "076 1098 7654",
-      industry: "Legal Services",
-      city: "Toronto",
-      country: "Canada",
-      domain: "zenohr.com",
-      type: "Client",
-      employees: "10-20",
-      revenue: "3,00,000",
-      createdAt: "Apr 11, 2025 3:30 PM GMT+5:30",
-    },
-    {
-      _id: "10",
-      name: "Atlas Corp",
-      owner: "Wade Warren",
-      phone: "077 2109 8765",
-      industry: "Real Estate",
-      city: "Mumbai",
-      country: "India",
-      domain: "atlas-corp.com",
-      type: "Client",
-      employees: "1000+",
-      revenue: "5,00,00,000",
-      createdAt: "Apr 12, 2025 10:00 AM GMT+5:30",
-    },
-    {
-      _id: "11",
-      name: "FitBuddy Health",
-      owner: "Brooklyn Simmons",
-      phone: "078 3210 9876",
-      industry: "Healthcare",
-      city: "Amsterdam",
-      country: "Netherlands",
-      domain: "fitbuddy.app",
-      type: "Partner",
-      employees: "20-50",
-      revenue: "7,00,000",
-      createdAt: "Apr 12, 2025 1:15 PM GMT+5:30",
-    },
-    {
-      _id: "12",
-      name: "FinCore Banking",
-      owner: "Leslie Alexander",
-      phone: "079 4321 0987",
-      industry: "Legal Services",
-      city: "Singapore",
-      country: "Singapore",
-      domain: "fincore.sg",
-      type: "Client",
-      employees: "200-500",
-      revenue: "80,00,000",
-      createdAt: "Apr 13, 2025 9:00 AM GMT+5:30",
-    },
-    {
-      _id: "13",
-      name: "BuildFast Infra",
-      owner: "Jenny Wilson",
-      phone: "080 5432 1098",
-      industry: "Real Estate",
-      city: "Dubai",
-      country: "UAE",
-      domain: "buildfast.ae",
-      type: "Client",
-      employees: "100-200",
-      revenue: "25,00,000",
-      createdAt: "Apr 13, 2025 4:00 PM GMT+5:30",
-    },
-    {
-      _id: "14",
-      name: "SupportAI Technologies",
-      owner: "Guy Hawkins",
-      phone: "081 6543 2109",
-      industry: "Technology",
-      city: "Bangalore",
-      country: "India",
-      domain: "supportai.tech",
-      type: "Partner",
-      employees: "50-100",
-      revenue: "12,00,000",
-      createdAt: "Apr 14, 2025 11:00 AM GMT+5:30",
-    },
-    {
-      _id: "15",
-      name: "ShopNow Commerce",
-      owner: "Robert Fox",
-      phone: "082 7654 3210",
-      industry: "Technology",
-      city: "London",
-      country: "UK",
-      domain: "shopnow.co.uk",
-      type: "Client",
-      employees: "500-1000",
-      revenue: "2,00,00,000",
-      createdAt: "Apr 14, 2025 2:45 PM GMT+5:30",
-    },
-  ],
-  loading: false,
-  error: null,
-};
+//  FETCH
+export const fetchCompanies = createAsyncThunk(
+  "companies/fetchCompanies",
+  async () => {
+    const { data } = await axios.get("/companies");
+    return data.data;
+  }
+);
+
+//  CREATE
+export const addCompany = createAsyncThunk(
+  "companies/addCompany",
+  async (companyData) => {
+    const { data } = await axios.post("/companies", companyData);
+    return data.data;
+  }
+);
+
+//  BULK CREATE
+export const bulkAddCompanies = createAsyncThunk(
+  "companies/bulkAddCompanies",
+  async (companiesData) => {
+    const { data } = await axios.post("/companies/bulk-create", companiesData);
+    return data.data;
+  }
+);
+
+//  UPDATE
+export const updateCompany = createAsyncThunk(
+  "companies/updateCompany",
+  async (companyData) => {
+    const { data } = await axios.put(
+      `/companies/${companyData._id}`,
+      companyData
+    );
+    return data.data;
+  }
+);
+
+// DELETE
+export const removeCompany = createAsyncThunk(
+  "companies/removeCompany",
+  async (id) => {
+    await axios.delete(`/companies/${id}`);
+    return id;
+  }
+);
+
+// BULK DELETE
+export const bulkDeleteCompanies = createAsyncThunk(
+  "companies/bulkDeleteCompanies",
+  async (ids) => {
+    await axios.post("/companies/bulk-delete", { ids });
+    return ids;
+  }
+);
 
 const companiesSlice = createSlice({
   name: "companies",
-  initialState,
-  reducers: {
-    setCompanies: (state, action) => {
-      state.companies = action.payload;
-    },
-    addCompany: (state, action) => {
-      state.companies.push(action.payload);
-    },
-    updateCompany: (state, action) => {
-      const index = state.companies.findIndex(
-        (company) => company._id === action.payload._id
-      );
-      if (index !== -1) {
-        state.companies[index] = action.payload;
-      }
-    },
-    removeCompany: (state, action) => {
-      state.companies = state.companies.filter(
-        (company) => company._id !== action.payload
-      );
-    },
+  initialState: {
+    companies: [],
+    loading: false,
+    error: null,
+  },
+  reducers: {},
+  extraReducers: (builder) => {
+    builder
+      // FETCH
+      .addCase(fetchCompanies.fulfilled, (state, action) => {
+        state.companies = action.payload;
+      })
+
+      // CREATE
+      .addCase(addCompany.fulfilled, (state, action) => {
+        state.companies.unshift(action.payload);
+      })
+      // BULK CREATE
+      .addCase(bulkAddCompanies.fulfilled, (state, action) => {
+        state.companies.unshift(...action.payload);
+      })
+      // UPDATE
+      .addCase(updateCompany.fulfilled, (state, action) => {
+        const index = state.companies.findIndex(
+          (c) => c._id === action.payload._id
+        );
+        if (index !== -1) {
+          state.companies[index] = action.payload;
+        }
+      })
+
+      // DELETE
+      .addCase(removeCompany.fulfilled, (state, action) => {
+        state.companies = state.companies.filter(
+          (c) => c._id !== action.payload
+        );
+      })
+      // BULK DELETE
+      .addCase(bulkDeleteCompanies.fulfilled, (state, action) => {
+        state.companies = state.companies.filter(
+          (c) => !action.payload.includes(c._id)
+        );
+      });
   },
 });
-
-export const {
-  setCompanies,
-  addCompany,
-  updateCompany,
-  removeCompany,
-} = companiesSlice.actions;
 
 export default companiesSlice.reducer;

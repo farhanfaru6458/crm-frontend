@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import styles from "./ForgotPassword.module.css";
-
+import axios from "axios";
 export default function ForgotPassword() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
@@ -21,16 +21,29 @@ export default function ForgotPassword() {
     return true;
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
 
-    if (validate()) {
-      // Simulate API call
+
+const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  if (validate()) {
+    try {
+      const res = await axios.post(
+        "http://localhost:5000/api/auth/forgot-password",
+        { email }
+      );
+
+      setSuccess(res.data.message);
+
       setTimeout(() => {
-        setSuccess("Reset link sent to your email.");
-      }, 500);
+        navigate(`/reset-password/${email}`);
+      }, 1500);
+
+    } catch (err) {
+      setError(err.response?.data?.message || "Something went wrong");
     }
-  };
+  }
+};
 
   return (
     <div className={styles.wrapper}>
@@ -61,7 +74,7 @@ export default function ForgotPassword() {
           </div>
 
           <button type="submit" className={styles.button}>
-            Send Reset Link
+            Send OTP
           </button>
         </form>
 

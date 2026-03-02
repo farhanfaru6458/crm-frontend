@@ -8,7 +8,7 @@ import CreateButton from "../../../components/ui/buttons/CreateButton";
 import { useNavigate, Link } from "react-router-dom";
 
 import { useSelector, useDispatch } from "react-redux";
-import { setLeads, removeLead, addLead, updateLead } from "../../../redux/leadsSlice";
+import { fetchLeads, removeLead, addLead, updateLead, bulkDeleteLeads, bulkAddLeads } from "../../../redux/leadsSlice";
 import { addNotification } from "../../../redux/notificationsSlice";
 import { toast } from "react-hot-toast";
 import Modal from "../../../components/ui/Modal";
@@ -17,7 +17,7 @@ import ConfirmDialog from "../../../components/ui/ConfirmDialog";
 
 export default function Leads() {
   const dispatch = useDispatch();
-  const leads = useSelector((state) => state.leads.leads);
+  const { leads, loading } = useSelector((state) => state.leads);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
@@ -28,7 +28,15 @@ export default function Leads() {
   const [currentPage, setCurrentPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState("");
   const [dateFilter, setDateFilter] = useState("");
+  const [selectedLeads, setSelectedLeads] = useState([]);
+  const [errors, setErrors] = useState({});
   const itemsPerPage = 8;
+
+  useEffect(() => {
+    dispatch(fetchLeads()).unwrap().catch(err => {
+      toast.error(`Fetch failed: ${err.message || err}`);
+    });
+  }, [dispatch]);
 
   const handleOpenCreate = () => {
     setEditingLead(null);
@@ -41,6 +49,7 @@ export default function Leads() {
       jobTitle: "",
       status: "New"
     });
+    setErrors({});
     setIsModalOpen(true);
   };
 
@@ -54,64 +63,95 @@ export default function Leads() {
     };
     setEditingLead(lead);
     setFormData(leadWithNames);
+    setErrors({});
     setIsModalOpen(true);
   };
 
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+    if (errors[field]) {
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[field];
+        return newErrors;
+      });
+    }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    // Validation
+    const newErrors = {};
+    if (!formData.email?.trim()) newErrors.email = "Email is required";
+    else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = "Invalid email format";
+    if (!formData.firstName?.trim()) newErrors.firstName = "First name is required";
+    if (!formData.lastName?.trim()) newErrors.lastName = "Last name is required";
+    if (!formData.phone?.trim()) newErrors.phone = "Phone number is required";
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      toast.error("Please fix the errors in the form");
+      return;
+    }
+
     const combinedName = `${formData.firstName || ""} ${formData.lastName || ""}`.trim();
     const finalFormData = {
       ...formData,
       name: combinedName || "Unnamed Lead"
     };
 
-    if (editingLead) {
-      dispatch(updateLead(finalFormData));
-      toast.success("Lead updated successfully!");
+    try {
+      if (editingLead) {
+        await dispatch(updateLead(finalFormData)).unwrap();
+        toast.success("Lead updated successfully!");
+        dispatch(addNotification({
+          id: Date.now(),
+          message: `Lead ${finalFormData.name} updated successfully!`,
+          type: "update",
+          timestamp: new Date().toLocaleString()
+        }));
+      } else {
+        await dispatch(addLead(finalFormData)).unwrap();
+        toast.success("Lead created successfully!");
+        dispatch(addNotification({
+          id: Date.now(),
+          message: `Lead ${finalFormData.name} created successfully!`,
+          type: "create",
+          timestamp: new Date().toLocaleString()
+        }));
+      }
+      setIsModalOpen(false);
+    } catch (error) {
+      toast.error(error?.message || "Operation failed");
+    }
+  }
+
+  const handleImport = async (data) => {
+    try {
+      await dispatch(bulkAddLeads(data)).unwrap();
+      toast.success(`${data.length} leads imported successfully!`);
       dispatch(addNotification({
         id: Date.now(),
-        message: `Lead ${finalFormData.name} updated successfully!`,
-        type: "update",
-        timestamp: new Date().toLocaleString()
-      }));
-    } else {
-      const newLead = {
-        ...finalFormData,
-        _id: Math.random().toString(36).substr(2, 9),
-        createdDate: new Date().toLocaleDateString('en-GB'), // Matches 04/08/2025 format
-        createdAt: new Date().toLocaleString(),
-      };
-      dispatch(addLead(newLead));
-      toast.success("Lead created successfully!");
-      dispatch(addNotification({
-        id: Date.now(),
-        message: `Lead ${newLead.name} created successfully!`,
+        message: `${data.length} leads imported successfully!`,
         type: "create",
         timestamp: new Date().toLocaleString()
       }));
+    } catch (error) {
+      toast.error("Bulk import failed. Please check the CSV format.");
     }
-    setIsModalOpen(false);
   };
 
   // Filtering Logic
-  const filteredLeads = leads.filter((lead) => {
+  const filteredLeads = (leads || []).filter((lead) => {
+    const searchTerm = (search || "").toLowerCase();
     const matchesSearch =
-      lead.name.toLowerCase().includes(search.toLowerCase()) ||
-      lead.email.toLowerCase().includes(search.toLowerCase()) ||
-      lead.phone.includes(search);
+      (lead.name || "").toLowerCase().includes(searchTerm) ||
+      (lead.email || "").toLowerCase().includes(searchTerm) ||
+      (lead.phone || "").includes(searchTerm);
+
     const matchesStatus = !statusFilter || lead.status === statusFilter;
 
-    let matchesDate = true;
-    if (dateFilter) {
-      const [y, m, d] = dateFilter.split("-");
-      const formattedFilterDate = `${d}/${m}/${y}`;
-      matchesDate = lead.createdDate === formattedFilterDate;
-    }
-
-    return matchesSearch && matchesStatus && matchesDate;
+    // Temporarily disable date filtering to see if it makes data appear
+    return matchesSearch && matchesStatus;
   });
 
   // Pagination Logic
@@ -131,24 +171,45 @@ export default function Leads() {
     setCurrentPage(1); // Reset to first page on search
   };
 
-
-
   const handleDelete = (row) => {
     setLeadToDelete(row);
     setIsConfirmOpen(true);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (leadToDelete) {
-      dispatch(removeLead(leadToDelete._id));
-      toast.success("Lead deleted successfully");
-      dispatch(addNotification({
-        id: Date.now(),
-        message: `Lead ${leadToDelete.name} deleted successfully!`,
-        type: "delete",
-        timestamp: new Date().toLocaleString()
-      }));
+      if (Array.isArray(leadToDelete)) {
+        // Bulk delete
+        try {
+          await dispatch(bulkDeleteLeads(leadToDelete)).unwrap();
+          toast.success(`${leadToDelete.length} leads deleted successfully`);
+          setSelectedLeads([]);
+        } catch (error) {
+          toast.error("Bulk delete failed");
+        }
+      } else {
+        // Single delete
+        try {
+          await dispatch(removeLead(leadToDelete._id)).unwrap();
+          toast.success("Lead deleted successfully");
+          dispatch(addNotification({
+            id: Date.now(),
+            message: `Lead ${leadToDelete.name} deleted successfully!`,
+            type: "delete",
+            timestamp: new Date().toLocaleString()
+          }));
+        } catch (error) {
+          toast.error("Delete failed");
+        }
+      }
+      setIsConfirmOpen(false);
+      setLeadToDelete(null);
     }
+  };
+
+  const handleBulkDelete = () => {
+    setLeadToDelete(selectedLeads);
+    setIsConfirmOpen(true);
   };
 
   const columns = [
@@ -185,7 +246,12 @@ export default function Leads() {
         <div className={styles.header}>
           <h1 className={styles.title}>Leads</h1>
           <div className={styles.headerActions}>
-            <ImportButton className={styles.importBtn} />
+            {selectedLeads.length > 0 && (
+              <button className={styles.bulkDeleteBtn} onClick={handleBulkDelete}>
+                Delete Selected ({selectedLeads.length})
+              </button>
+            )}
+            <ImportButton className={styles.importBtn} onImport={handleImport} />
             <button className={styles.addBtn} onClick={handleOpenCreate}>
               Create
             </button>
@@ -226,6 +292,10 @@ export default function Leads() {
                 <option value="Open">Open</option>
                 <option value="New">New</option>
                 <option value="In Progress">In Progress</option>
+                <option value="Converted">Converted</option>
+                <option value="Qualified">Qualified</option>
+                <option value="Unqualified">Unqualified</option>
+                <option value="Contacted">Contacted</option>
               </select>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -249,7 +319,7 @@ export default function Leads() {
                 value={dateFilter}
                 onChange={(e) => { setDateFilter(e.target.value); setCurrentPage(1); }}
               />
-             
+
             </div>
           </div>
 
@@ -260,7 +330,8 @@ export default function Leads() {
               data={currentLeads}
               onEdit={handleOpenEdit}
               onDelete={handleDelete}
-              onSelectionChange={(selected) => console.log("Selected:", selected)}
+              onSelectionChange={setSelectedLeads}
+              selectedRows={selectedLeads}
             />
           </div>
         </div>
@@ -272,7 +343,7 @@ export default function Leads() {
         title={editingLead ? "Edit Lead" : "Create Lead"}
         onSave={handleSave}
       >
-        <LeadForm formData={formData} onChange={handleInputChange} />
+        <LeadForm formData={formData} onChange={handleInputChange} errors={errors} />
       </Modal>
 
       <ConfirmDialog

@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { Mail, ChevronDown, X } from "lucide-react";
 import styles from "./LeadForm.module.css";
 
-const LeadForm = ({ formData, onChange }) => {
+const LeadForm = ({ formData, onChange, errors = {} }) => {
     const owners = ["Jane Cooper", "Wade Warren", "Brooklyn Simmons", "Leslie Alexander", "Jenny Wilson", "Guy Hawkins", "Robert Fox", "Cameron Williamson"];
     const statuses = ["New", "Contacted", "Qualified", "Converted", "Unqualified"];
 
@@ -43,13 +43,14 @@ const LeadForm = ({ formData, onChange }) => {
                         <Mail className={styles.inputIcon} size={20} />
                         <input
                             type="email"
-                            className={styles.inputWithIcon}
+                            className={`${styles.inputWithIcon} ${errors.email ? styles.errorInput : ""}`}
                             placeholder="Enter"
                             value={formData.email || ""}
                             onChange={(e) => onChange("email", e.target.value)}
                             required
                         />
                     </div>
+                    {errors.email && <span className={styles.errorText}>{errors.email}</span>}
                 </div>
 
                 {/* First Name Field */}
@@ -59,12 +60,13 @@ const LeadForm = ({ formData, onChange }) => {
                     </label>
                     <input
                         type="text"
-                        className={styles.input}
+                        className={`${styles.input} ${errors.firstName ? styles.errorInput : ""}`}
                         placeholder="Enter"
                         value={formData.firstName || ""}
                         onChange={(e) => onChange("firstName", e.target.value)}
                         required
                     />
+                    {errors.firstName && <span className={styles.errorText}>{errors.firstName}</span>}
                 </div>
 
                 {/* Last Name Field */}
@@ -74,12 +76,13 @@ const LeadForm = ({ formData, onChange }) => {
                     </label>
                     <input
                         type="text"
-                        className={styles.input}
+                        className={`${styles.input} ${errors.lastName ? styles.errorInput : ""}`}
                         placeholder="Enter"
                         value={formData.lastName || ""}
                         onChange={(e) => onChange("lastName", e.target.value)}
                         required
                     />
+                    {errors.lastName && <span className={styles.errorText}>{errors.lastName}</span>}
                 </div>
 
                 {/* Phone Number Field */}
@@ -94,13 +97,14 @@ const LeadForm = ({ formData, onChange }) => {
                         </div>
                         <input
                             type="tel"
-                            className={styles.input}
+                            className={`${styles.input} ${errors.phone ? styles.errorInput : ""}`}
                             placeholder="Enter"
                             value={formData.phone || ""}
                             onChange={(e) => onChange("phone", e.target.value)}
                             required
                         />
                     </div>
+                    {errors.phone && <span className={styles.errorText}>{errors.phone}</span>}
                 </div>
 
                 {/* Job Title Field */}

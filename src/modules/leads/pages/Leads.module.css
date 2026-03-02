@@ -46,6 +46,22 @@
   background-color: #4838e5;
 }
 
+.bulkDeleteBtn {
+  background-color: #fee2e2;
+  border: 1px solid #ef4444;
+  color: #b91c1c;
+  padding: 0.5rem 1.25rem;
+  border-radius: 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.bulkDeleteBtn:hover {
+  background-color: #fecaca;
+}
+
 .content {
   background-color: #ffffff;
   border-radius: 0.75rem;
@@ -181,11 +197,33 @@
 .new {
   background-color: #e0e7ff;
   color: #3730a3;
+  width: 160px;
 }
 
 .inprogress {
   background-color: #ffedd5;
   color: #9a3412;
+}
+
+.converted {
+  background-color: #e5cfff;
+  color: #3730a3;
+}
+
+.qualified {
+  background-color: #dcfce7;
+  color: #166534;
+  width: 160px;
+}
+
+.contacted {
+  background-color: #dcf5fc;
+  color: #0b4f6c;
+}
+
+.unqualified {
+  background-color: #fce7e7;
+  color: #6c0b0b;
 }
 
 /* media queries */
@@ -233,13 +271,14 @@
 }
 
 .leadLink {
-  color: #4f46e5;
+  color: #000000;
   text-decoration: none;
   font-weight: 500;
 }
 
 .leadLink:hover {
-  text-decoration: underline;
+  color: #4f46e5;
+   font-weight: 500;
 }
 
 .searchInput {

@@ -4,17 +4,21 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  padding: 40px 20px;
+  overflow-y: auto;
 }
 
 
 .card {
-  width: 420px;
+  width: 100%;
+  max-width: 420px;
   background: #ffffff;
   padding: 35px 40px;
-  border-radius: 8px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   position: relative;
+  margin-top: auto;
+  margin-bottom: auto;
 }
 
 
@@ -104,20 +108,35 @@ input.invalid {
 
 
 .button {
-  height: 45px;
-  margin-top: 10px;
+  height: 48px;
+  margin-top: 15px;
   border: none;
-  border-radius: 6px;
-  background: linear-gradient(90deg, #6d5dfc, #5a4bff);
+  border-radius: 8px;
+  background: linear-gradient(135deg, #6d5dfc 0%, #5a4bff 100%);
   color: white;
-  font-size: 15px;
-  font-weight: 500;
+  font-size: 16px;
+  font-weight: 600;
   cursor: pointer;
-  transition: 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 0 4px 12px rgba(109, 93, 252, 0.3);
+  letter-spacing: 0.5px;
 }
 
 .button:hover {
-  opacity: 0.9;
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 8px 20px rgba(109, 93, 252, 0.4);
+}
+
+.button:active {
+  transform: translateY(-1px) scale(1);
+  box-shadow: 0 4px 10px rgba(109, 93, 252, 0.3);
+}
+
+.button:disabled {
+  background: #cbd5e1;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 

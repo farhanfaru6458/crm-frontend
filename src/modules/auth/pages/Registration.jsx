@@ -4,6 +4,7 @@ import styles from "./Registration.module.css";
 
 import { useAuth } from "../../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { countries } from "../../../utils/countries";
 
 export default function Registration() {
   const { register } = useAuth();
@@ -21,6 +22,7 @@ export default function Registration() {
   });
 
   const [errors, setErrors] = useState({});
+  const [submitError, setSubmitError] = useState("");
 
   const validate = () => {
     let newErrors = {};
@@ -62,13 +64,18 @@ export default function Registration() {
     if (errors[e.target.name]) {
       setErrors({ ...errors, [e.target.name]: "" });
     }
+    setSubmitError("");
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (validate()) {
-      register(formData);
-      navigate("/dashboard");
+      const res = await register(formData);
+      if (res.success) {
+        navigate(`/verify-otp`, { state: { email: formData.email } });
+      } else {
+        setSubmitError(res.error);
+      }
     }
   };
 
@@ -78,6 +85,20 @@ export default function Registration() {
         <h2 className={styles.title}>Register</h2>
 
         <form className={styles.form} onSubmit={handleSubmit}>
+          {submitError && (
+            <div
+              style={{
+                color: "#dc2626",
+                marginBottom: "15px",
+                backgroundColor: "#fee2e2",
+                padding: "10px",
+                borderRadius: "6px",
+                fontSize: "14px",
+              }}
+            >
+              {submitError}
+            </div>
+          )}
 
           <div className={styles.row}>
             <div className={styles.inputGroup}>
@@ -199,14 +220,19 @@ export default function Registration() {
 
           <div className={styles.inputGroupFull}>
             <label>Country or Region</label>
-            <input
-              type="text"
+            <select
               name="country"
-              placeholder="Enter your country or region"
               value={formData.country}
               onChange={handleChange}
               className={errors.country ? styles.invalid : ""}
-            />
+            >
+              <option value="">Choose Country</option>
+              {countries.map((country) => (
+                <option key={country} value={country}>
+                  {country}
+                </option>
+              ))}
+            </select>
             {errors.country && <span className={styles.errorText}>{errors.country}</span>}
           </div>
 

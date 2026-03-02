@@ -61,6 +61,22 @@
     background-color: #4838e5;
 }
 
+.bulkDeleteBtn {
+    background-color: #fee2e2;
+    border: 1px solid #ef4444;
+    color: #b91c1c;
+    padding: 0.5rem 1.25rem;
+    border-radius: 0.5rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.bulkDeleteBtn:hover {
+    background-color: #fecaca;
+}
+
 .icon {
     width: 0.875rem;
     height: 0.875rem;
@@ -90,62 +106,64 @@
 
 .dropdownFiltersRow {
     display: flex;
-    gap: 0.5rem;
-    /* Reduced gap */
-    margin-bottom: 1.25rem;
-    flex-wrap: wrap;
-}
-
-.filterSelect,
-.datePicker {
-    height: 38px;
-    padding: 0 1rem;
-    border: 1px solid #e2e8f0;
-    border-radius: 9px;
-    font-size: 0.8125rem;
-    color: #1e293b;
-    font-weight: 500;
-    background-color: #ffffff;
-    transition: all 0.2s;
-    outline: none;
-}
-
-.filterSelect:focus,
-.datePicker:hover {
-    border-color: #5a4bff;
-    box-shadow: 0 0 0 4px rgba(90, 75, 255, 0.1);
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: nowrap;
+    /* Prevent wrapping unless on mobile */
+    align-items: center;
 }
 
 .filterSelect {
+    flex: 1;
+    /* Share space equally */
     min-width: 140px;
+    height: 38px;
+    padding: 0 2.5rem 0 0.75rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 9px;
+    font-size: 0.8125rem;
+    color: #475569;
+    background-color: #f8fafc;
     appearance: none;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394a3b8' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='m19.5 8.25-7.5 7.5-7.5-7.5'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: right 0.75rem center;
     background-size: 1rem;
-    padding-right: 2.5rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    outline: none;
+}
+
+.filterSelect:focus {
+    border-color: #5a4bff;
+    background-color: #ffffff;
+    box-shadow: 0 0 0 4px rgba(90, 75, 255, 0.1);
 }
 
 .datePicker {
-    position: relative;
+    flex: 1;
     min-width: 150px;
-    padding: 0;
-    border: none;
+    position: relative;
 }
 
 .dateInput {
     width: 100%;
     height: 38px;
-    padding: 0 2.5rem 0 1rem;
+    padding: 0 0.75rem;
     border: 1px solid #e2e8f0;
     border-radius: 9px;
     font-size: 0.8125rem;
-    color: #1e293b;
-    font-weight: 500;
-    background-color: #ffffff;
+    color: #475569;
+    background-color: #f8fafc;
     transition: all 0.2s;
     outline: none;
     cursor: pointer;
+}
+
+.dateInput:focus {
+    border-color: #5a4bff;
+    background-color: #ffffff;
+    box-shadow: 0 0 0 4px rgba(90, 75, 255, 0.1);
 }
 
 .dateInput:focus {
@@ -206,6 +224,12 @@
         flex-direction: column;
         align-items: stretch;
         gap: 1rem;
+    }
+
+    .dropdownFiltersRow {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.75rem;
     }
 
     .search {

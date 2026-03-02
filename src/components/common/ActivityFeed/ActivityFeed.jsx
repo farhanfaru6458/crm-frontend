@@ -205,11 +205,29 @@ const ActivityFeed = ({
                                                                     <span>{item.attendees}</span>
                                                                 </div>
                                                             </div>
-                                                            <p className={styles.itemText}>{item.content}</p>
+                                                            <p className={styles.itemText}>{item.content || item.note || item.body}</p>
+                                                        </div>
+                                                    ) : item.type === "Email" ? (
+                                                        <div className={styles.emailFull}>
+                                                            <div className={styles.infoBox}>
+                                                                <div className={styles.infoField}>
+                                                                    <label>From</label>
+                                                                    <span>{item.from}</span>
+                                                                </div>
+                                                                <div className={styles.infoField}>
+                                                                    <label>To</label>
+                                                                    <span>{item.to}</span>
+                                                                </div>
+                                                                <div className={styles.infoField}>
+                                                                    <label>Subject</label>
+                                                                    <span>{item.subject}</span>
+                                                                </div>
+                                                            </div>
+                                                            <p className={styles.itemText}>{item.body || item.content}</p>
                                                         </div>
                                                     ) : (
                                                         <>
-                                                            <p className={styles.itemText}>{item.content}</p>
+                                                            <p className={styles.itemText}>{item.content || item.body || item.note}</p>
                                                             {item.type === "Call" && (activeTab === "Calls" || activeTab === "Activity") && (
                                                                 <div className={styles.outcomeRow}>
                                                                     <div className={styles.outcomeField}>

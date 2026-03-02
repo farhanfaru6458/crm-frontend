@@ -1,91 +1,111 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
-import { updateLead } from "../../../redux/leadsSlice";
+import axios from "axios";
+import { fetchLeads, updateLead, removeLead } from "../../../redux/leadsSlice";
 import { addDeal } from "../../../redux/dealsSlice";
 import { addNotification } from "../../../redux/notificationsSlice";
 import GenericDetails from "../../../components/common/GenericDetails/GenericDetails";
 import { toast } from "react-hot-toast";
+
+const API_BASE = "http://localhost:5000/api";
+const ENTITY_TYPE = "Lead";
 
 const LeadDetails = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const dispatch = useDispatch();
 
-    const leads = useSelector(state => state.leads.leads);
+    const { leads } = useSelector(state => state.leads);
     const leadData = leads.find(l => l._id === id);
 
     const [lead, setLead] = useState(null);
     const [activities, setActivities] = useState([]);
 
+    const fetchLead = async () => {
+        try {
+            const { data } = await axios.get(`${API_BASE}/leads/${id}`);
+            setLead(data.data);
+        } catch (error) {
+            toast.error("Failed to load lead details");
+        }
+    };
+
+    const fetchActivities = async () => {
+        try {
+            const { data } = await axios.get(`${API_BASE}/activities/${ENTITY_TYPE}/${id}`);
+            setActivities(data.data);
+        } catch (error) {
+            toast.error("Failed to load activities");
+        }
+    };
+
+    useEffect(() => {
+        fetchLead();
+        fetchActivities();
+    }, [id]);
+
     useEffect(() => {
         if (leadData) {
             setLead(leadData);
-            setActivities(generateActivities(leadData.name));
         }
-    }, [leadData, id]);
-
-    const generateActivities = (leadName) => [
-        {
-            id: 1,
-            group: "Upcoming",
-            type: "Task",
-            title: `Task assigned to ${leadName}`,
-            time: "June 24, 2025 at 5:30PM",
-            overdue: true,
-            content: `Follow up with ${leadName} regarding the proposal`,
-            isTask: true,
-            completed: false,
-            priority: "High",
-            taskType: "To-Do"
-        },
-        {
-            id: 2,
-            group: "Upcoming",
-            type: "Meeting",
-            title: `Meeting with ${leadName}`,
-            time: "June 26, 2025 at 10:00AM",
-            content: "Product demo and requirements gathering.",
-            duration: "45 mins",
-            attendees: "2",
-            organizedBy: "Jane Cooper"
-        },
-        {
-            id: 3,
-            group: "June 2025",
-            type: "Call",
-            title: `Call with ${leadName}`,
-            time: "June 20, 2025 at 2:30PM",
-            content: `Inital discovery call. ${leadName} mentioned they are looking for a new CRM solution by Q3.`,
-        },
-        {
-            id: 4,
-            group: "June 2025",
-            type: "Note",
-            title: "Note by Jane Cooper",
-            time: "June 19, 2025 at 11:15AM",
-            content: "Lead prefers communication via email for technical specs.",
-        },
-    ];
+    }, [leadData]);
 
     const handleFieldChange = (field, value) => {
         setLead(prev => ({ ...prev, [field]: value }));
     };
 
-    const handleSaveEdit = () => {
-        dispatch(updateLead(lead));
+    const handleSaveEdit = async () => {
+        try {
+            const result = await dispatch(updateLead(lead)).unwrap();
+            setLead(result);
+            toast.success("Lead updated successfully");
+        } catch (error) {
+            toast.error("Update failed");
+        }
     };
 
-    const handleDeleteLead = () => {
-        // In a real app, you'd call an API here
-        toast.success(`${lead.name} deleted successfully.`);
-        dispatch(addNotification({
-            id: Date.now(),
-            message: `Lead ${lead.name} deleted successfully!`,
-            type: "delete",
-            timestamp: new Date().toLocaleString()
-        }));
-        navigate("/leads");
+    const handleDeleteLead = async () => {
+        try {
+            await dispatch(removeLead(id)).unwrap();
+            toast.success("Lead deleted successfully");
+            dispatch(addNotification({
+                id: Date.now(),
+                message: `Lead ${lead.name} deleted successfully!`,
+                type: "delete",
+                timestamp: new Date().toLocaleString()
+            }));
+            navigate("/leads");
+        } catch (error) {
+            toast.error("Delete failed");
+        }
+    };
+
+    const handleCreateActivity = async (activityData) => {
+        try {
+            await axios.post(`${API_BASE}/activities/${ENTITY_TYPE}/${id}`, activityData);
+            fetchActivities();
+        } catch (error) {
+            toast.error("Activity creation failed");
+        }
+    };
+
+    const handleUpdateActivity = async (activityId, updates) => {
+        try {
+            await axios.put(`${API_BASE}/activities/${activityId}`, updates);
+            fetchActivities();
+        } catch (error) {
+            toast.error("Activity update failed");
+        }
+    };
+
+    const handleToggleTask = async (taskId) => {
+        try {
+            await axios.put(`${API_BASE}/tasks/${taskId}/toggle`);
+            fetchActivities();
+        } catch (error) {
+            toast.error("Task update failed");
+        }
     };
 
     const config = {
@@ -104,7 +124,7 @@ const LeadDetails = () => {
             { key: "owner", label: "Owner" },
             { key: "city", label: "City" },
             { key: "country", label: "Country" },
-            { key: "createdAt", label: "Created Date" },
+            { key: "createdAt", label: "Created Date", render: (val) => new Date(val).toLocaleDateString() },
         ],
         editFields: [
             { key: "name", label: "Lead Name" },
@@ -116,9 +136,7 @@ const LeadDetails = () => {
     };
 
     const handleConvertLead = (convertData) => {
-        // Create the deal
         const newDeal = {
-            _id: Date.now().toString(),
             dealName: convertData.dealName,
             dealStage: convertData.dealStage,
             amount: convertData.amount,
@@ -128,8 +146,6 @@ const LeadDetails = () => {
         };
 
         dispatch(addDeal(newDeal));
-
-        // Update lead status
         const updatedLead = { ...lead, status: "Converted" };
         dispatch(updateLead(updatedLead));
 
@@ -147,6 +163,9 @@ const LeadDetails = () => {
             onFieldChange={handleFieldChange}
             onSaveEdit={handleSaveEdit}
             onDelete={handleDeleteLead}
+            onCreateActivity={handleCreateActivity}
+            onUpdateActivity={handleUpdateActivity}
+            onToggleTask={handleToggleTask}
             showConvertButton={lead.status !== "Converted"}
             onConvert={handleConvertLead}
         />

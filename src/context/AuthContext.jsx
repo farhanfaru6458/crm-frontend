@@ -1,6 +1,8 @@
-
 import React, { createContext, useState, useContext, useEffect } from 'react';
+import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+
+const API_URL = 'http://localhost:5000/api/auth';
 
 const AuthContext = createContext();
 
@@ -12,69 +14,86 @@ export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        const storedUser = localStorage.getItem('crm_user');
-        if (storedUser) {
-            setUser(JSON.parse(storedUser));
-        }
-        setLoading(false);
-    }, []);
+   useEffect(() => {
+  const storedUser =
+    localStorage.getItem("crm_user") ||
+    sessionStorage.getItem("crm_user");
 
-    const login = (email, password) => {
-        // Mock login - in a real app this would verify credentials
-        // For now, we will check if there is a registered user matching the email
-        const registeredUser = localStorage.getItem('crm_registered_user');
+  if (storedUser) {
+    setUser(JSON.parse(storedUser));
+  }
 
-        if (registeredUser) {
-            const parsedUser = JSON.parse(registeredUser);
-            if (parsedUser.email === email && parsedUser.password === password) {
-                setUser(parsedUser);
-                localStorage.setItem('crm_user', JSON.stringify(parsedUser));
-                return { success: true };
-            }
-        }
+  setLoading(false);
+}, []);
 
-        // Fallback Mock User for testing if no registration has happened
-        if (email === "demo@example.com" && password === "password") {
-            const demoUser = { firstName: "Demo", lastName: "User", email: "demo@example.com" };
-            setUser(demoUser);
-            localStorage.setItem('crm_user', JSON.stringify(demoUser));
-            return { success: true };
-        }
+   const login = async (email, password, rememberMe = true) => {
+  try {
+    const response = await axios.post(`${API_URL}/login`, { email, password });
 
-        return { success: false, error: "Invalid email or password" };
+    if (response.data && response.data.token) {
+
+      setUser(response.data.user);
+
+      if (rememberMe) {
+        localStorage.setItem("crm_user", JSON.stringify(response.data.user));
+        localStorage.setItem("crm_token", response.data.token);
+      } else {
+        sessionStorage.setItem("crm_user", JSON.stringify(response.data.user));
+        sessionStorage.setItem("crm_token", response.data.token);
+      }
+
+      return { success: true };
+    }
+
+  } catch (error) {
+    return {
+      success: false,
+      error: error.response?.data?.message || "Invalid email or password"
+    };
+  }
+};
+
+   const register = async (userData) => {
+  try {
+    const payload = {
+      ...userData,
+      companyName: userData.company
     };
 
-    const register = (userData) => {
-        // Save minimal user data for session
-        // In a real app this would POST to backend
-        // We will save to a 'registered_user' key to simulate a "database"
-        localStorage.setItem('crm_registered_user', JSON.stringify(userData));
+    const response = await axios.post(`${API_URL}/register`, payload);
 
-        // Auto login after register? Or require login?
-        // Let's auto login for better UX
-        setUser(userData);
-        localStorage.setItem('crm_user', JSON.stringify(userData));
+    return {
+      success: true,
+      userId: response.data.userId,
+      message: response.data.message
     };
+
+  } catch (error) {
+    return {
+      success: false,
+      error: error.response?.data?.message || "Registration failed"
+    };
+  }
+};
 
     const logout = () => {
         setUser(null);
         localStorage.removeItem('crm_user');
+        localStorage.removeItem('crm_token');
     };
 
-    const updateUser = (updatedData) => {
-        const newUser = { ...user, ...updatedData };
-        setUser(newUser);
-        localStorage.setItem('crm_user', JSON.stringify(newUser));
-
-        // Also update registered user if it matches, to persist changes across login/logout
-        const registeredUser = localStorage.getItem('crm_registered_user');
-        if (registeredUser) {
-            const parsedRegistered = JSON.parse(registeredUser);
-            if (parsedRegistered.email === user.email) {
-                const newRegistered = { ...parsedRegistered, ...updatedData };
-                localStorage.setItem('crm_registered_user', JSON.stringify(newRegistered));
+    const updateUser = async (updatedData) => {
+        try {
+            const token = localStorage.getItem('crm_token');
+            const response = await axios.put(`${API_URL}/profile`, updatedData, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (response.data && response.data.user) {
+                setUser(response.data.user);
+                localStorage.setItem('crm_user', JSON.stringify(response.data.user));
             }
+        } catch (error) {
+            console.error("Update user failed", error);
         }
     };
 

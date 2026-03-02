@@ -211,6 +211,16 @@
     cursor: pointer;
 }
 
+.errorInput {
+    border-color: #ef4444 !important;
+}
+
+.errorText {
+    color: #ef4444;
+    font-size: 0.75rem;
+    margin-top: 2px;
+}
+
 .selectChevronOverlay {
     position: absolute;
     right: 1rem;

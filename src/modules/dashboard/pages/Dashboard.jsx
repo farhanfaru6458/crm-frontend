@@ -1,50 +1,188 @@
+import React, { useEffect, useMemo, useState } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import styles from "./Dashboard.module.css";
 import { Users, Briefcase, DollarSign, TrendingUp } from "lucide-react";
-
-const TEAM_PERFORMANCE_DATA = [
-  {
-    employee: "Ethan Harper",
-    activeDeals: 25,
-    closedDeals: 10,
-    revenue: 12000,
-    trend: "+3.4%",
-    isPositive: true,
-  },
-  {
-    employee: "Olivia Bennett",
-    activeDeals: 30,
-    closedDeals: 15,
-    revenue: 15000,
-    trend: "-0.1%",
-    isPositive: false,
-  },
-  {
-    employee: "Liam Carter",
-    activeDeals: 22,
-    closedDeals: 12,
-    revenue: 10000,
-    trend: "+3.4%",
-    isPositive: true,
-  },
-  {
-    employee: "Sophia Evans",
-    activeDeals: 28,
-    closedDeals: 14,
-    revenue: 14000,
-    trend: "-0.1%",
-    isPositive: false,
-  },
-];
+import { fetchLeads } from "../../../redux/leadsSlice";
+import { fetchDeals } from "../../../redux/dealsSlice";
+import { fetchCompanies } from "../../../redux/companiesSlice";
 
 export default function Dashboard() {
+  const dispatch = useDispatch();
+  const [reportFilter, setReportFilter] = useState("Monthly");
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const { leads } = useSelector((state) => state.leads);
+  const { deals } = useSelector((state) => state.deals);
+  const { loading: loadingLeads } = useSelector((state) => state.leads);
+  const { loading: loadingDeals } = useSelector((state) => state.deals);
+
+  useEffect(() => {
+    dispatch(fetchLeads());
+    dispatch(fetchDeals());
+    dispatch(fetchCompanies());
+  }, [dispatch]);
+
+  // Calculate Metrics
+  const metrics = useMemo(() => {
+    const currentMonth = new Date().getMonth();
+
+    // Filter by selected year
+    const yearLeads = (leads || []).filter(l => {
+      const date = new Date(l.createdAt);
+      return date.getFullYear() === selectedYear;
+    });
+
+    const yearDeals = (deals || []).filter(d => {
+      const date = new Date(d.createdAt || d.updatedAt);
+      return date.getFullYear() === selectedYear;
+    });
+
+    const totalLeads = yearLeads.length;
+    const activeDeals = yearDeals.filter(d =>
+      d.dealStage !== "Closed Won" && d.dealStage !== "Closed Lost"
+    ).length;
+    const closedDeals = yearDeals.filter(d => d.dealStage === "Closed Won").length;
+
+    const monthlyRevenue = yearDeals
+      .filter(d => {
+        const date = new Date(d.updatedAt || d.createdAt);
+        return d.dealStage === "Closed Won" && date.getMonth() === currentMonth;
+      })
+      .reduce((sum, d) => sum + (Number(d.amount) || 0), 0);
+
+    return { totalLeads, activeDeals, closedDeals, monthlyRevenue };
+  }, [leads, deals, selectedYear]);
+
+  // Team Performance Data from Real Deals
+  const teamPerformance = useMemo(() => {
+    const performance = {};
+    const yearDeals = (deals || []).filter(d => {
+      const date = new Date(d.createdAt || d.updatedAt);
+      return date.getFullYear() === selectedYear;
+    });
+
+    yearDeals.forEach(deal => {
+      const owner = deal.dealOwner || "Unassigned";
+      if (!performance[owner]) {
+        performance[owner] = {
+          employee: owner,
+          activeDeals: 0,
+          closedDeals: 0,
+          revenue: 0,
+          trend: "+0.0%",
+          isPositive: true
+        };
+      }
+      if (deal.dealStage === "Closed Won") {
+        performance[owner].closedDeals += 1;
+        performance[owner].revenue += (Number(deal.amount) || 0);
+      } else if (deal.dealStage !== "Closed Lost") {
+        performance[owner].activeDeals += 1;
+      }
+    });
+
+    const results = Object.values(performance).sort((a, b) => b.revenue - a.revenue);
+    return results.length > 0 ? results : [
+      { employee: "No data for this year", activeDeals: 0, closedDeals: 0, revenue: 0, trend: "0%", isPositive: true }
+    ];
+  }, [deals, selectedYear]);
+
+  // Conversion Funnel Data
+  const conversionFunnel = useMemo(() => {
+    const yearLeads = (leads || []).filter(l => new Date(l.createdAt).getFullYear() === selectedYear);
+    const yearDeals = (deals || []).filter(d => new Date(d.createdAt || d.updatedAt).getFullYear() === selectedYear);
+
+    const counts = {
+      "Contact": yearLeads.length,
+      "Qualified Lead": yearLeads.filter(l => l.status === "Qualified" || l.status === "Converted").length,
+      "Proposal Sent": yearDeals.filter(d => d.dealStage === "Proposal Sent").length,
+      "Negotiation": yearDeals.filter(d => d.dealStage === "Negotiation").length,
+      "Closed Won": yearDeals.filter(d => d.dealStage === "Closed Won").length,
+      "Closed Lost": yearDeals.filter(d => d.dealStage === "Closed Lost").length
+    };
+
+    const max = Math.max(...Object.values(counts), 1);
+    const bars = [
+      { label: "Contact", color: styles.purpleBar, count: counts["Contact"] },
+      { label: "Qualified Lead", color: styles.blueBar, count: counts["Qualified Lead"] },
+      { label: "Proposal Sent", color: styles.yellowBar, count: counts["Proposal Sent"] },
+      { label: "Negotiation", color: styles.purpleBar, count: counts["Negotiation"] },
+      { label: "Closed Won", color: styles.greenBar, count: counts["Closed Won"] },
+      { label: "Closed Lost", color: styles.redBar, count: counts["Closed Lost"] },
+    ];
+
+    return bars.map(bar => ({
+      ...bar,
+      width: `${(bar.count / max) * 100}%`
+    }));
+  }, [leads, deals, selectedYear]);
+
+  // Sales Chart Data
+  const salesChart = useMemo(() => {
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+    if (reportFilter === "Yearly") {
+      const years = [2020, 2021, 2022, 2023, 2024, 2025, 2026];
+      const yearlyData = years.map(year => {
+        const yearDeals = (deals || []).filter(d => {
+          const date = new Date(d.updatedAt || d.createdAt);
+          return date.getFullYear() === year;
+        });
+
+        const revenue = yearDeals
+          .filter(d => d.dealStage === "Closed Won")
+          .reduce((sum, d) => sum + (Number(d.amount) || 0), 0);
+
+        const pipeline = yearDeals
+          .filter(d => d.dealStage === "Negotiation" || d.dealStage === "Proposal Sent")
+          .reduce((sum, d) => sum + (Number(d.amount) || 0), 0);
+
+        return { label: year.toString(), revenue, pipeline };
+      });
+
+      const maxVal = Math.max(...yearlyData.map(d => d.revenue + d.pipeline), 10000);
+      return yearlyData.map(d => ({
+        label: d.label,
+        revenue: d.revenue,
+        pipeline: d.pipeline,
+        main: (d.revenue / maxVal) * 80,
+        light: ((d.revenue + d.pipeline) / maxVal) * 95
+      }));
+    }
+
+    const monthlyData = months.map((m, i) => {
+      const monthDeals = (deals || []).filter(d => {
+        const date = new Date(d.updatedAt || d.createdAt);
+        return date.getMonth() === i && date.getFullYear() === selectedYear;
+      });
+
+      const revenue = monthDeals
+        .filter(d => d.dealStage === "Closed Won")
+        .reduce((sum, d) => sum + (Number(d.amount) || 0), 0);
+
+      const pipeline = monthDeals
+        .filter(d => d.dealStage === "Negotiation" || d.dealStage === "Proposal Sent")
+        .reduce((sum, d) => sum + (Number(d.amount) || 0), 0);
+
+      return { label: m, revenue, pipeline };
+    });
+
+    const maxVal = Math.max(...monthlyData.map(d => d.revenue + d.pipeline), 10000);
+    return monthlyData.map(d => ({
+      label: d.label,
+      revenue: d.revenue,
+      pipeline: d.pipeline,
+      main: (d.revenue / maxVal) * 80 + 2,
+      light: ((d.revenue + d.pipeline) / maxVal) * 95 + 5
+    }));
+  }, [deals, reportFilter, selectedYear]);
+
   const handleExportCSV = () => {
-    const headers = ["Employee", "Active Deals", "Closed Deals", "Revenue", "Trend"];
-    const rows = TEAM_PERFORMANCE_DATA.map((item) => [
+    const headers = ["Employee", "Active Deals", "Closed Deals", "Revenue"];
+    const rows = teamPerformance.map((item) => [
       item.employee,
       item.activeDeals,
       item.closedDeals,
       item.revenue,
-      item.trend,
     ]);
 
     const csvContent = [
@@ -71,6 +209,10 @@ export default function Dashboard() {
     }).format(amount);
   };
 
+  if (loadingLeads && loadingDeals && leads.length === 0) {
+    return <div className={styles.loading}>Loading dynamic insights...</div>;
+  }
+
   return (
     <div className={styles.dashboard}>
       {/* ================= TOP CARDS ================= */}
@@ -78,7 +220,7 @@ export default function Dashboard() {
         <div className={styles.metricCard}>
           <div>
             <p>Total Leads</p>
-            <h2>1,250</h2>
+            <h2>{metrics.totalLeads.toLocaleString()}</h2>
           </div>
           <div className={`${styles.iconCircle} ${styles.purple}`}>
             <Users size={20} />
@@ -88,7 +230,7 @@ export default function Dashboard() {
         <div className={styles.metricCard}>
           <div>
             <p>Active Deals</p>
-            <h2>136</h2>
+            <h2>{metrics.activeDeals}</h2>
           </div>
           <div className={`${styles.iconCircle} ${styles.green}`}>
             <Briefcase size={20} />
@@ -98,7 +240,7 @@ export default function Dashboard() {
         <div className={styles.metricCard}>
           <div>
             <p>Closed Deals</p>
-            <h2>136</h2>
+            <h2>{metrics.closedDeals}</h2>
           </div>
           <div className={`${styles.iconCircle} ${styles.red}`}>
             <TrendingUp size={20} />
@@ -108,7 +250,7 @@ export default function Dashboard() {
         <div className={styles.metricCard}>
           <div>
             <p>Monthly Revenue</p>
-            <h2>45,000</h2>
+            <h2>{formatCurrency(metrics.monthlyRevenue)}</h2>
           </div>
           <div className={`${styles.iconCircle} ${styles.yellow}`}>
             <DollarSign size={20} />
@@ -120,78 +262,48 @@ export default function Dashboard() {
       <div className={styles.middleSection}>
         {/* Conversion Card */}
         <div className={styles.conversionCard}>
-          <h3>Contact to Deal Conversion</h3>
-
-          <div className={styles.progressItem}>
-            <span>Contact</span>
-            <div className={styles.progressBar}>
-              <div
-                className={`${styles.progress} ${styles.purpleBar}`}
-                style={{ width: "60%" }}
-              ></div>
+          <h3>Lead to Closed Conversion</h3>
+          {conversionFunnel.map((item, idx) => (
+            <div key={idx} className={styles.progressItem}>
+              <div className={styles.progressLabel}>
+                <span>{item.label}</span>
+                <span className={styles.countText}>{item.count}</span>
+              </div>
+              <div className={styles.progressBar}>
+                <div
+                  className={`${styles.progress} ${item.color}`}
+                  style={{ width: item.width }}
+                ></div>
+              </div>
             </div>
-          </div>
-
-          <div className={styles.progressItem}>
-            <span>Qualified Lead</span>
-            <div className={styles.progressBar}>
-              <div
-                className={`${styles.progress} ${styles.blueBar}`}
-                style={{ width: "40%" }}
-              ></div>
-            </div>
-          </div>
-
-          <div className={styles.progressItem}>
-            <span>Proposal Sent</span>
-            <div className={styles.progressBar}>
-              <div
-                className={`${styles.progress} ${styles.yellowBar}`}
-                style={{ width: "70%" }}
-              ></div>
-            </div>
-          </div>
-
-          <div className={styles.progressItem}>
-            <span>Negotiation</span>
-            <div className={styles.progressBar}>
-              <div
-                className={`${styles.progress} ${styles.purpleBar}`}
-                style={{ width: "65%" }}
-              ></div>
-            </div>
-          </div>
-
-          <div className={styles.progressItem}>
-            <span>Closed Won</span>
-            <div className={styles.progressBar}>
-              <div
-                className={`${styles.progress} ${styles.greenBar}`}
-                style={{ width: "50%" }}
-              ></div>
-            </div>
-          </div>
-
-          <div className={styles.progressItem}>
-            <span>Closed Lost</span>
-            <div className={styles.progressBar}>
-              <div
-                className={`${styles.progress} ${styles.redBar}`}
-                style={{ width: "30%" }}
-              ></div>
-            </div>
-          </div>
+          ))}
         </div>
 
         {/* Sales Report Card */}
         <div className={styles.salesCard}>
           <div className={styles.salesHeader}>
             <h3>Sales Reports</h3>
-
-            <select className={styles.salesSelect}>
-              <option>Monthly</option>
-              <option>Yearly</option>
-            </select>
+            <div className={styles.salesOptions}>
+              {reportFilter === "Monthly" && (
+                <select
+                  className={styles.yearSelect}
+                  value={selectedYear}
+                  onChange={(e) => setSelectedYear(Number(e.target.value))}
+                >
+                  {[2020, 2021, 2022, 2023, 2024, 2025, 2026].map(y => (
+                    <option key={y} value={y}>{y}</option>
+                  ))}
+                </select>
+              )}
+              <select
+                className={styles.salesSelect}
+                value={reportFilter}
+                onChange={(e) => setReportFilter(e.target.value)}
+              >
+                <option value="Monthly">Monthly</option>
+                <option value="Yearly">Yearly</option>
+              </select>
+            </div>
           </div>
 
           <div className={styles.chartContainer}>
@@ -205,51 +317,22 @@ export default function Dashboard() {
             </div>
 
             <div className={styles.chartBars}>
-              {[
-                { main: 40, light: 65 },
-                { main: 70, light: 85 },
-                { main: 30, light: 55 },
-                { main: 50, light: 75 },
-                { main: 20, light: 45 },
-                { main: 25, light: 50 },
-                { main: 35, light: 60 },
-                { main: 45, light: 70 },
-                { main: 80, light: 95 },
-                { main: 50, light: 65 },
-                { main: 55, light: 72 },
-                { main: 48, light: 68 },
-              ].map((bar, index) => (
+              {salesChart.map((bar, index) => (
                 <div key={index} className={styles.barWrapper}>
-                  {/* Light Background Bar */}
+                  <div className={styles.tooltip}>
+                    <div>Revenue: {formatCurrency(bar.revenue)}</div>
+                    <div>Pipeline: {formatCurrency(bar.pipeline)}</div>
+                    <div>Total: {formatCurrency(bar.revenue + bar.pipeline)}</div>
+                  </div>
                   <div
                     className={styles.lightBar}
                     style={{ height: `${bar.light}%` }}
                   ></div>
-
-                  {/* Main Purple Bar */}
                   <div
                     className={styles.mainBar}
                     style={{ height: `${bar.main}%` }}
                   ></div>
-
-                  <span className={styles.month}>
-                    {
-                      [
-                        "Jan",
-                        "Feb",
-                        "Mar",
-                        "Apr",
-                        "May",
-                        "Jun",
-                        "Jul",
-                        "Aug",
-                        "Sep",
-                        "Oct",
-                        "Nov",
-                        "Dec",
-                      ][index]
-                    }
-                  </span>
+                  <span className={styles.month}>{bar.label}</span>
                 </div>
               ))}
             </div>
@@ -268,27 +351,23 @@ export default function Dashboard() {
           <table>
             <thead>
               <tr>
-                <th>Employee</th>
+                <th>Owner</th>
                 <th>Active Deals</th>
-                <th>Closed Deals</th>
-                <th>Revenue</th>
+                <th>Closed Won</th>
+                <th>Total Revenue</th>
               </tr>
             </thead>
 
             <tbody>
-              {TEAM_PERFORMANCE_DATA.map((row, index) => (
+              {teamPerformance.map((row, index) => (
                 <tr key={index}>
-                  <td>{row.employee}</td>
+                  <td className={styles.ownerName}>{row.employee}</td>
                   <td>{row.activeDeals}</td>
                   <td>{row.closedDeals}</td>
                   <td>
                     <div className={styles.revenueCell}>
                       {formatCurrency(row.revenue)}
-                      <span
-                        className={
-                          row.isPositive ? styles.positive : styles.negative
-                        }
-                      >
+                      <span className={row.isPositive ? styles.positive : styles.negative}>
                         {row.trend}
                       </span>
                     </div>

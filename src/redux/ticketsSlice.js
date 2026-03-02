@@ -1,143 +1,62 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import axios from "../services/axiosInstance";
+
+// 🔥 FETCH
+export const fetchTickets = createAsyncThunk(
+  "tickets/fetchTickets",
+  async () => {
+    const { data } = await axios.get("/tickets");
+    return Array.isArray(data) ? data : data.data || [];
+  }
+);
+
+// 🔥 CREATE
+export const addTicket = createAsyncThunk(
+  "tickets/addTicket",
+  async (ticketData) => {
+    const { data } = await axios.post("/tickets", ticketData);
+    return data;
+  }
+);
+
+// 🔥 BULK CREATE
+export const bulkAddTickets = createAsyncThunk(
+  "tickets/bulkAddTickets",
+  async (ticketsData) => {
+    const { data } = await axios.post("/tickets/bulk-create", ticketsData);
+    return data.data;
+  }
+);
+
+// 🔥 UPDATE
+export const updateTicket = createAsyncThunk(
+  "tickets/updateTicket",
+  async (ticketData) => {
+    const { data } = await axios.put(`/tickets/${ticketData._id}`, ticketData);
+    return data;
+  }
+);
+
+// 🔥 DELETE
+export const removeTicket = createAsyncThunk(
+  "tickets/removeTicket",
+  async (id) => {
+    await axios.delete(`/tickets/${id}`);
+    return id;
+  }
+);
+
+// 🔥 BULK DELETE
+export const bulkDeleteTickets = createAsyncThunk(
+  "tickets/bulkDeleteTickets",
+  async (ids) => {
+    await axios.post("/tickets/bulk-delete", { ids });
+    return ids;
+  }
+);
 
 const initialState = {
-  tickets: [
-    {
-      _id: "1",
-      name: "Payment Failure Issue",
-      status: "Waiting on contact",
-      priority: "High",
-      source: "Chat",
-      owner: "Jane Cooper",
-      createdAt: "Apr 8, 2025 2:35 PM",
-    },
-    {
-      _id: "2",
-      name: "Product Inquiry",
-      status: "Waiting on us",
-      priority: "Medium",
-      source: "Email",
-      owner: "Wade Warren",
-      createdAt: "Apr 8, 2025 2:35 PM",
-    },
-    {
-      _id: "3",
-      name: "Subscription Upgrade",
-      status: "New",
-      priority: "High",
-      source: "Chat",
-      owner: "Brooklyn Simmons",
-      createdAt: "Apr 8, 2025 2:35 PM",
-    },
-    {
-      _id: "4",
-      name: "Refund Request - Order #456",
-      status: "New",
-      priority: "Low",
-      source: "Phone",
-      owner: "Leslie Alexander",
-      createdAt: "Apr 8, 2025 2:35 PM",
-    },
-    {
-      _id: "5",
-      name: "Login Not Working",
-      status: "Waiting on us",
-      priority: "Critical",
-      source: "Phone",
-      owner: "Guy Hawkins",
-      createdAt: "Apr 8, 2025 2:35 PM",
-    },
-    {
-      _id: "6",
-      name: "SLA Violation Complaint",
-      status: "Closed",
-      priority: "Medium",
-      source: "Chat",
-      owner: "Cameron Williamson",
-      createdAt: "Apr 8, 2025 2:35 PM",
-    },
-    {
-      _id: "7",
-      name: "Data Export Failure",
-      status: "New",
-      priority: "High",
-      source: "Email",
-      owner: "Jane Cooper",
-      createdAt: "Apr 9, 2025 10:00 AM",
-    },
-    {
-      _id: "8",
-      name: "Invoice Not Generated",
-      status: "Waiting on us",
-      priority: "Medium",
-      source: "Phone",
-      owner: "Wade Warren",
-      createdAt: "Apr 9, 2025 11:30 AM",
-    },
-    {
-      _id: "9",
-      name: "API Integration Error",
-      status: "New",
-      priority: "Critical",
-      source: "Chat",
-      owner: "Brooklyn Simmons",
-      createdAt: "Apr 10, 2025 9:15 AM",
-    },
-    {
-      _id: "10",
-      name: "Password Reset Not Working",
-      status: "Waiting on contact",
-      priority: "High",
-      source: "Email",
-      owner: "Leslie Alexander",
-      createdAt: "Apr 10, 2025 2:00 PM",
-    },
-    {
-      _id: "11",
-      name: "Dashboard Loading Slow",
-      status: "Closed",
-      priority: "Low",
-      source: "Chat",
-      owner: "Guy Hawkins",
-      createdAt: "Apr 11, 2025 8:45 AM",
-    },
-    {
-      _id: "12",
-      name: "Email Notification Delay",
-      status: "New",
-      priority: "Medium",
-      source: "Email",
-      owner: "Cameron Williamson",
-      createdAt: "Apr 11, 2025 3:30 PM",
-    },
-    {
-      _id: "13",
-      name: "Report Download Error",
-      status: "Waiting on us",
-      priority: "High",
-      source: "Phone",
-      owner: "Jane Cooper",
-      createdAt: "Apr 12, 2025 10:00 AM",
-    },
-    {
-      _id: "14",
-      name: "User Permission Issue",
-      status: "New",
-      priority: "Critical",
-      source: "Chat",
-      owner: "Wade Warren",
-      createdAt: "Apr 12, 2025 1:15 PM",
-    },
-    {
-      _id: "15",
-      name: "Billing Discrepancy",
-      status: "Waiting on contact",
-      priority: "Medium",
-      source: "Email",
-      owner: "Brooklyn Simmons",
-      createdAt: "Apr 13, 2025 9:00 AM",
-    },
-  ],
+  tickets: [],
   loading: false,
   error: null,
 };
@@ -146,33 +65,50 @@ const ticketsSlice = createSlice({
   name: "tickets",
   initialState,
   reducers: {
+    // Legacy support if needed
     setTickets: (state, action) => {
       state.tickets = action.payload;
     },
-    addTicket: (state, action) => {
-      state.tickets.push(action.payload);
-    },
-    updateTicket: (state, action) => {
-      const index = state.tickets.findIndex(
-        (ticket) => ticket._id === action.payload._id
-      );
-      if (index !== -1) {
-        state.tickets[index] = action.payload;
-      }
-    },
-    removeTicket: (state, action) => {
-      state.tickets = state.tickets.filter(
-        (ticket) => ticket._id !== action.payload
-      );
-    },
+  },
+  extraReducers: (builder) => {
+    builder
+      // FETCH
+      .addCase(fetchTickets.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchTickets.fulfilled, (state, action) => {
+        state.loading = false;
+        state.tickets = action.payload;
+      })
+      .addCase(fetchTickets.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message;
+      })
+      // CREATE
+      .addCase(addTicket.fulfilled, (state, action) => {
+        state.tickets.unshift(action.payload);
+      })
+      // BULK CREATE
+      .addCase(bulkAddTickets.fulfilled, (state, action) => {
+        state.tickets.unshift(...action.payload);
+      })
+      // UPDATE
+      .addCase(updateTicket.fulfilled, (state, action) => {
+        const index = state.tickets.findIndex((t) => t._id === action.payload._id);
+        if (index !== -1) {
+          state.tickets[index] = action.payload;
+        }
+      })
+      // DELETE
+      .addCase(removeTicket.fulfilled, (state, action) => {
+        state.tickets = state.tickets.filter((t) => t._id !== action.payload);
+      })
+      // BULK DELETE
+      .addCase(bulkDeleteTickets.fulfilled, (state, action) => {
+        state.tickets = state.tickets.filter((t) => !action.payload.includes(t._id));
+      });
   },
 });
 
-export const {
-  setTickets,
-  addTicket,
-  updateTicket,
-  removeTicket,
-} = ticketsSlice.actions;
-
+export const { setTickets } = ticketsSlice.actions;
 export default ticketsSlice.reducer;

@@ -14,6 +14,9 @@ const GenericDetails = ({
   onFieldChange,
   onSaveEdit,
   onDelete,
+  onCreateActivity,
+  onUpdateActivity,
+  onToggleTask,
   showConvertButton = false,
   onConvert,
 }) => {
@@ -38,6 +41,7 @@ const GenericDetails = ({
   // Accordion state for activity buttons
   const [isActivityOpen, setIsActivityOpen] = useState(true);
   const [isAboutOpen, setIsAboutOpen] = useState(true);
+  const [errors, setErrors] = useState({});
 
   // Convert form state
   const [convertForm, setConvertForm] = useState({
@@ -51,6 +55,10 @@ const GenericDetails = ({
   const fileInputRef = useRef(null);
   const [attachments, setAttachments] = useState([]);
 
+  // Separate ref and state for email form attachments
+  const emailFileInputRef = useRef(null);
+  const [emailAttachments, setEmailAttachments] = useState([]);
+
   const handleFileChange = (e) => {
     if (e.target.files) {
       const newFiles = Array.from(e.target.files).map((file) => ({
@@ -62,6 +70,26 @@ const GenericDetails = ({
       }));
       setAttachments((prev) => [...prev, ...newFiles]);
     }
+  };
+
+  const handleEmailFileChange = (e) => {
+    if (e.target.files) {
+      const newFiles = Array.from(e.target.files).map((file) => ({
+        id: Math.random().toString(36).substr(2, 9),
+        name: file.name,
+        size: (file.size / 1024).toFixed(2) + " KB",
+        type: file.type,
+      }));
+      setEmailAttachments((prev) => [...prev, ...newFiles]);
+    }
+  };
+
+  const triggerEmailFileInput = () => {
+    emailFileInputRef.current?.click();
+  };
+
+  const removeEmailAttachment = (id) => {
+    setEmailAttachments((prev) => prev.filter((a) => a.id !== id));
   };
 
   const handleCall = () => {
@@ -87,18 +115,27 @@ const GenericDetails = ({
   }, [initialActivities]);
 
   const toggleTask = (taskId) => {
-    setActivities((prev) =>
-      prev.map((a) =>
-        a.id === taskId ? { ...a, completed: !a.completed } : a
-      )
-    );
+    if (onToggleTask) {
+      onToggleTask(taskId);
+    } else {
+      setActivities((prev) =>
+        prev.map((a) =>
+          a.id === taskId ? { ...a, completed: !a.completed } : a
+        )
+      );
+    }
     toast.success("Task status updated");
   };
 
   const updateActivity = (id, updates) => {
-    setActivities((prev) =>
-      prev.map((a) => (a.id === id ? { ...a, ...updates } : a))
-    );
+    if (onUpdateActivity) {
+      const activity = activities.find((a) => a.id === id || a._id === id);
+      onUpdateActivity(id, { ...updates, type: activity?.type });
+    } else {
+      setActivities((prev) =>
+        prev.map((a) => (a.id === id ? { ...a, ...updates } : a))
+      );
+    }
   };
 
   const [callFormData, setCallFormData] = useState({
@@ -131,27 +168,43 @@ const GenericDetails = ({
   });
 
   const [emailFormData, setEmailFormData] = useState({
-    to: entity.email || "",
+    to: entity?.email || "",
     subject: "",
     body: ""
   });
 
+  // Keep email in sync when entity changes
+  useEffect(() => {
+    if (entity?.email) {
+      setEmailFormData(prev => ({ ...prev, to: entity.email }));
+    }
+  }, [entity?.email]);
+
   const handleLogCall = () => {
-    if (!callFormData.outcome) {
-      toast.error("Please choose a call outcome");
+    if (!callFormData.outcome || !callFormData.duration || !callFormData.note.trim()) {
+      const callErrors = {};
+      if (!callFormData.outcome) callErrors.callOutcome = "Outcome is required";
+      if (!callFormData.duration) callErrors.callDuration = "Duration is required";
+      if (!callFormData.note.trim()) callErrors.callNote = "Note is required";
+      setErrors(callErrors);
+      toast.error("Please fill in all required call details");
       return;
     }
     const newCall = {
-      id: Date.now(),
       type: "Call",
-      title: "Call logged",
-      time: `${callFormData.date} at ${callFormData.time}`,
-      group: "Recent",
-      content: callFormData.note || "No notes provided.",
       outcome: callFormData.outcome,
-      duration: callFormData.duration || "N/A"
+      duration: callFormData.duration || "N/A",
+      date: callFormData.date,
+      time: callFormData.time,
+      note: callFormData.note || "No notes provided.",
     };
-    setActivities([newCall, ...activities]);
+
+    if (onCreateActivity) {
+      onCreateActivity(newCall);
+    } else {
+      setActivities([{ ...newCall, id: Date.now(), title: "Call logged", time: `${callFormData.date} at ${callFormData.time}`, group: "Recent" }, ...activities]);
+    }
+
     setIsCallDrawerOpen(false);
     toast.success("Call logged successfully");
     setCallFormData({
@@ -165,41 +218,63 @@ const GenericDetails = ({
 
   const handleLogNote = () => {
     if (!noteFormData.note.trim()) {
+      setErrors({ note: "Note content cannot be empty" });
       toast.error("Note content cannot be empty");
       return;
     }
     const newNote = {
-      id: Date.now(),
       type: "Note",
-      title: `Note by ${entity.owner || "User"}`,
-      time: new Date().toLocaleString([], { month: 'long', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
-      group: "Recent",
       content: noteFormData.note,
     };
-    setActivities([newNote, ...activities]);
+
+    if (onCreateActivity) {
+      onCreateActivity(newNote);
+    } else {
+      setActivities([{
+        ...newNote,
+        id: Date.now(),
+        title: `Note by ${entity.owner || "User"}`,
+        time: new Date().toLocaleString([], { month: 'long', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
+        group: "Recent"
+      }, ...activities]);
+    }
+
     setIsNoteDrawerOpen(false);
     toast.success("Note saved successfully");
     setNoteFormData({ note: "" });
+    setErrors({});
   };
 
   const handleLogTask = () => {
     if (!taskFormData.name.trim()) {
+      setErrors({ taskName: "Task name is required" });
       toast.error("Task name is required");
       return;
     }
     const newTask = {
-      id: Date.now(),
       type: "Task",
-      title: taskFormData.name,
-      time: `${taskFormData.date} at ${taskFormData.time}`,
-      group: "Upcoming",
-      content: taskFormData.note || "No description provided.",
-      completed: false,
+      name: taskFormData.name,
+      date: taskFormData.date,
+      time: taskFormData.time,
+      note: taskFormData.note || "No description provided.",
       priority: taskFormData.priority,
-      taskType: taskFormData.type
+      taskType: taskFormData.type,
+      completed: false,
     };
-    setActivities([newTask, ...activities]);
-    setIsTaskDrawerOpen(true);
+
+    if (onCreateActivity) {
+      onCreateActivity(newTask);
+    } else {
+      setActivities([{
+        ...newTask,
+        id: Date.now(),
+        title: taskFormData.name,
+        time: `${taskFormData.date} at ${taskFormData.time}`,
+        group: "Upcoming"
+      }, ...activities]);
+    }
+
+    setIsTaskDrawerOpen(false);
     toast.success("Task created successfully");
     setTaskFormData({
       name: "",
@@ -209,25 +284,41 @@ const GenericDetails = ({
       priority: "Medium",
       type: "To-Do"
     });
+    setErrors({});
   };
 
   const handleLogMeeting = () => {
-    if (!meetingFormData.title.trim()) {
-      toast.error("Meeting title is required");
+    if (!meetingFormData.title.trim() || !meetingFormData.note.trim()) {
+      const meetingErrors = {};
+      if (!meetingFormData.title.trim()) meetingErrors.meetingTitle = "Title is required";
+      if (!meetingFormData.note.trim()) meetingErrors.meetingNote = "Note is required";
+      setErrors(meetingErrors);
+      toast.error("Please fill in meeting title and note");
       return;
     }
     const newMeeting = {
-      id: Date.now(),
       type: "Meeting",
       title: meetingFormData.title,
-      time: `${meetingFormData.date} at ${meetingFormData.startTime}`,
-      group: "Upcoming",
-      content: meetingFormData.note || "No description provided.",
-      duration: "N/A", // Calculated later if needed
+      date: meetingFormData.date,
+      startTime: meetingFormData.startTime,
+      endTime: meetingFormData.endTime,
+      note: meetingFormData.note || "No description provided.",
+      duration: "N/A",
       attendees: "1",
       organizedBy: entity.owner || "User"
     };
-    setActivities([newMeeting, ...activities]);
+
+    if (onCreateActivity) {
+      onCreateActivity(newMeeting);
+    } else {
+      setActivities([{
+        ...newMeeting,
+        id: Date.now(),
+        time: `${meetingFormData.date} at ${meetingFormData.startTime}`,
+        group: "Upcoming"
+      }, ...activities]);
+    }
+
     setIsMeetingDrawerOpen(false);
     toast.success("Meeting scheduled successfully");
     setMeetingFormData({
@@ -237,30 +328,47 @@ const GenericDetails = ({
       endTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }),
       note: ""
     });
+    setErrors({});
   };
 
   const handleSendEmail = () => {
-    if (!emailFormData.subject.trim() || !emailFormData.body.trim()) {
+    const emailErrors = {};
+    if (!emailFormData.subject.trim()) emailErrors.emailSubject = "Subject is required";
+    if (!emailFormData.body.trim()) emailErrors.emailBody = "Body is required";
+
+    if (Object.keys(emailErrors).length > 0) {
+      setErrors(emailErrors);
       toast.error("Subject and body are required");
       return;
     }
+    const now = new Date();
     const newEmail = {
-      id: Date.now(),
       type: "Email",
-      title: `Email to ${emailFormData.to}`,
-      time: new Date().toLocaleString([], {
-        month: "long",
-        day: "numeric",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
-      group: "Recent",
-      content: emailFormData.body,
+      subject: emailFormData.subject,
+      to: emailFormData.to,
+      from: "User@crm.com", // Mocking current user email for now
+      body: emailFormData.body,
+      date: now.toISOString().split('T')[0],
+      time: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }),
     };
-    setActivities([newEmail, ...activities]);
+
+    if (onCreateActivity) {
+      onCreateActivity(newEmail);
+    } else {
+      setActivities([{
+        ...newEmail,
+        id: Date.now(),
+        title: newEmail.subject,
+        time: `${newEmail.date} at ${newEmail.time}`,
+        group: "Recent",
+        content: newEmail.body
+      }, ...activities]);
+    }
+
     setIsEmailModalOpen(false);
     toast.success("Email sent successfully");
+    setErrors({});
+    setEmailAttachments([]);
     setEmailFormData({
       to: entity.email || "",
       subject: "",
@@ -651,11 +759,15 @@ const GenericDetails = ({
                   Note <span>*</span>
                 </label>
                 <textarea
-                  className={styles.simpleTextarea}
+                  className={`${styles.simpleTextarea} ${errors.note ? styles.errorInput : ""}`}
                   placeholder="Enter your note here..."
                   value={noteFormData.note}
-                  onChange={(e) => setNoteFormData({ note: e.target.value })}
+                  onChange={(e) => {
+                    setNoteFormData({ note: e.target.value });
+                    if (errors.note) setErrors({});
+                  }}
                 ></textarea>
+                {errors.note && <span className={styles.errorText}>{errors.note}</span>}
               </div>
             </div>
             <div className={styles.drawerFooter}>
@@ -690,9 +802,14 @@ const GenericDetails = ({
                 <input
                   type="text"
                   placeholder="Enter"
+                  className={errors.taskName ? styles.errorInput : ""}
                   value={taskFormData.name}
-                  onChange={(e) => setTaskFormData({ ...taskFormData, name: e.target.value })}
+                  onChange={(e) => {
+                    setTaskFormData({ ...taskFormData, name: e.target.value });
+                    if (errors.taskName) setErrors({});
+                  }}
                 />
+                {errors.taskName && <span className={styles.errorText}>{errors.taskName}</span>}
               </div>
               <div className={styles.row}>
                 <div className={styles.field}>
@@ -770,9 +887,14 @@ const GenericDetails = ({
                 <input
                   type="text"
                   placeholder="Enter"
+                  className={errors.meetingTitle ? styles.errorInput : ""}
                   value={meetingFormData.title}
-                  onChange={(e) => setMeetingFormData({ ...meetingFormData, title: e.target.value })}
+                  onChange={(e) => {
+                    setMeetingFormData({ ...meetingFormData, title: e.target.value });
+                    if (errors.meetingTitle) setErrors({});
+                  }}
                 />
+                {errors.meetingTitle && <span className={styles.errorText}>{errors.meetingTitle}</span>}
               </div>
               <div className={styles.field}>
                 <label>
@@ -826,11 +948,15 @@ const GenericDetails = ({
                   Note <span>*</span>
                 </label>
                 <textarea
-                  className={styles.simpleTextarea}
+                  className={`${styles.simpleTextarea} ${errors.meetingNote ? styles.errorInput : ""}`}
                   placeholder="Enter meeting details..."
                   value={meetingFormData.note}
-                  onChange={(e) => setMeetingFormData({ ...meetingFormData, note: e.target.value })}
+                  onChange={(e) => {
+                    setMeetingFormData({ ...meetingFormData, note: e.target.value });
+                    if (errors.meetingNote) setErrors({});
+                  }}
                 ></textarea>
+                {errors.meetingNote && <span className={styles.errorText}>{errors.meetingNote}</span>}
               </div>
             </div>
             <div className={styles.drawerFooter}>
@@ -869,9 +995,12 @@ const GenericDetails = ({
                   Call Outcome <span>*</span>
                 </label>
                 <select
-                  className={styles.formSelect}
+                  className={`${styles.formSelect} ${errors.callOutcome ? styles.errorInput : ""}`}
                   value={callFormData.outcome}
-                  onChange={(e) => setCallFormData({ ...callFormData, outcome: e.target.value })}
+                  onChange={(e) => {
+                    setCallFormData({ ...callFormData, outcome: e.target.value });
+                    if (errors.callOutcome) setErrors({});
+                  }}
                 >
                   <option value="">Choose</option>
                   <option value="Busy">Busy</option>
@@ -880,6 +1009,7 @@ const GenericDetails = ({
                   <option value="Left Message">Left Message</option>
                   <option value="Wrong Number">Wrong Number</option>
                 </select>
+                {errors.callOutcome && <span className={styles.errorText}>{errors.callOutcome}</span>}
               </div>
               <div className={styles.field}>
                 <label>
@@ -887,9 +1017,12 @@ const GenericDetails = ({
                 </label>
                 <div className={styles.iconInput}>
                   <select
-                    className={styles.formSelect}
+                    className={`${styles.formSelect} ${errors.callDuration ? styles.errorInput : ""}`}
                     value={callFormData.duration}
-                    onChange={(e) => setCallFormData({ ...callFormData, duration: e.target.value })}
+                    onChange={(e) => {
+                      setCallFormData({ ...callFormData, duration: e.target.value });
+                      if (errors.callDuration) setErrors({});
+                    }}
                   >
                     <option value="">Choose Duration</option>
                     <option value="1 min">1 min</option>
@@ -904,6 +1037,7 @@ const GenericDetails = ({
                     <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
+                {errors.callDuration && <span className={styles.errorText}>{errors.callDuration}</span>}
               </div>
               <div className={styles.row}>
                 <div className={styles.field}>
@@ -942,11 +1076,15 @@ const GenericDetails = ({
                   Note <span>*</span>
                 </label>
                 <textarea
-                  className={styles.simpleTextarea}
+                  className={`${styles.simpleTextarea} ${errors.callNote ? styles.errorInput : ""}`}
                   placeholder="Enter call notes..."
                   value={callFormData.note}
-                  onChange={(e) => setCallFormData({ ...callFormData, note: e.target.value })}
+                  onChange={(e) => {
+                    setCallFormData({ ...callFormData, note: e.target.value });
+                    if (errors.callNote) setErrors({});
+                  }}
                 ></textarea>
+                {errors.callNote && <span className={styles.errorText}>{errors.callNote}</span>}
               </div>
             </div>
             <div className={styles.drawerFooter}>
@@ -1014,7 +1152,7 @@ const GenericDetails = ({
           <div className={styles.emailModal}>
             <div className={styles.emailHeader}>
               <h3>New Email</h3>
-              <button onClick={() => setIsEmailModalOpen(false)}>×</button>
+              <button onClick={() => { setIsEmailModalOpen(false); setEmailAttachments([]); }}>×</button>
             </div>
             <div className={styles.emailBody}>
               <div className={styles.emailRow}>
@@ -1033,23 +1171,59 @@ const GenericDetails = ({
                 <input
                   type="text"
                   placeholder="Subject"
+                  className={errors.emailSubject ? styles.errorInput : ""}
                   value={emailFormData.subject}
-                  onChange={(e) => setEmailFormData({ ...emailFormData, subject: e.target.value })}
+                  onChange={(e) => {
+                    setEmailFormData({ ...emailFormData, subject: e.target.value });
+                    if (errors.emailSubject) setErrors({});
+                  }}
                 />
+                {errors.emailSubject && <span className={styles.errorText}>{errors.emailSubject}</span>}
               </div>
               <div className={styles.emailEditor}>
                 <textarea
                   placeholder="Body Text"
+                  className={errors.emailBody ? styles.errorInput : ""}
                   value={emailFormData.body}
-                  onChange={(e) => setEmailFormData({ ...emailFormData, body: e.target.value })}
+                  onChange={(e) => {
+                    setEmailFormData({ ...emailFormData, body: e.target.value });
+                    if (errors.emailBody) setErrors({});
+                  }}
                 ></textarea>
+                {errors.emailBody && <span className={styles.errorText}>{errors.emailBody}</span>}
               </div>
+              {emailAttachments.length > 0 && (
+                <div className={styles.emailAttachmentList}>
+                  {emailAttachments.map((file) => (
+                    <div key={file.id} className={styles.emailAttachmentItem}>
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                      <span className={styles.emailAttachName}>{file.name}</span>
+                      <span className={styles.emailAttachSize}>{file.size}</span>
+                      <button
+                        className={styles.removeEmailAttach}
+                        onClick={() => removeEmailAttachment(file.id)}
+                        title="Remove attachment"
+                      >×</button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
+            {/* Hidden file input scoped to email form only */}
+            <input
+              type="file"
+              ref={emailFileInputRef}
+              style={{ display: "none" }}
+              onChange={handleEmailFileChange}
+              multiple
+            />
             <div className={styles.emailFooter}>
               <div className={styles.footerLeft}>
                 <button className={styles.sendBtn} onClick={handleSendEmail}>Send</button>
                 <div className={styles.footerIcons}>
-                  <span onClick={triggerFileInput}>Clip</span>
+                  <span onClick={triggerEmailFileInput} title="Attach files">Clip</span>
                 </div>
               </div>
             </div>
