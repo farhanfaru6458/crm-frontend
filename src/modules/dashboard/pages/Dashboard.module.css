@@ -152,30 +152,13 @@
   transition: 0.2s ease;
 }
 
-.salesSelect:focus {
-  border-color: #6d5dfc;
-}
-
 .salesOptions {
   display: flex;
-  gap: 10px;
+  gap: 12px;
 }
 
-.yearSelect {
-  padding: 8px 16px;
-  border-radius: 12px;
-  border: 1px solid #e5e7eb;
-  background: #f9fafc;
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  outline: none;
-  transition: 0.2s ease;
-  color: #6d5dfc;
-}
-
-.yearSelect:focus {
-  border-color: #6d5dfc;
+.filterWrapper {
+  width: 120px;
 }
 
 @media (max-width: 626px) {

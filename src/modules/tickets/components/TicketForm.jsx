@@ -1,94 +1,36 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import styles from "./TicketForm.module.css";
-import { ChevronDown } from "lucide-react";
-
-// Custom searchable dropdown that stays inside the panel
-const InlineSelect = ({ label, name, value, options, onChange, error, placeholder = "Choose" }) => {
-  const [open, setOpen] = useState(false);
-  const [search, setSearch] = useState("");
-  const ref = useRef(null);
-
-  const selectedLabel = options.find(o => o.value === value)?.label || "";
-
-  const filtered = options.filter(o =>
-    o.label.toLowerCase().includes(search.toLowerCase())
-  );
-
-  useEffect(() => {
-    const handler = (e) => {
-      if (ref.current && !ref.current.contains(e.target)) {
-        setOpen(false);
-        setSearch("");
-      }
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, []);
-
-  const handleSelect = (val) => {
-    onChange(name, val);
-    setOpen(false);
-    setSearch("");
-  };
-
-  return (
-    <div className={styles.customDropdown} ref={ref}>
-      {label && <label className={styles.label}>{label}</label>}
-      <button
-        type="button"
-        className={`${styles.dropdownTrigger} ${error ? styles.errorInput : ""} ${open ? styles.dropdownOpen : ""}`}
-        onClick={() => setOpen(prev => !prev)}
-      >
-        <span className={value ? styles.selectedValue : styles.placeholder}>
-          {value ? selectedLabel : placeholder}
-        </span>
-        <ChevronDown size={16} className={`${styles.chevronIcon} ${open ? styles.rotated : ""}`} />
-      </button>
-
-      {open && (
-        <div className={styles.dropdownMenu}>
-          <div className={styles.searchWrapper}>
-            <input
-              type="text"
-              className={styles.searchInput}
-              placeholder="Search..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              autoFocus
-            />
-          </div>
-          <div className={styles.optionsList}>
-            <div
-              className={styles.option}
-              onClick={() => handleSelect("")}
-            >
-              <span className={styles.noneOption}>{placeholder}</span>
-            </div>
-            {filtered.length === 0 ? (
-              <div className={styles.noResults}>No results</div>
-            ) : (
-              filtered.map(opt => (
-                <div
-                  key={opt.value}
-                  className={`${styles.option} ${opt.value === value ? styles.selectedOption : ""}`}
-                  onClick={() => handleSelect(opt.value)}
-                >
-                  {opt.label}
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-      )}
-      {error && <span className={styles.errorText}>{error}</span>}
-    </div>
-  );
-};
+import axios from "axios";
+import { useAuth } from "../../../context/AuthContext";
+import CustomSelect from "../../../components/ui/CustomSelect/CustomSelect";
 
 const TicketForm = ({ formData, onChange, errors = {} }) => {
+  const { user } = useAuth();
+  const [owners, setOwners] = useState([]);
   const deals = useSelector((state) => state.deals.deals);
   const companies = useSelector((state) => state.companies.companies);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      if (user?.role === 'admin') {
+        const token = localStorage.getItem('crm_token') || sessionStorage.getItem('crm_token');
+        try {
+          const res = await axios.get("http://localhost:5000/api/users", {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          const formattedOwners = res.data.map(u => `${u.firstName} ${u.lastName}`);
+          setOwners(formattedOwners);
+        } catch (e) {
+          console.error(e);
+          setOwners([`${user.firstName} ${user.lastName}`]);
+        }
+      } else if (user) {
+        setOwners([`${user.firstName} ${user.lastName}`]);
+      }
+    };
+    fetchUsers();
+  }, [user]);
 
   const dealOptions = deals.map(d => ({ value: d._id, label: d.dealName }));
   const companyOptions = companies.map(c => ({ value: c._id, label: c.name }));
@@ -98,13 +40,17 @@ const TicketForm = ({ formData, onChange, errors = {} }) => {
     onChange(name, value);
   };
 
-  const handleAssociation = (name, value) => {
+  const handleSelectChange = (name, value) => {
     // Mutually exclusive: clear the other when one is set
     if (name === "associatedDealId" && value) {
       onChange("associatedCompanyId", "");
     } else if (name === "associatedCompanyId" && value) {
       onChange("associatedDealId", "");
     }
+    onChange(name, value);
+  };
+
+  const handleGeneralSelect = (name, value) => {
     onChange(name, value);
   };
 
@@ -124,22 +70,26 @@ const TicketForm = ({ formData, onChange, errors = {} }) => {
       </div>
 
       <div className={styles.row}>
-        <InlineSelect
-          label="Deal"
-          name="associatedDealId"
-          value={formData.associatedDealId || ""}
-          options={dealOptions}
-          onChange={handleAssociation}
-          placeholder="Choose Deal"
-        />
-        <InlineSelect
-          label="Company"
-          name="associatedCompanyId"
-          value={formData.associatedCompanyId || ""}
-          options={companyOptions}
-          onChange={handleAssociation}
-          placeholder="Choose Company"
-        />
+        <div className={styles.field}>
+          <CustomSelect
+            label="Deal"
+            name="associatedDealId"
+            value={formData.associatedDealId || ""}
+            options={dealOptions}
+            onChange={handleSelectChange}
+            placeholder="Choose Deal"
+          />
+        </div>
+        <div className={styles.field}>
+          <CustomSelect
+            label="Company"
+            name="associatedCompanyId"
+            value={formData.associatedCompanyId || ""}
+            options={companyOptions}
+            onChange={handleSelectChange}
+            placeholder="Choose Company"
+          />
+        </div>
       </div>
 
       <div className={styles.field}>
@@ -155,68 +105,48 @@ const TicketForm = ({ formData, onChange, errors = {} }) => {
 
       <div className={styles.row}>
         <div className={styles.field}>
-          <label className={styles.label}>Ticket Status <span>*</span></label>
-          <select
+          <CustomSelect
+            label="Ticket Status *"
             name="status"
-            className={`${styles.select} ${errors.status ? styles.errorInput : ""}`}
             value={formData.status || ""}
-            onChange={handleChange}
-          >
-            <option value="">Choose</option>
-            <option value="New">New</option>
-            <option value="Waiting on us">Waiting on us</option>
-            <option value="Waiting on contact">Waiting on contact</option>
-          </select>
-          {errors.status && <span className={styles.errorText}>{errors.status}</span>}
+            options={["New", "Waiting on us", "Waiting on contact"]}
+            onChange={handleGeneralSelect}
+            error={errors.status}
+          />
         </div>
 
         <div className={styles.field}>
-          <label className={styles.label}>Source <span>*</span></label>
-          <select
+          <CustomSelect
+            label="Source *"
             name="source"
-            className={`${styles.select} ${errors.source ? styles.errorInput : ""}`}
             value={formData.source || ""}
-            onChange={handleChange}
-          >
-            <option value="">Choose</option>
-            <option value="Chat">Chat</option>
-            <option value="Email">Email</option>
-            <option value="Phone">Phone</option>
-          </select>
-          {errors.source && <span className={styles.errorText}>{errors.source}</span>}
+            options={["Chat", "Email", "Phone"]}
+            onChange={handleGeneralSelect}
+            error={errors.source}
+          />
         </div>
       </div>
 
       <div className={styles.field}>
-        <label className={styles.label}>Priority <span>*</span></label>
-        <select
+        <CustomSelect
+          label="Priority *"
           name="priority"
-          className={`${styles.select} ${errors.priority ? styles.errorInput : ""}`}
           value={formData.priority || ""}
-          onChange={handleChange}
-        >
-          <option value="">Choose</option>
-          <option value="High">High</option>
-          <option value="Medium">Medium</option>
-          <option value="Low">Low</option>
-        </select>
-        {errors.priority && <span className={styles.errorText}>{errors.priority}</span>}
+          options={["High", "Medium", "Low"]}
+          onChange={handleGeneralSelect}
+          error={errors.priority}
+        />
       </div>
 
       <div className={styles.field}>
-        <label className={styles.label}>Ticket Owner <span>*</span></label>
-        <select
+        <CustomSelect
+          label="Ticket Owner *"
           name="owner"
-          className={`${styles.select} ${errors.owner ? styles.errorInput : ""}`}
           value={formData.owner || ""}
-          onChange={handleChange}
-        >
-          <option value="">Choose</option>
-          {["Jane Cooper", "Wade Warren", "Brooklyn Simmons", "Leslie Alexander", "Guy Hawkins", "Cameron Williamson"].map(owner => (
-            <option key={owner} value={owner}>{owner}</option>
-          ))}
-        </select>
-        {errors.owner && <span className={styles.errorText}>{errors.owner}</span>}
+          options={owners}
+          onChange={handleGeneralSelect}
+          error={errors.owner}
+        />
       </div>
     </form>
   );

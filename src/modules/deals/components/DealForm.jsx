@@ -1,32 +1,63 @@
 import { useSelector } from "react-redux";
+import { useState, useEffect } from "react";
+import axios from "axios";
+import { useAuth } from "../../../context/AuthContext";
 import styles from "./DealForm.module.css";
 
+import CustomSelect from "../../../components/ui/CustomSelect/CustomSelect";
+
 const DealForm = ({ formData, onChange, errors = {} }) => {
+    const { user } = useAuth();
+    const [owners, setOwners] = useState([]);
     const leads = useSelector((state) => state.leads.leads);
     const qualifiedLeads = leads.filter((lead) => lead.status === "Qualified");
+
+    useEffect(() => {
+        const fetchUsers = async () => {
+            if (user?.role === 'admin') {
+                const token = localStorage.getItem('crm_token') || sessionStorage.getItem('crm_token');
+                try {
+                    const res = await axios.get("http://localhost:5000/api/users", {
+                        headers: { Authorization: `Bearer ${token}` }
+                    });
+                    const formattedOwners = res.data.map(u => `${u.firstName} ${u.lastName}`);
+                    setOwners(formattedOwners);
+                } catch (e) {
+                    console.error(e);
+                    setOwners([`${user.firstName} ${user.lastName}`]);
+                }
+            } else if (user) {
+                setOwners([`${user.firstName} ${user.lastName}`]);
+            }
+        };
+        fetchUsers();
+    }, [user]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
         onChange(name, value);
     };
 
+    const handleSelectChange = (name, value) => {
+        onChange(name, value);
+    };
+
+    const leadOptions = qualifiedLeads.map((lead) => ({
+        value: lead._id,
+        label: `${lead.firstName} ${lead.lastName} (${lead.company || 'No Company'})`
+    }));
+
     return (
         <form className={styles.form}>
             <div className={styles.field}>
-                <label className={styles.label}>Associated Lead</label>
-                <select
+                <CustomSelect
+                    label="Associated Lead"
                     name="associatedLeadId"
-                    className={styles.select}
                     value={formData.associatedLeadId || ""}
-                    onChange={handleChange}
-                >
-                    <option value="">Select Qualified Lead</option>
-                    {qualifiedLeads.map((lead) => (
-                        <option key={lead._id} value={lead._id}>
-                            {lead.name} ({lead.company})
-                        </option>
-                    ))}
-                </select>
+                    options={leadOptions}
+                    onChange={handleSelectChange}
+                    placeholder="Select Qualified Lead"
+                />
             </div>
 
             <div className={styles.field}>
@@ -43,25 +74,18 @@ const DealForm = ({ formData, onChange, errors = {} }) => {
             </div>
 
             <div className={styles.field}>
-                <label className={styles.label}>Deal Stage *</label>
-                <select
+                <CustomSelect
+                    label="Deal Stage *"
                     name="dealStage"
-                    className={`${styles.select} ${errors.dealStage ? styles.errorInput : ""}`}
                     value={formData.dealStage || ""}
-                    onChange={handleChange}
-                >
-                    <option value="">Choose</option>
-                    <option value="Proposal Sent">Proposal Sent</option>
-                    <option value="Negotiation">Negotiation</option>
-                    <option value="Presentation Scheduled">Presentation Scheduled</option>
-                    <option value="Qualified to Buy">Qualified to Buy</option>
-                    <option value="Contract Sent">Contract Sent</option>
-                    <option value="Appointment Scheduled">Appointment Scheduled</option>
-                    <option value="Decision Maker Bought In">Decision Maker Bought In</option>
-                    <option value="Closed Won">Closed Won</option>
-                    <option value="Closed Lost">Closed Lost</option>
-                </select>
-                {errors.dealStage && <span className={styles.errorText}>{errors.dealStage}</span>}
+                    options={[
+                        "Proposal Sent", "Negotiation", "Presentation Scheduled",
+                        "Qualified to Buy", "Contract Sent", "Appointment Scheduled",
+                        "Decision Maker Bought In", "Closed Won", "Closed Lost"
+                    ]}
+                    onChange={handleSelectChange}
+                    error={errors.dealStage}
+                />
             </div>
 
             <div className={styles.field}>
@@ -78,24 +102,14 @@ const DealForm = ({ formData, onChange, errors = {} }) => {
             </div>
 
             <div className={styles.field}>
-                <label className={styles.label}>Deal Owner *</label>
-                <select
+                <CustomSelect
+                    label="Deal Owner *"
                     name="dealOwner"
-                    className={`${styles.select} ${errors.dealOwner ? styles.errorInput : ""}`}
                     value={formData.dealOwner || ""}
-                    onChange={handleChange}
-                >
-                    <option value="">Choose</option>
-                    <option value="Jane Cooper">Jane Cooper</option>
-                    <option value="Wade Warren">Wade Warren</option>
-                    <option value="Brooklyn Simmons">Brooklyn Simmons</option>
-                    <option value="Leslie Alexander">Leslie Alexander</option>
-                    <option value="Jenny Wilson">Jenny Wilson</option>
-                    <option value="Guy Hawkins">Guy Hawkins</option>
-                    <option value="Robert Fox">Robert Fox</option>
-                    <option value="Cameron Williamson">Cameron Williamson</option>
-                </select>
-                {errors.dealOwner && <span className={styles.errorText}>{errors.dealOwner}</span>}
+                    options={owners}
+                    onChange={handleSelectChange}
+                    error={errors.dealOwner}
+                />
             </div>
 
             <div className={styles.row}>
@@ -111,19 +125,14 @@ const DealForm = ({ formData, onChange, errors = {} }) => {
                     {errors.closeDate && <span className={styles.errorText}>{errors.closeDate}</span>}
                 </div>
                 <div className={styles.field}>
-                    <label className={styles.label}>Priority *</label>
-                    <select
+                    <CustomSelect
+                        label="Priority *"
                         name="priority"
-                        className={`${styles.select} ${errors.priority ? styles.errorInput : ""}`}
                         value={formData.priority || ""}
-                        onChange={handleChange}
-                    >
-                        <option value="">Choose</option>
-                        <option value="High">High</option>
-                        <option value="Medium">Medium</option>
-                        <option value="Low">Low</option>
-                    </select>
-                    {errors.priority && <span className={styles.errorText}>{errors.priority}</span>}
+                        options={["High", "Medium", "Low"]}
+                        onChange={handleSelectChange}
+                        error={errors.priority}
+                    />
                 </div>
             </div>
         </form>

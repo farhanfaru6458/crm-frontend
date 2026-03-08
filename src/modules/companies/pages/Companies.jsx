@@ -6,6 +6,8 @@ import Pagination from "../../../components/ui/Pagination";
 import Modal from "../../../components/ui/Modal";
 import CompanyForm from "../components/CompanyForm";
 import styles from "./Companies.module.css";
+import CustomSelect from "../../../components/ui/CustomSelect/CustomSelect";
+import { useAuth } from "../../../context/AuthContext";
 
 import { useSelector, useDispatch } from "react-redux";
 import {
@@ -23,6 +25,7 @@ import ImportButton from "../../../components/ui/buttons/ImportButton";
 import ConfirmDialog from "../../../components/ui/ConfirmDialog";
 
 const Companies = () => {
+  const { user } = useAuth();
   const dispatch = useDispatch();
   const { companies, loading } = useSelector((state) => state.companies);
 
@@ -63,7 +66,9 @@ const Companies = () => {
 
   const handleOpenCreate = () => {
     setEditingCompany(null);
-    setFormData({});
+    setFormData({
+      owner: user ? `${user.firstName} ${user.lastName}` : ""
+    });
     setErrors({});
     setIsModalOpen(true);
   };
@@ -253,54 +258,29 @@ const Companies = () => {
             />
           </div>
           <div className={styles.dropdownFiltersRow}>
-            <select
-              className={styles.filterSelect}
+            <CustomSelect
+              className={styles.filterSelectWrapper}
+              placeholder="Industry Type"
               value={filters.industry}
-              onChange={(e) => handleFilterChange("industry", e.target.value)}
-            >
-              <option value="">Industry Type</option>
-              <option value="Real Estate">Real Estate</option>
-              <option value="Technology">Technology</option>
-              <option value="Healthcare">Healthcare</option>
-              <option value="Legal Services">Legal Services</option>
-              <option value="Finance">Finance</option>
-            </select>
+              onChange={(val) => handleFilterChange("industry", val)}
+              options={["Real Estate", "Technology", "Healthcare", "Legal Services", "Finance"]}
+            />
 
-            <select
-              className={styles.filterSelect}
+            <CustomSelect
+              className={styles.filterSelectWrapper}
+              placeholder="City"
               value={filters.city}
-              onChange={(e) => handleFilterChange("city", e.target.value)}
-            >
-              <option value="">City</option>
-              <option value="Bangalore">Bangalore</option>
-              <option value="Toronto">Toronto</option>
-              <option value="Amsterdam">Amsterdam</option>
-              <option value="San Francisco">San Francisco</option>
-              <option value="New York">New York</option>
-              <option value="London">London</option>
-              <option value="Sydney">Sydney</option>
-              <option value="Berlin">Berlin</option>
-              <option value="Mumbai">Mumbai</option>
-              <option value="Singapore">Singapore</option>
-              <option value="Dubai">Dubai</option>
-            </select>
+              onChange={(val) => handleFilterChange("city", val)}
+              options={["Bangalore", "Toronto", "Amsterdam", "San Francisco", "New York", "London", "Sydney", "Berlin", "Mumbai", "Singapore", "Dubai"]}
+            />
 
-            <select
-              className={styles.filterSelect}
+            <CustomSelect
+              className={styles.filterSelectWrapper}
+              placeholder="Country/Region"
               value={filters.country}
-              onChange={(e) => handleFilterChange("country", e.target.value)}
-            >
-              <option value="">Country/Region</option>
-              <option value="India">India</option>
-              <option value="Canada">Canada</option>
-              <option value="Netherlands">Netherlands</option>
-              <option value="USA">USA</option>
-              <option value="UK">UK</option>
-              <option value="Australia">Australia</option>
-              <option value="Germany">Germany</option>
-              <option value="Singapore">Singapore</option>
-              <option value="UAE">UAE</option>
-            </select>
+              onChange={(val) => handleFilterChange("country", val)}
+              options={["India", "Canada", "Netherlands", "USA", "UK", "Australia", "Germany", "Singapore", "UAE"]}
+            />
 
             <div className={styles.datePicker}>
               <input

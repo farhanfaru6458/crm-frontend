@@ -319,16 +319,28 @@
     box-shadow: 0 0 0 4px rgba(90, 75, 255, 0.1);
 }
 
-.durationInput select {
-    border: none;
+.durationInputWrapper {
     flex: 1;
-    background: transparent;
-    height: 44px;
-    padding: 0 1rem;
-    font-size: 0.875rem;
+}
+
+.compactSelect {
+    min-width: 120px;
+}
+
+.attendeesInput {
+    padding: 0.5rem;
+    font-size: 0.8125rem;
+    width: 80px;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
     color: #1e293b;
     font-weight: 500;
+}
+
+.attendeesInput:focus {
+    border-color: #5a4bff;
     outline: none;
+    box-shadow: 0 0 0 2px rgba(90, 75, 255, 0.1);
 }
 
 @media (max-width: 768px) {

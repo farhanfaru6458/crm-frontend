@@ -1,31 +1,35 @@
-import React, { useState, useRef, useEffect } from "react";
-import { Mail, ChevronDown, X } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Mail, ChevronDown } from "lucide-react";
 import styles from "./LeadForm.module.css";
+import { useAuth } from "../../../context/AuthContext";
+import axios from "axios";
+import CustomSelect from "../../../components/ui/CustomSelect/CustomSelect";
 
 const LeadForm = ({ formData, onChange, errors = {} }) => {
-    const owners = ["Jane Cooper", "Wade Warren", "Brooklyn Simmons", "Leslie Alexander", "Jenny Wilson", "Guy Hawkins", "Robert Fox", "Cameron Williamson"];
+    const { user } = useAuth();
+    const [owners, setOwners] = useState([]);
     const statuses = ["New", "Contacted", "Qualified", "Converted", "Unqualified"];
 
-    const [isOwnerDropdownOpen, setIsOwnerDropdownOpen] = useState(false);
-    const dropdownRef = useRef(null);
-
     useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-                setIsOwnerDropdownOpen(false);
+        const fetchUsers = async () => {
+            if (user?.role === 'admin') {
+                const token = localStorage.getItem('crm_token') || sessionStorage.getItem('crm_token');
+                try {
+                    const res = await axios.get("http://localhost:5000/api/users", {
+                        headers: { Authorization: `Bearer ${token}` }
+                    });
+                    const formattedOwners = res.data.map(u => `${u.firstName} ${u.lastName}`);
+                    setOwners(formattedOwners);
+                } catch (e) {
+                    console.error(e);
+                    setOwners([`${user.firstName} ${user.lastName}`]);
+                }
+            } else if (user) {
+                setOwners([`${user.firstName} ${user.lastName}`]);
             }
         };
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, []);
-
-    const toggleOwner = (owner) => {
-        const currentOwners = formData.owner || [];
-        const newOwners = currentOwners.includes(owner)
-            ? currentOwners.filter((o) => o !== owner)
-            : [...currentOwners, owner];
-        onChange("owner", newOwners);
-    };
+        fetchUsers();
+    }, [user]);
 
     const handleSelectChange = (field, value) => {
         onChange(field, value);
@@ -121,68 +125,26 @@ const LeadForm = ({ formData, onChange, errors = {} }) => {
 
                 {/* Contact Owner Multi Selector */}
                 <div className={styles.field}>
-                    <label className={styles.label}>Contact Owner</label>
-                    <div className={styles.customSelectWrapper} ref={dropdownRef}>
-                        <div
-                            className={styles.customSelect}
-                            onClick={() => setIsOwnerDropdownOpen(!isOwnerDropdownOpen)}
-                        >
-                            {formData.owner && formData.owner.length > 0 ? (
-                                <div className={styles.selectedTags}>
-                                    {formData.owner.map(o => (
-                                        <span key={o} className={styles.tag}>
-                                            {o}
-                                            <X
-                                                size={12}
-                                                onClick={(e) => { e.stopPropagation(); toggleOwner(o); }}
-                                                className={styles.closeTag}
-                                            />
-                                        </span>
-                                    ))}
-                                </div>
-                            ) : (
-                                <span className={styles.placeholder}>Choose</span>
-                            )}
-                            <ChevronDown size={20} className={styles.selectChevron} />
-                        </div>
-                        {isOwnerDropdownOpen && (
-                            <div className={styles.dropdownOptions}>
-                                {owners.map(owner => (
-                                    <div
-                                        key={owner}
-                                        className={`${styles.option} ${formData.owner?.includes(owner) ? styles.selectedOption : ""}`}
-                                        onClick={() => toggleOwner(owner)}
-                                    >
-                                        <input
-                                            type="checkbox"
-                                            checked={formData.owner?.includes(owner) || false}
-                                            readOnly
-                                            className={styles.checkbox}
-                                        />
-                                        {owner}
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </div>
+                    <CustomSelect
+                        label="Contact Owner"
+                        name="owner"
+                        value={formData.owner || []}
+                        options={owners}
+                        isMulti={true}
+                        onChange={handleSelectChange}
+                    />
                 </div>
 
                 {/* Lead Status Field */}
                 <div className={styles.field}>
-                    <label className={styles.label}>Lead Status</label>
-                    <div className={styles.selectContainer}>
-                        <select
-                            className={styles.select}
-                            value={formData.status || ""}
-                            onChange={(e) => handleSelectChange("status", e.target.value)}
-                        >
-                            <option value="" disabled>Choose</option>
-                            {statuses.map(status => (
-                                <option key={status} value={status}>{status}</option>
-                            ))}
-                        </select>
-                        <ChevronDown size={20} className={styles.selectChevronOverlay} />
-                    </div>
+                    <CustomSelect
+                        label="Lead Status"
+                        name="status"
+                        value={formData.status || ""}
+                        options={statuses}
+                        onChange={handleSelectChange}
+                        error={errors.status}
+                    />
                 </div>
             </form>
         </div>

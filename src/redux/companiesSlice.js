@@ -5,8 +5,16 @@ import axios from "../services/axiosInstance";
 export const fetchCompanies = createAsyncThunk(
   "companies/fetchCompanies",
   async () => {
-    const { data } = await axios.get("/companies");
-    return data.data;
+    try {
+      const { data } = await axios.get("/companies");
+      if (Array.isArray(data)) return data;
+      if (data.data && Array.isArray(data.data)) return data.data;
+      if (data.companies && Array.isArray(data.companies)) return data.companies;
+      return [];
+    } catch (error) {
+      console.error("Fetch Companies Error:", error);
+      throw error;
+    }
   }
 );
 

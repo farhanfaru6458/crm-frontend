@@ -28,18 +28,18 @@ export default function AppRoutes() {
 
   return (
     <Routes>
-      <Route path="/" element={<Navigate to={user ? "/dashboard" : "/login"} />} />
+      <Route path="/" element={<Navigate to={user ? (user.role === 'admin' ? "/dashboard" : "/leads") : "/login"} />} />
       <Route path="/verify-otp" element={<VerifyOtp />} />
-      <Route path="/register" element={!user ? <Registration /> : <Navigate to="/dashboard" />} />
+      <Route path="/register" element={!user ? <Registration /> : <Navigate to={user.role === 'admin' ? "/dashboard" : "/leads"} />} />
       <Route path="/reset-password/:email" element={<ResetPassword />} />
-      <Route path="/login" element={!user ? <Login /> : <Navigate to="/dashboard" />} />
-      <Route path="/forgot-password" element={!user ? <ForgotPassword /> : <Navigate to="/dashboard" />} />
+      <Route path="/login" element={!user ? <Login /> : <Navigate to={user?.role === 'admin' ? "/dashboard" : "/leads"} />} />
+      <Route path="/forgot-password" element={!user ? <ForgotPassword /> : <Navigate to={user?.role === 'admin' ? "/dashboard" : "/leads"} />} />
       <Route element={
         <ProtectedRoute>
           <Layout />
         </ProtectedRoute>
       }>
-        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/dashboard" element={user?.role === 'admin' ? <Dashboard /> : <Navigate to="/leads" />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/leads" element={<Leads />} />
         <Route path="/leads/:id" element={<LeadDetails />} />

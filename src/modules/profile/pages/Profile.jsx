@@ -1,8 +1,8 @@
-
 import React, { useState } from 'react';
 import { useAuth } from "../../../context/AuthContext";
 import styles from './Profile.module.css';
 import { countries } from "../../../utils/countries";
+import CustomSelect from "../../../components/ui/CustomSelect/CustomSelect";
 
 const Profile = () => {
     const { user, updateUser } = useAuth();
@@ -19,7 +19,7 @@ const Profile = () => {
             lastName: user.lastName || "",
             // email is usually not editable easily, keeping it read-only for now
             phone: user.phone || "",
-            company: user.company || "",
+            companyName: user.companyName || "",
             industry: user.industry || "",
             country: user.country || ""
         });
@@ -35,6 +35,13 @@ const Profile = () => {
         setFormData({
             ...formData,
             [e.target.name]: e.target.value
+        });
+    };
+
+    const handleSelectChange = (name, value) => {
+        setFormData({
+            ...formData,
+            [name]: value
         });
     };
 
@@ -96,40 +103,28 @@ const Profile = () => {
                                 <label>Company</label>
                                 <input
                                     type="text"
-                                    name="company"
-                                    value={formData.company}
+                                    name="companyName"
+                                    value={formData.companyName}
                                     onChange={handleChange}
                                 />
                             </div>
                             <div className={styles.formGroup}>
-                                <label>Industry</label>
-                                <select
+                                <CustomSelect
+                                    label="Industry"
                                     name="industry"
                                     value={formData.industry}
-                                    onChange={handleChange}
-                                >
-                                    <option value="">Choose</option>
-                                    <option value="IT">IT</option>
-                                    <option value="Finance">Finance</option>
-                                    <option value="Healthcare">Healthcare</option>
-                                    <option value="Retail">Retail</option>
-                                    <option value="Education">Education</option>
-                                </select>
+                                    options={["IT", "Finance", "Healthcare", "Retail", "Education"]}
+                                    onChange={(val) => handleSelectChange("industry", val)}
+                                />
                             </div>
                             <div className={styles.formGroup}>
-                                <label>Country</label>
-                                <select
+                                <CustomSelect
+                                    label="Country"
                                     name="country"
                                     value={formData.country}
-                                    onChange={handleChange}
-                                >
-                                    <option value="">Choose Country</option>
-                                    {countries.map((country) => (
-                                        <option key={country} value={country}>
-                                            {country}
-                                        </option>
-                                    ))}
-                                </select>
+                                    options={countries}
+                                    onChange={(val) => handleSelectChange("country", val)}
+                                />
                             </div>
 
                             <div className={styles.formActions}>
@@ -157,7 +152,7 @@ const Profile = () => {
                             </div>
                             <div className={styles.row}>
                                 <span className={styles.label}>Company:</span>
-                                <span className={styles.value}>{user.company || "-"}</span>
+                                <span className={styles.value}>{user.companyName || "-"}</span>
                             </div>
                             <div className={styles.row}>
                                 <span className={styles.label}>Industry:</span>

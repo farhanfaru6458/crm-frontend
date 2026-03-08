@@ -6,6 +6,9 @@ import { toast } from "react-hot-toast";
 import { useDispatch } from "react-redux";
 import { addNotification } from "../../../redux/notificationsSlice";
 import ConfirmDialog from "../../ui/ConfirmDialog";
+import { useAuth } from "../../../context/AuthContext";
+import axios from "axios";
+import CustomSelect from "../../ui/CustomSelect/CustomSelect";
 
 const GenericDetails = ({
   entity,
@@ -20,13 +23,36 @@ const GenericDetails = ({
   showConvertButton = false,
   onConvert,
 }) => {
+  const { user } = useAuth();
   const dispatch = useDispatch();
   const [activeTab, setActiveTab] = useState("Activity");
   const [activities, setActivities] = useState(initialActivities || []);
+  const [owners, setOwners] = useState([]);
 
   useEffect(() => {
     setActivities(initialActivities || []);
   }, [initialActivities]);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      if (user?.role === 'admin') {
+        const token = localStorage.getItem('crm_token') || sessionStorage.getItem('crm_token');
+        try {
+          const res = await axios.get("http://localhost:5000/api/users", {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          const formattedOwners = res.data.map(u => `${u.firstName} ${u.lastName}`);
+          setOwners(formattedOwners);
+        } catch (e) {
+          console.error(e);
+          setOwners([`${user.firstName} ${user.lastName}`]);
+        }
+      } else if (user) {
+        setOwners([`${user.firstName} ${user.lastName}`]);
+      }
+    };
+    fetchUsers();
+  }, [user]);
 
   // Drawer/Modal States
   const [isNoteDrawerOpen, setIsNoteDrawerOpen] = useState(false);
@@ -138,6 +164,19 @@ const GenericDetails = ({
     }
   };
 
+  const handleSelectChange = (field, value) => {
+    if (isCallDrawerOpen) {
+      setCallFormData(prev => ({ ...prev, [field]: value }));
+    } else if (isMeetingDrawerOpen) {
+      setMeetingFormData(prev => ({ ...prev, [field]: value }));
+    } else if (isConvertDrawerOpen) {
+      setConvertForm(prev => ({ ...prev, [field]: value }));
+    } else {
+      onFieldChange(field, value);
+    }
+    if (errors[field]) setErrors(prev => ({ ...prev, [field]: "" }));
+  };
+
   const [callFormData, setCallFormData] = useState({
     outcome: "",
     duration: "",
@@ -164,7 +203,9 @@ const GenericDetails = ({
     date: new Date().toISOString().split('T')[0],
     startTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }),
     endTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }),
-    note: ""
+    note: "",
+    duration: "30 mins",
+    attendees: "1"
   });
 
   const [emailFormData, setEmailFormData] = useState({
@@ -197,6 +238,7 @@ const GenericDetails = ({
       date: callFormData.date,
       time: callFormData.time,
       note: callFormData.note || "No notes provided.",
+      createdBy: `${user.firstName} ${user.lastName}`
     };
 
     if (onCreateActivity) {
@@ -225,6 +267,7 @@ const GenericDetails = ({
     const newNote = {
       type: "Note",
       content: noteFormData.note,
+      createdBy: `${user.firstName} ${user.lastName}`
     };
 
     if (onCreateActivity) {
@@ -233,7 +276,7 @@ const GenericDetails = ({
       setActivities([{
         ...newNote,
         id: Date.now(),
-        title: `Note by ${entity.owner || "User"}`,
+        title: `Note by ${user.firstName} ${user.lastName}`,
         time: new Date().toLocaleString([], { month: 'long', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
         group: "Recent"
       }, ...activities]);
@@ -260,6 +303,7 @@ const GenericDetails = ({
       priority: taskFormData.priority,
       taskType: taskFormData.type,
       completed: false,
+      createdBy: `${user.firstName} ${user.lastName}`
     };
 
     if (onCreateActivity) {
@@ -303,9 +347,9 @@ const GenericDetails = ({
       startTime: meetingFormData.startTime,
       endTime: meetingFormData.endTime,
       note: meetingFormData.note || "No description provided.",
-      duration: "N/A",
-      attendees: "1",
-      organizedBy: entity.owner || "User"
+      duration: meetingFormData.duration || "N/A",
+      attendees: meetingFormData.attendees || "1",
+      organizedBy: `${user.firstName} ${user.lastName}`
     };
 
     if (onCreateActivity) {
@@ -326,7 +370,9 @@ const GenericDetails = ({
       date: new Date().toISOString().split('T')[0],
       startTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }),
       endTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }),
-      note: ""
+      note: "",
+      duration: "30 mins",
+      attendees: "1"
     });
     setErrors({});
   };
@@ -346,10 +392,11 @@ const GenericDetails = ({
       type: "Email",
       subject: emailFormData.subject,
       to: emailFormData.to,
-      from: "User@crm.com", // Mocking current user email for now
+      from: user.email,
       body: emailFormData.body,
       date: now.toISOString().split('T')[0],
       time: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }),
+      createdBy: `${user.firstName} ${user.lastName}`
     };
 
     if (onCreateActivity) {
@@ -900,15 +947,13 @@ const GenericDetails = ({
                 <label>
                   Start Date <span>*</span>
                 </label>
-                <div className={styles.iconInput}>
+                <div >
                   <input
                     type="date"
                     value={meetingFormData.date}
                     onChange={(e) => setMeetingFormData({ ...meetingFormData, date: e.target.value })}
                   />
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
+
                 </div>
               </div>
               <div className={styles.row}>
@@ -916,31 +961,47 @@ const GenericDetails = ({
                   <label>
                     Start Time <span>*</span>
                   </label>
-                  <div className={styles.iconInput}>
+                  <div >
                     <input
                       type="time"
                       value={meetingFormData.startTime}
                       onChange={(e) => setMeetingFormData({ ...meetingFormData, startTime: e.target.value })}
                     />
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                      <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
+
                   </div>
                 </div>
                 <div className={styles.field}>
                   <label>
                     End Time <span>*</span>
                   </label>
-                  <div className={styles.iconInput}>
+                  <div >
                     <input
                       type="time"
                       value={meetingFormData.endTime}
                       onChange={(e) => setMeetingFormData({ ...meetingFormData, endTime: e.target.value })}
                     />
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                      <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
+
                   </div>
+                </div>
+              </div>
+              <div className={styles.row}>
+                <div className={styles.field}>
+                  <CustomSelect
+                    label="Duration"
+                    value={meetingFormData.duration}
+                    options={["15 mins", "30 mins", "45 mins", "1 hour", "1.5 hours", "2 hours"]}
+                    onChange={(val) => handleSelectChange("duration", val)}
+                  />
+                </div>
+                <div className={styles.field}>
+                  <label>Attendees</label>
+                  <input
+                    type="number"
+                    min="1"
+                    className={styles.input}
+                    value={meetingFormData.attendees}
+                    onChange={(e) => setMeetingFormData({ ...meetingFormData, attendees: e.target.value })}
+                  />
                 </div>
               </div>
               <div className={styles.field}>
@@ -991,53 +1052,22 @@ const GenericDetails = ({
                 <input type="text" value={entity[config.titleField]} readOnly />
               </div>
               <div className={styles.field}>
-                <label>
-                  Call Outcome <span>*</span>
-                </label>
-                <select
-                  className={`${styles.formSelect} ${errors.callOutcome ? styles.errorInput : ""}`}
+                <CustomSelect
+                  label="Call Outcome *"
                   value={callFormData.outcome}
-                  onChange={(e) => {
-                    setCallFormData({ ...callFormData, outcome: e.target.value });
-                    if (errors.callOutcome) setErrors({});
-                  }}
-                >
-                  <option value="">Choose</option>
-                  <option value="Busy">Busy</option>
-                  <option value="Connected">Connected</option>
-                  <option value="No Answer">No Answer</option>
-                  <option value="Left Message">Left Message</option>
-                  <option value="Wrong Number">Wrong Number</option>
-                </select>
-                {errors.callOutcome && <span className={styles.errorText}>{errors.callOutcome}</span>}
+                  options={["Busy", "Connected", "No Answer", "Left Message", "Wrong Number"]}
+                  onChange={(val) => handleSelectChange("outcome", val)}
+                  error={errors.callOutcome}
+                />
               </div>
               <div className={styles.field}>
-                <label>
-                  Duration <span>*</span>
-                </label>
-                <div className={styles.iconInput}>
-                  <select
-                    className={`${styles.formSelect} ${errors.callDuration ? styles.errorInput : ""}`}
-                    value={callFormData.duration}
-                    onChange={(e) => {
-                      setCallFormData({ ...callFormData, duration: e.target.value });
-                      if (errors.callDuration) setErrors({});
-                    }}
-                  >
-                    <option value="">Choose Duration</option>
-                    <option value="1 min">1 min</option>
-                    <option value="2 mins">2 mins</option>
-                    <option value="5 mins">5 mins</option>
-                    <option value="10 mins">10 mins</option>
-                    <option value="15 mins">15 mins</option>
-                    <option value="30 mins">30 mins</option>
-                    <option value="1 hour">1 hour</option>
-                  </select>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-                {errors.callDuration && <span className={styles.errorText}>{errors.callDuration}</span>}
+                <CustomSelect
+                  label="Duration *"
+                  value={callFormData.duration}
+                  options={["1 min", "2 mins", "5 mins", "10 mins", "15 mins", "30 mins", "1 hour"]}
+                  onChange={(val) => handleSelectChange("duration", val)}
+                  error={errors.callDuration}
+                />
               </div>
               <div className={styles.row}>
                 <div className={styles.field}>
@@ -1260,19 +1290,15 @@ const GenericDetails = ({
                 />
               </div>
               <div className={styles.field}>
-                <label>Deal Stage <span>*</span></label>
-                <select
+                <CustomSelect
+                  label="Deal Stage *"
                   value={convertForm.dealStage}
-                  onChange={(e) => setConvertForm(prev => ({ ...prev, dealStage: e.target.value }))}
-                >
-                  <option value="Appointment Scheduled">Appointment Scheduled</option>
-                  <option value="Qualified to Buy">Qualified to Buy</option>
-                  <option value="Presentation Scheduled">Presentation Scheduled</option>
-                  <option value="Decision Maker Bought In">Decision Maker Bought In</option>
-                  <option value="Contract Sent">Contract Sent</option>
-                  <option value="Closed Won">Closed Won</option>
-                  <option value="Closed Lost">Closed Lost</option>
-                </select>
+                  options={[
+                    "Appointment Scheduled", "Qualified to Buy", "Presentation Scheduled",
+                    "Decision Maker Bought In", "Contract Sent", "Closed Won", "Closed Lost"
+                  ]}
+                  onChange={(val) => handleSelectChange("dealStage", val)}
+                />
               </div>
               <div className={styles.row}>
                 <div className={styles.field}>
@@ -1294,20 +1320,12 @@ const GenericDetails = ({
                 </div>
               </div>
               <div className={styles.field}>
-                <label>Deal Owner</label>
-                <select
+                <CustomSelect
+                  label="Deal Owner"
                   value={convertForm.dealOwner}
-                  onChange={(e) => setConvertForm(prev => ({ ...prev, dealOwner: e.target.value }))}
-                >
-                  <option value="">Select Owner</option>
-                  <option value="Jane Cooper">Jane Cooper</option>
-                  <option value="Wade Warren">Wade Warren</option>
-                  <option value="Brooklyn Simmons">Brooklyn Simmons</option>
-                  <option value="Leslie Alexander">Leslie Alexander</option>
-                  <option value="Jenny Wilson">Jenny Wilson</option>
-                  <option value="Guy Hawkins">Guy Hawkins</option>
-                  <option value="Robert Fox">Robert Fox</option>
-                </select>
+                  options={owners}
+                  onChange={(val) => handleSelectChange("dealOwner", val)}
+                />
               </div>
             </div>
             <div className={styles.drawerFooter}>

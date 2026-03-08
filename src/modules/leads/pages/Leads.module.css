@@ -111,6 +111,11 @@
   min-width: 9.4em;
 }
 
+.filterSelectWrapper {
+  min-width: 180px;
+  height: 38px;
+}
+
 .select {
   appearance: none;
   width: 100%;
@@ -278,7 +283,7 @@
 
 .leadLink:hover {
   color: #4f46e5;
-   font-weight: 500;
+  font-weight: 500;
 }
 
 .searchInput {

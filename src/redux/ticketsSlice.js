@@ -5,8 +5,22 @@ import axios from "../services/axiosInstance";
 export const fetchTickets = createAsyncThunk(
   "tickets/fetchTickets",
   async () => {
-    const { data } = await axios.get("/tickets");
-    return Array.isArray(data) ? data : data.data || [];
+    try {
+      console.log("Calling Fetch Tickets API...");
+      const { data } = await axios.get("/tickets");
+      console.log("Fetch Tickets API Raw Response:", data);
+      
+      let result = [];
+      if (Array.isArray(data)) result = data;
+      else if (data.data && Array.isArray(data.data)) result = data.data;
+      else if (data.tickets && Array.isArray(data.tickets)) result = data.tickets;
+      
+      console.log("Fetch Tickets Final Result:", result);
+      return result;
+    } catch (error) {
+      console.error("Fetch Tickets Error:", error);
+      throw error;
+    }
   }
 );
 

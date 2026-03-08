@@ -12,11 +12,14 @@ import DealForm from "../components/DealForm";
 import ConfirmDialog from "../../../components/ui/ConfirmDialog";
 import { toast } from "react-hot-toast";
 import { addNotification } from "../../../redux/notificationsSlice";
+import CustomSelect from "../../../components/ui/CustomSelect/CustomSelect";
+import { useAuth } from "../../../context/AuthContext";
 
 import { useSelector, useDispatch } from "react-redux";
 import { fetchDeals, removeDeal, addDeal, updateDeal, bulkDeleteDeals, bulkAddDeals } from "../../../redux/dealsSlice";
 
 export default function Deals() {
+  const { user } = useAuth();
   const dispatch = useDispatch();
   const { deals, loading } = useSelector((state) => state.deals);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -114,7 +117,9 @@ export default function Deals() {
 
   const handleOpenModal = () => {
     setEditingDeal(null);
-    setFormData({}); // Reset form
+    setFormData({
+      dealOwner: user ? `${user.firstName} ${user.lastName}` : ""
+    });
     setErrors({});
     setIsModalOpen(true);
   };
@@ -250,69 +255,23 @@ export default function Deals() {
 
         <hr className={styles.divider} />
 
-        {/* Filter Row */}
         <div className={styles.filterRow}>
-          <div className={styles.selectWrapper}>
-            <select
-              className={styles.select}
+          <div className={styles.filterSelectWrapper}>
+            <CustomSelect
+              placeholder="Deal Owner"
               value={ownerFilter}
-              onChange={(e) => { setOwnerFilter(e.target.value); setCurrentPage(1); }}
-            >
-              <option value="">Deal Owner</option>
-              <option value="nCooper">Jane Cooper</option>
-              <option value="Wade Warren">Wade Warren</option>
-              <option value="Brooklyn Simmons">Brooklyn Simmons</option>
-              <option value="Leslie Alexander">Leslie Alexander</option>
-              <option value="Jenny Wilson">Jenny Wilson</option>
-              <option value="Guy Hawkins">Guy Hawkins</option>
-              <option value="Robert Fox">Robert Fox</option>
-              <option value="Cameron Williamson">Cameron Williamson</option>
-            </select>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.5}
-              stroke="currentColor"
-              className={styles.selectIcon}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="m19.5 8.25-7.5 7.5-7.5-7.5"
-              />
-            </svg>
+              onChange={(val) => { setOwnerFilter(val); setCurrentPage(1); }}
+              options={["Jane Cooper", "Wade Warren", "Brooklyn Simmons", "Leslie Alexander", "Jenny Wilson", "Guy Hawkins", "Robert Fox", "Cameron Williamson"]}
+            />
           </div>
 
-          <div className={styles.selectWrapper}>
-            <select
-              className={styles.select}
+          <div className={styles.filterSelectWrapper}>
+            <CustomSelect
+              placeholder="Deal Stage"
               value={stageFilter}
-              onChange={(e) => { setStageFilter(e.target.value); setCurrentPage(1); }}
-            >
-              <option value="">Deal Stage</option>
-              <option value="Presentation Scheduled">Presentation Scheduled</option>
-              <option value="Qualified to Buy">Qualified to Buy</option>
-              <option value="Contract Sent">Contract Sent</option>
-              <option value="Appointment Scheduled">Appointment Scheduled</option>
-              <option value="Decision Maker Bought In">Decision Maker Bought In</option>
-              <option value="Closed Won">Closed Won</option>
-              <option value="Closed Lost">Closed Lost</option>
-            </select>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.5}
-              stroke="currentColor"
-              className={styles.selectIcon}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="m19.5 8.25-7.5 7.5-7.5-7.5"
-              />
-            </svg>
+              onChange={(val) => { setStageFilter(val); setCurrentPage(1); }}
+              options={["Presentation Scheduled", "Qualified to Buy", "Contract Sent", "Appointment Scheduled", "Decision Maker Bought In", "Closed Won", "Closed Lost"]}
+            />
           </div>
 
 

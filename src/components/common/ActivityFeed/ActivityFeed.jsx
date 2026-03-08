@@ -3,6 +3,7 @@ import styles from './ActivityFeed.module.css';
 import { toast } from 'react-hot-toast';
 import { useDispatch } from 'react-redux';
 import { addNotification } from '../../../redux/notificationsSlice';
+import CustomSelect from '../../ui/CustomSelect/CustomSelect';
 
 const ActivityFeed = ({
     activities = [],
@@ -34,6 +35,12 @@ const ActivityFeed = ({
             type: "call",
             timestamp: new Date().toLocaleString()
         }));
+    };
+
+    const handleUpdate = (id, data) => {
+        if (onUpdateActivity) {
+            onUpdateActivity(id, data);
+        }
     };
 
     const filteredActivities = activities.filter((a) => {
@@ -154,6 +161,12 @@ const ActivityFeed = ({
                                             {/* Accordion Body */}
                                             {isExpanded && (
                                                 <div className={styles.itemBody}>
+                                                    {(item.organizedBy || item.createdBy) && item.type !== "Email" && (
+                                                        <p className={styles.organizedBy}>
+                                                            {item.type === "Meeting" ? "Organized by " : "Created by "}
+                                                            {item.organizedBy || item.createdBy}
+                                                        </p>
+                                                    )}
                                                     {item.type === "Task" ? (
                                                         <div className={styles.taskFull}>
                                                             <div className={styles.taskAction}>
@@ -190,7 +203,6 @@ const ActivityFeed = ({
                                                         </div>
                                                     ) : item.type === "Meeting" ? (
                                                         <div className={styles.meetingFull}>
-                                                            <p className={styles.organizedBy}>Organized by {item.organizedBy}</p>
                                                             <div className={styles.infoBox}>
                                                                 <div className={styles.infoField}>
                                                                     <label>Date & Time</label>
@@ -198,11 +210,22 @@ const ActivityFeed = ({
                                                                 </div>
                                                                 <div className={styles.infoField}>
                                                                     <label>Duration</label>
-                                                                    <span>{item.duration}</span>
+                                                                    <CustomSelect
+                                                                        className={styles.compactSelect}
+                                                                        value={item.duration || ""}
+                                                                        options={["15 mins", "30 mins", "45 mins", "1 hour", "1.5 hours", "2 hours"]}
+                                                                        onChange={(val) => handleUpdate(item.id, { duration: val })}
+                                                                    />
                                                                 </div>
                                                                 <div className={styles.infoField}>
                                                                     <label>Attendees</label>
-                                                                    <span>{item.attendees}</span>
+                                                                    <input
+                                                                        type="number"
+                                                                        min="1"
+                                                                        className={styles.attendeesInput}
+                                                                        value={item.attendees || ""}
+                                                                        onChange={(e) => handleUpdate(item.id, { attendees: e.target.value })}
+                                                                    />
                                                                 </div>
                                                             </div>
                                                             <p className={styles.itemText}>{item.content || item.note || item.body}</p>
@@ -232,37 +255,20 @@ const ActivityFeed = ({
                                                                 <div className={styles.outcomeRow}>
                                                                     <div className={styles.outcomeField}>
                                                                         <label>Outcome *</label>
-                                                                        <select
-                                                                            className={styles.feedSelect}
+                                                                        <CustomSelect
                                                                             value={item.outcome || ""}
-                                                                            onChange={(e) => onUpdateActivity && onUpdateActivity(item.id, { outcome: e.target.value })}
-                                                                        >
-                                                                            <option value="">Choose</option>
-                                                                            <option value="Busy">Busy</option>
-                                                                            <option value="Connected">Connected</option>
-                                                                            <option value="No Answer">No Answer</option>
-                                                                            <option value="Left Message">Left Message</option>
-                                                                            <option value="Wrong Number">Wrong Number</option>
-                                                                        </select>
+                                                                            options={["Busy", "Connected", "No Answer", "Left Message", "Wrong Number"]}
+                                                                            onChange={(val) => handleUpdate(item.id, { outcome: val })}
+                                                                        />
                                                                     </div>
                                                                     <div className={styles.outcomeField}>
                                                                         <label>Duration *</label>
-                                                                        <div className={styles.durationInput}>
-                                                                            <select
-                                                                                className={styles.feedSelect}
+                                                                        <div className={styles.durationInputWrapper}>
+                                                                            <CustomSelect
                                                                                 value={item.duration || ""}
-                                                                                onChange={(e) => onUpdateActivity && onUpdateActivity(item.id, { duration: e.target.value })}
-                                                                            >
-                                                                                <option value="">Choose</option>
-                                                                                <option value="1 min">1 min</option>
-                                                                                <option value="2 mins">2 mins</option>
-                                                                                <option value="5 mins">5 mins</option>
-                                                                                <option value="10 mins">10 mins</option>
-                                                                                <option value="15 mins">15 mins</option>
-                                                                                <option value="30 mins">30 mins</option>
-                                                                                <option value="1 hour">1 hour</option>
-                                                                            </select>
-                                                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                                                                options={["1 min", "2 mins", "5 mins", "10 mins", "15 mins", "30 mins", "1 hour"]}
+                                                                                onChange={(val) => handleUpdate(item.id, { duration: val })}
+                                                                            />
                                                                         </div>
                                                                     </div>
                                                                 </div>

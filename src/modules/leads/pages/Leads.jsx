@@ -14,8 +14,11 @@ import { toast } from "react-hot-toast";
 import Modal from "../../../components/ui/Modal";
 import LeadForm from "../components/LeadForm";
 import ConfirmDialog from "../../../components/ui/ConfirmDialog";
+import CustomSelect from "../../../components/ui/CustomSelect/CustomSelect";
+import { useAuth } from "../../../context/AuthContext";
 
 export default function Leads() {
+  const { user } = useAuth();
   const dispatch = useDispatch();
   const { leads, loading } = useSelector((state) => state.leads);
 
@@ -41,7 +44,7 @@ export default function Leads() {
   const handleOpenCreate = () => {
     setEditingLead(null);
     setFormData({
-      owner: [],
+      owner: user ? [`${user.firstName} ${user.lastName}`] : [],
       firstName: "",
       lastName: "",
       email: "",
@@ -280,37 +283,14 @@ export default function Leads() {
 
           <hr className={styles.divider} />
 
-          {/* Filter Row (Status, Date) */}
           <div className={styles.filterRow}>
-            <div className={styles.selectWrapper}>
-              <select
-                className={styles.select}
+            <div className={styles.filterSelectWrapper}>
+              <CustomSelect
+                placeholder="Lead Status"
                 value={statusFilter}
-                onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1); }}
-              >
-                <option value="">Lead Status</option>
-                <option value="Open">Open</option>
-                <option value="New">New</option>
-                <option value="In Progress">In Progress</option>
-                <option value="Converted">Converted</option>
-                <option value="Qualified">Qualified</option>
-                <option value="Unqualified">Unqualified</option>
-                <option value="Contacted">Contacted</option>
-              </select>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={1.5}
-                stroke="currentColor"
-                className={styles.selectIcon}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="m19.5 8.25-7.5 7.5-7.5-7.5"
-                />
-              </svg>
+                onChange={(val) => { setStatusFilter(val); setCurrentPage(1); }}
+                options={["Open", "New", "In Progress", "Converted", "Qualified", "Unqualified", "Contacted"]}
+              />
             </div>
             <div className={styles.selectWrapper}>
               <input

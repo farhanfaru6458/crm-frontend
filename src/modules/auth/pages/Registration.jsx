@@ -5,6 +5,7 @@ import styles from "./Registration.module.css";
 import { useAuth } from "../../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { countries } from "../../../utils/countries";
+import CustomSelect from "../../../components/ui/CustomSelect/CustomSelect";
 
 export default function Registration() {
   const { register } = useAuth();
@@ -32,7 +33,7 @@ export default function Registration() {
 
     if (!formData.email.trim()) {
       newErrors.email = "Email is required";
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+    } else if (!/\S+@\S+\.\S+/.test(formData.email.replace(/^admin/, ""))) {
       newErrors.email = "Email is invalid";
     }
 
@@ -67,12 +68,33 @@ export default function Registration() {
     setSubmitError("");
   };
 
+  const handleSelectChange = (name, value) => {
+    setFormData({ ...formData, [name]: value });
+    if (errors[name]) {
+      setErrors({ ...errors, [name]: "" });
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (validate()) {
-      const res = await register(formData);
+      let emailToSend = formData.email;
+      let role = "user";
+
+      if (formData.email.toLowerCase().startsWith("admin")) {
+        role = "admin";
+        emailToSend = formData.email.substring(5); // Remove "admin" prefix
+      }
+
+      const payload = {
+        ...formData,
+        email: emailToSend,
+        role: role
+      };
+
+      const res = await register(payload);
       if (res.success) {
-        navigate(`/verify-otp`, { state: { email: formData.email } });
+        navigate(`/verify-otp`, { state: { email: emailToSend } });
       } else {
         setSubmitError(res.error);
       }
@@ -173,19 +195,13 @@ export default function Registration() {
             </div>
 
             <div className={styles.inputGroup}>
-              <label>Industry Type</label>
-              <select
-                name="industry"
+              <CustomSelect
+                label="Industry Type"
                 value={formData.industry}
-                onChange={handleChange}
-                className={errors.industry ? styles.invalid : ""}
-              >
-                <option value="">Choose</option>
-                <option value="IT">IT</option>
-                <option value="Finance">Finance</option>
-                <option value="Healthcare">Healthcare</option>
-              </select>
-              {errors.industry && <span className={styles.errorText}>{errors.industry}</span>}
+                onChange={(val) => handleSelectChange("industry", val)}
+                options={["IT", "Finance", "Healthcare", "Retail", "Education"]}
+                error={errors.industry}
+              />
             </div>
           </div>
 
@@ -219,21 +235,13 @@ export default function Registration() {
 
 
           <div className={styles.inputGroupFull}>
-            <label>Country or Region</label>
-            <select
-              name="country"
+            <CustomSelect
+              label="Country or Region"
               value={formData.country}
-              onChange={handleChange}
-              className={errors.country ? styles.invalid : ""}
-            >
-              <option value="">Choose Country</option>
-              {countries.map((country) => (
-                <option key={country} value={country}>
-                  {country}
-                </option>
-              ))}
-            </select>
-            {errors.country && <span className={styles.errorText}>{errors.country}</span>}
+              onChange={(val) => handleSelectChange("country", val)}
+              options={countries}
+              error={errors.country}
+            />
           </div>
 
           <button type="submit" className={styles.button}>

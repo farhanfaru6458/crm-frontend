@@ -7,22 +7,26 @@ import {
   ClipboardList,
   Ticket
 } from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
 
 export default function Sidebar() {
+  const { user } = useAuth();
   return (
     <aside className={styles.sidebar}>
-      
-      <NavLink
-        to="/dashboard"
-        className={({ isActive }) =>
-          `${styles.menuItem} ${isActive ? styles.active : ""}`
-        }
-      >
-        <div className={styles.iconCircle}>
-          <LayoutDashboard size={20} />
-        </div>
-        <span className={styles.menuText}>Dashboard</span>
-      </NavLink>
+
+      {user?.role === "admin" && (
+        <NavLink
+          to="/dashboard"
+          className={({ isActive }) =>
+            `${styles.menuItem} ${isActive ? styles.active : ""}`
+          }
+        >
+          <div className={styles.iconCircle}>
+            <LayoutDashboard size={20} />
+          </div>
+          <span className={styles.menuText}>Dashboard</span>
+        </NavLink>
+      )}
 
       <NavLink
         to="/leads"

@@ -5,11 +5,16 @@ import axios from "../services/axiosInstance";
 export const fetchLeads = createAsyncThunk(
   "leads/fetchLeads",
   async () => {
-    console.log("Calling Fetch Leads API...");
-    const { data } = await axios.get("/leads");
-    console.log("Fetch Leads API Response:", data);
-    // Handle both cases: { data: [...] } and directly returning the array
-    return Array.isArray(data) ? data : data.data || [];
+    try {
+      const { data } = await axios.get("/leads");
+      if (Array.isArray(data)) return data;
+      if (data.data && Array.isArray(data.data)) return data.data;
+      if (data.leads && Array.isArray(data.leads)) return data.leads;
+      return [];
+    } catch (error) {
+      console.error("Fetch Leads Error:", error);
+      throw error;
+    }
   }
 );
 

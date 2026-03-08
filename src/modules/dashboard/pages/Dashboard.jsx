@@ -5,6 +5,7 @@ import { Users, Briefcase, DollarSign, TrendingUp } from "lucide-react";
 import { fetchLeads } from "../../../redux/leadsSlice";
 import { fetchDeals } from "../../../redux/dealsSlice";
 import { fetchCompanies } from "../../../redux/companiesSlice";
+import CustomSelect from "../../../components/ui/CustomSelect/CustomSelect";
 
 export default function Dashboard() {
   const dispatch = useDispatch();
@@ -285,24 +286,21 @@ export default function Dashboard() {
             <h3>Sales Reports</h3>
             <div className={styles.salesOptions}>
               {reportFilter === "Monthly" && (
-                <select
-                  className={styles.yearSelect}
-                  value={selectedYear}
-                  onChange={(e) => setSelectedYear(Number(e.target.value))}
-                >
-                  {[2020, 2021, 2022, 2023, 2024, 2025, 2026].map(y => (
-                    <option key={y} value={y}>{y}</option>
-                  ))}
-                </select>
+                <div className={styles.filterWrapper}>
+                  <CustomSelect
+                    value={selectedYear}
+                    options={[2020, 2021, 2022, 2023, 2024, 2025, 2026]}
+                    onChange={(val) => setSelectedYear(Number(val))}
+                  />
+                </div>
               )}
-              <select
-                className={styles.salesSelect}
-                value={reportFilter}
-                onChange={(e) => setReportFilter(e.target.value)}
-              >
-                <option value="Monthly">Monthly</option>
-                <option value="Yearly">Yearly</option>
-              </select>
+              <div className={styles.filterWrapper}>
+                <CustomSelect
+                  value={reportFilter}
+                  options={["Monthly", "Yearly"]}
+                  onChange={(val) => setReportFilter(val)}
+                />
+              </div>
             </div>
           </div>
 

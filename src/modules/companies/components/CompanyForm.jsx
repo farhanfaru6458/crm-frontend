@@ -1,10 +1,42 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { useAuth } from "../../../context/AuthContext";
 import styles from "./CompanyForm.module.css";
 import { countries } from "../../../utils/countries";
 
+import CustomSelect from "../../../components/ui/CustomSelect/CustomSelect";
+
 const CompanyForm = ({ formData, onChange, errors = {} }) => {
+    const { user } = useAuth();
+    const [owners, setOwners] = useState([]);
+
+    useEffect(() => {
+        const fetchUsers = async () => {
+            if (user?.role === 'admin') {
+                const token = localStorage.getItem('crm_token') || sessionStorage.getItem('crm_token');
+                try {
+                    const res = await axios.get("http://localhost:5000/api/users", {
+                        headers: { Authorization: `Bearer ${token}` }
+                    });
+                    const formattedOwners = res.data.map(u => `${u.firstName} ${u.lastName}`);
+                    setOwners(formattedOwners);
+                } catch (e) {
+                    console.error(e);
+                    setOwners([`${user.firstName} ${user.lastName}`]);
+                }
+            } else if (user) {
+                setOwners([`${user.firstName} ${user.lastName}`]);
+            }
+        };
+        fetchUsers();
+    }, [user]);
+
     const handleChange = (e) => {
         const { name, value } = e.target;
+        onChange(name, value);
+    };
+
+    const handleSelectChange = (name, value) => {
         onChange(name, value);
     };
 
@@ -37,52 +69,36 @@ const CompanyForm = ({ formData, onChange, errors = {} }) => {
             </div>
 
             <div className={styles.field}>
-                <label className={styles.label}>Company Owner *</label>
-                <input
-                    type="text"
+                <CustomSelect
+                    label="Company Owner *"
                     name="owner"
-                    className={`${styles.input} ${errors.owner ? styles.errorInput : ""}`}
-                    placeholder="Enter"
                     value={formData.owner || ""}
-                    onChange={handleChange}
+                    options={owners}
+                    onChange={handleSelectChange}
+                    error={errors.owner}
                 />
-                {errors.owner && <span className={styles.errorText}>{errors.owner}</span>}
             </div>
 
             <div className={styles.row}>
                 <div className={styles.field}>
-                    <label className={styles.label}>Industry *</label>
-                    <select
+                    <CustomSelect
+                        label="Industry *"
                         name="industry"
-                        className={`${styles.select} ${errors.industry ? styles.errorInput : ""}`}
                         value={formData.industry || ""}
-                        onChange={handleChange}
-                    >
-                        <option value="">Choose</option>
-                        <option value="Real Estate">Real Estate</option>
-                        <option value="Technology">Technology</option>
-                        <option value="Legal Services">Legal Services</option>
-                        <option value="Healthcare">Healthcare</option>
-                        <option value="Finance">Finance</option>
-                        <option value="Retail">Retail</option>
-                        <option value="Manufacturing">Manufacturing</option>
-                    </select>
-                    {errors.industry && <span className={styles.errorText}>{errors.industry}</span>}
+                        options={["Real Estate", "Technology", "Legal Services", "Healthcare", "Finance", "Retail", "Manufacturing"]}
+                        onChange={handleSelectChange}
+                        error={errors.industry}
+                    />
                 </div>
                 <div className={styles.field}>
-                    <label className={styles.label}>Type *</label>
-                    <select
+                    <CustomSelect
+                        label="Type *"
                         name="type"
-                        className={`${styles.select} ${errors.type ? styles.errorInput : ""}`}
                         value={formData.type || ""}
-                        onChange={handleChange}
-                    >
-                        <option value="">Choose</option>
-                        <option value="Client">Client</option>
-                        <option value="Partner">Partner</option>
-                        <option value="Vendor">Vendor</option>
-                    </select>
-                    {errors.type && <span className={styles.errorText}>{errors.type}</span>}
+                        options={["Client", "Partner", "Vendor"]}
+                        onChange={handleSelectChange}
+                        error={errors.type}
+                    />
                 </div>
             </div>
 
@@ -99,18 +115,14 @@ const CompanyForm = ({ formData, onChange, errors = {} }) => {
                     />
                 </div>
                 <div className={styles.field}>
-                    <label className={styles.label}>Country/Region</label>
-                    <select
+                    <CustomSelect
+                        label="Country/Region"
                         name="country"
-                        className={styles.select}
                         value={formData.country || ""}
-                        onChange={handleChange}
-                    >
-                        <option value="">Choose Country</option>
-                        {countries.map((country) => (
-                            <option key={country} value={country}>{country}</option>
-                        ))}
-                    </select>
+                        options={countries}
+                        onChange={handleSelectChange}
+                        error={errors.country}
+                    />
                 </div>
             </div>
 

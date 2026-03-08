@@ -49,7 +49,11 @@ export default function Login() {
             const res = await login(formData.email, formData.password);
 
             if (res.success) {
-                navigate("/dashboard");
+                if (res.user && res.user.role === 'admin') {
+                    navigate("/dashboard");
+                } else {
+                    navigate("/leads");
+                }
             } else {
                 setSubmitError(res.error);
                 if (res.error === "Please verify your email first") {

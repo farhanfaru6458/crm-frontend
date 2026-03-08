@@ -111,13 +111,26 @@
   text-decoration: none;
   display: flex;
   align-items: center;
+  gap: 0.75rem;
+}
+
+.userMeta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
 }
 
 .userName {
   font-weight: 600;
   color: #333;
-  margin-right: 0.5rem;
   font-size: 0.9rem;
+  line-height: 1.2;
+}
+
+.userCompany {
+  font-size: 0.75rem;
+  color: #64748b;
+  font-weight: 400;
 }
 
 .logoutButton {

@@ -6,6 +6,8 @@ import Pagination from "../../../components/ui/Pagination";
 import Modal from "../../../components/ui/Modal";
 import TicketForm from "../components/TicketForm";
 import styles from "./Tickets.module.css";
+import CustomSelect from "../../../components/ui/CustomSelect/CustomSelect";
+import { useAuth } from "../../../context/AuthContext";
 
 import { useSelector, useDispatch } from "react-redux";
 import { fetchTickets, removeTicket, addTicket, updateTicket, bulkDeleteTickets, bulkAddTickets } from "../../../redux/ticketsSlice";
@@ -17,6 +19,7 @@ import ImportButton from "../../../components/ui/buttons/ImportButton";
 import ConfirmDialog from "../../../components/ui/ConfirmDialog";
 
 const Tickets = () => {
+  const { user } = useAuth();
   const dispatch = useDispatch();
   const { tickets, loading } = useSelector((state) => state.tickets);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -63,7 +66,9 @@ const Tickets = () => {
 
   const handleOpenCreate = () => {
     setEditingTicket(null);
-    setFormData({});
+    setFormData({
+      owner: user ? `${user.firstName} ${user.lastName}` : ""
+    });
     setErrors({});
     setIsModalOpen(true);
   };
@@ -165,22 +170,27 @@ const Tickets = () => {
   };
 
   const filteredTickets = useMemo(() => {
-    return tickets.filter((t) => {
+    return (tickets || []).filter((t) => {
       const ticketName = t.ticketName || t.name || "";
+      const owner = t.owner || "";
+      const source = t.source || "";
+      const status = t.status || "";
+      const priority = t.priority || "";
+
       const matchesSearch =
         ticketName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        t.owner.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        t.source.toLowerCase().includes(searchTerm.toLowerCase());
+        owner.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        source.toLowerCase().includes(searchTerm.toLowerCase());
 
-      const matchesOwner = !filters.owner || t.owner === filters.owner;
-      const matchesStatus = !filters.status || t.status === filters.status;
-      const matchesSource = !filters.source || t.source === filters.source;
+      const matchesOwner = !filters.owner || owner === filters.owner;
+      const matchesStatus = !filters.status || status === filters.status;
+      const matchesSource = !filters.source || source === filters.source;
       const matchesPriority =
-        !filters.priority || t.priority === filters.priority;
+        !filters.priority || priority === filters.priority;
 
       let matchesDate = true;
       if (filters.createdAt) {
-        matchesDate = new Date(t.createdAt).toDateString() === new Date(filters.createdAt).toDateString();
+        matchesDate = t.createdAt && new Date(t.createdAt).toDateString() === new Date(filters.createdAt).toDateString();
       }
 
       return (
@@ -261,50 +271,41 @@ const Tickets = () => {
 
           {/* FILTER DROPDOWN ROW */}
           <div className={styles.dropdownFiltersRow}>
-            <select
-              className={styles.filterSelect}
-              value={filters.owner}
-              onChange={(e) => handleFilterChange("owner", e.target.value)}
-            >
-              <option value="">Ticket Owner</option>
-              {["Jane Cooper", "Wade Warren", "Brooklyn Simmons", "Leslie Alexander", "Guy Hawkins", "Cameron Williamson"].map(owner => (
-                <option key={owner} value={owner}>{owner}</option>
-              ))}
-            </select>
+            <div className={styles.filterSelectWrapper}>
+              <CustomSelect
+                placeholder="Ticket Owner"
+                value={filters.owner}
+                onChange={(val) => handleFilterChange("owner", val)}
+                options={["Jane Cooper", "Wade Warren", "Brooklyn Simmons", "Leslie Alexander", "Guy Hawkins", "Cameron Williamson"]}
+              />
+            </div>
 
-            <select
-              className={styles.filterSelect}
-              value={filters.status}
-              onChange={(e) => handleFilterChange("status", e.target.value)}
-            >
-              <option value="">Ticket Status</option>
-              <option value="New">New</option>
-              <option value="Waiting on us">Waiting on us</option>
-              <option value="Waiting on contact">Waiting on contact</option>
-            </select>
+            <div className={styles.filterSelectWrapper}>
+              <CustomSelect
+                placeholder="Ticket Status"
+                value={filters.status}
+                onChange={(val) => handleFilterChange("status", val)}
+                options={["New", "Waiting on us", "Waiting on contact"]}
+              />
+            </div>
 
-            <select
-              className={styles.filterSelect}
-              value={filters.source}
-              onChange={(e) => handleFilterChange("source", e.target.value)}
-            >
-              <option value="">Source</option>
-              <option value="Chat">Chat</option>
-              <option value="Email">Email</option>
-              <option value="Phone">Phone</option>
-            </select>
+            <div className={styles.filterSelectWrapper}>
+              <CustomSelect
+                placeholder="Source"
+                value={filters.source}
+                onChange={(val) => handleFilterChange("source", val)}
+                options={["Chat", "Email", "Phone"]}
+              />
+            </div>
 
-            <select
-              className={styles.filterSelect}
-              value={filters.priority}
-              onChange={(e) => handleFilterChange("priority", e.target.value)}
-            >
-              <option value="">Priority</option>
-              <option value="Critical">Critical</option>
-              <option value="High">High</option>
-              <option value="Medium">Medium</option>
-              <option value="Low">Low</option>
-            </select>
+            <div className={styles.filterSelectWrapper}>
+              <CustomSelect
+                placeholder="Priority"
+                value={filters.priority}
+                onChange={(val) => handleFilterChange("priority", val)}
+                options={["Critical", "High", "Medium", "Low"]}
+              />
+            </div>
 
             <div className={styles.datePicker}>
               <input

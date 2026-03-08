@@ -107,16 +107,23 @@
 .dropdownFiltersRow {
     display: flex;
     gap: 0.75rem;
+    width: 75%;
     margin-bottom: 1.5rem;
     flex-wrap: nowrap;
     /* Prevent wrapping unless on mobile */
     align-items: center;
 }
 
-.filterSelect {
+.filterSelectWrapper {
     flex: 1;
+    min-width: 150px;
+    height: 38px;
+}
+
+.filterSelect {
+
     /* Share space equally */
-    min-width: 140px;
+    /* min-width: 140px; */
     height: 38px;
     padding: 0 2.5rem 0 0.75rem;
     border: 1px solid #e2e8f0;
@@ -141,7 +148,7 @@
 }
 
 .datePicker {
-    flex: 1;
+
     min-width: 150px;
     position: relative;
 }

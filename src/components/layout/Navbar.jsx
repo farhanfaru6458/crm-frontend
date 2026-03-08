@@ -81,7 +81,10 @@ export default function Navbar() {
         {user && (
           <div className={styles.userProfile}>
             <Link to="/profile" className={styles.userInfo}>
-              <span className={styles.userName}>{user.firstName} {user.lastName}</span>
+              <div className={styles.userMeta}>
+                <span className={styles.userName}>{user.firstName} {user.lastName}</span>
+
+              </div>
 
               <div className={styles.avatar}>
                 {(user.firstName?.[0] || user.email?.[0] || "U").toUpperCase()}
