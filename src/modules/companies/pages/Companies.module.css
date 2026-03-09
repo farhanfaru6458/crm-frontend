@@ -1,7 +1,7 @@
 .container {
     padding: 0.75rem 1rem;
     /* Reduced padding from 1.5rem 2rem to 0.75rem 1rem */
-    background-color: #f8f9fb;
+    background-color: #f3f6f8;
     min-height: calc(100vh - 64px);
 }
 

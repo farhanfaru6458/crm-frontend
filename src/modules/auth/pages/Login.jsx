@@ -109,7 +109,7 @@ export default function Login() {
                             </Link>
                         </div>
 
-                        <div className={styles.inputWrapper}>
+                        <div >
                             <input
                                 type={showPassword ? "text" : "password"}
                                 name="password"
@@ -124,7 +124,6 @@ export default function Login() {
                                 onClick={() => setShowPassword(!showPassword)}
                                 style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)' }}
                             >
-                                {showPassword ? <EyeOff size={18} className={styles.eyeIcon} /> : <Eye size={18} className={styles.eyeIcon} />}
                             </button>
                         </div>
                         {errors.password && <span className={styles.errorText}>{errors.password}</span>}
