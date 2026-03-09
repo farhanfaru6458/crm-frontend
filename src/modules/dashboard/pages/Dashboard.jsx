@@ -45,7 +45,7 @@ export default function Dashboard() {
 
     const monthlyRevenue = yearDeals
       .filter(d => {
-        const date = new Date(d.updatedAt || d.createdAt);
+        const date = new Date(d.createdAt || d.updatedAt);
         return d.dealStage === "Closed Won" && date.getMonth() === currentMonth;
       })
       .reduce((sum, d) => sum + (Number(d.amount) || 0), 0);
@@ -125,7 +125,7 @@ export default function Dashboard() {
       const years = [2020, 2021, 2022, 2023, 2024, 2025, 2026];
       const yearlyData = years.map(year => {
         const yearDeals = (deals || []).filter(d => {
-          const date = new Date(d.updatedAt || d.createdAt);
+          const date = new Date(d.createdAt || d.updatedAt);
           return date.getFullYear() === year;
         });
 
@@ -152,7 +152,7 @@ export default function Dashboard() {
 
     const monthlyData = months.map((m, i) => {
       const monthDeals = (deals || []).filter(d => {
-        const date = new Date(d.updatedAt || d.createdAt);
+        const date = new Date(d.createdAt || d.updatedAt);
         return date.getMonth() === i && date.getFullYear() === selectedYear;
       });
 
