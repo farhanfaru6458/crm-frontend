@@ -234,6 +234,23 @@ const Tickets = () => {
     },
   ];
 
+  const owners = useMemo(() => {
+    const uniqueOwners = [...new Set((tickets || []).map(t => t.owner).filter(Boolean))];
+    return uniqueOwners.sort();
+  }, [tickets]);
+
+  const statuses = useMemo(() => {
+    return [...new Set((tickets || []).map(t => t.status).filter(Boolean))].sort();
+  }, [tickets]);
+
+  const sources = useMemo(() => {
+    return [...new Set((tickets || []).map(t => t.source).filter(Boolean))].sort();
+  }, [tickets]);
+
+  const priorities = useMemo(() => {
+    return [...new Set((tickets || []).map(t => t.priority).filter(Boolean))].sort();
+  }, [tickets]);
+
   return (
     <div className={styles.container}>
       <div className={styles.mainCard}>
@@ -276,7 +293,7 @@ const Tickets = () => {
                 placeholder="Ticket Owner"
                 value={filters.owner}
                 onChange={(val) => handleFilterChange("owner", val)}
-                options={["Jane Cooper", "Wade Warren", "Brooklyn Simmons", "Leslie Alexander", "Guy Hawkins", "Cameron Williamson"]}
+                options={owners}
               />
             </div>
 
@@ -285,7 +302,7 @@ const Tickets = () => {
                 placeholder="Ticket Status"
                 value={filters.status}
                 onChange={(val) => handleFilterChange("status", val)}
-                options={["New", "Waiting on us", "Waiting on contact"]}
+                options={statuses}
               />
             </div>
 
@@ -294,7 +311,7 @@ const Tickets = () => {
                 placeholder="Source"
                 value={filters.source}
                 onChange={(val) => handleFilterChange("source", val)}
-                options={["Chat", "Email", "Phone"]}
+                options={sources}
               />
             </div>
 
@@ -303,7 +320,7 @@ const Tickets = () => {
                 placeholder="Priority"
                 value={filters.priority}
                 onChange={(val) => handleFilterChange("priority", val)}
-                options={["Critical", "High", "Medium", "Low"]}
+                options={priorities}
               />
             </div>
 

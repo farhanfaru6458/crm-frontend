@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import styles from "./Deals.module.css";
 import Table from "../../../components/ui/Table";
@@ -215,6 +215,15 @@ export default function Deals() {
     },
   ];
 
+  const owners = useMemo(() => {
+    const uniqueOwners = [...new Set((deals || []).map(d => d.dealOwner).filter(Boolean))];
+    return uniqueOwners.sort();
+  }, [deals]);
+
+  const stages = useMemo(() => {
+    return [...new Set((deals || []).map(d => d.dealStage).filter(Boolean))].sort();
+  }, [deals]);
+
   return (
     <div className={styles.container}>
       <div className={styles.mainCard}>
@@ -261,7 +270,7 @@ export default function Deals() {
               placeholder="Deal Owner"
               value={ownerFilter}
               onChange={(val) => { setOwnerFilter(val); setCurrentPage(1); }}
-              options={["Jane Cooper", "Wade Warren", "Brooklyn Simmons", "Leslie Alexander", "Jenny Wilson", "Guy Hawkins", "Robert Fox", "Cameron Williamson"]}
+              options={owners}
             />
           </div>
 
@@ -270,7 +279,7 @@ export default function Deals() {
               placeholder="Deal Stage"
               value={stageFilter}
               onChange={(val) => { setStageFilter(val); setCurrentPage(1); }}
-              options={["Presentation Scheduled", "Qualified to Buy", "Contract Sent", "Appointment Scheduled", "Decision Maker Bought In", "Closed Won", "Closed Lost"]}
+              options={stages}
             />
           </div>
 

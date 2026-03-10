@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import styles from "./Leads.module.css";
 import Table from "../../../components/ui/Table";
 import Pagination from "../../../components/ui/Pagination";
@@ -289,7 +289,7 @@ export default function Leads() {
                 placeholder="Lead Status"
                 value={statusFilter}
                 onChange={(val) => { setStatusFilter(val); setCurrentPage(1); }}
-                options={["Open", "New", "In Progress", "Converted", "Qualified", "Unqualified", "Contacted"]}
+                options={["New", "In Progress", "Converted", "Qualified", "Unqualified", "Contacted"]}
               />
             </div>
             <div className={styles.selectWrapper}>

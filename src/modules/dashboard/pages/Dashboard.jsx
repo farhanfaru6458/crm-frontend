@@ -1,57 +1,101 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import styles from "./Dashboard.module.css";
-import { Users, Briefcase, DollarSign, TrendingUp } from "lucide-react";
+import { Users, Briefcase, DollarSign, TrendingUp, Ticket } from "lucide-react";
 import { fetchLeads } from "../../../redux/leadsSlice";
 import { fetchDeals } from "../../../redux/dealsSlice";
 import { fetchCompanies } from "../../../redux/companiesSlice";
+import { fetchTickets } from "../../../redux/ticketsSlice";
 import CustomSelect from "../../../components/ui/CustomSelect/CustomSelect";
 
 export default function Dashboard() {
   const dispatch = useDispatch();
   const [reportFilter, setReportFilter] = useState("Monthly");
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [selectedOwner, setSelectedOwner] = useState("All Owners");
+
   const { leads } = useSelector((state) => state.leads);
   const { deals } = useSelector((state) => state.deals);
+  const { tickets } = useSelector((state) => state.tickets);
   const { loading: loadingLeads } = useSelector((state) => state.leads);
   const { loading: loadingDeals } = useSelector((state) => state.deals);
+  const { loading: loadingTickets } = useSelector((state) => state.tickets);
 
   useEffect(() => {
     dispatch(fetchLeads());
     dispatch(fetchDeals());
     dispatch(fetchCompanies());
+    dispatch(fetchTickets());
   }, [dispatch]);
+
+  // Extract unique owners dynamically from all sources
+  const owners = useMemo(() => {
+    const dealOwners = (deals || []).map(d => d.dealOwner).filter(Boolean);
+    const ticketOwners = (tickets || []).map(t => t.owner).filter(Boolean);
+    const leadOwners = (leads || []).flatMap(l =>
+      Array.isArray(l.owner) ? l.owner : (l.owner ? [l.owner] : [])
+    ).filter(Boolean);
+
+    const allUniqueOwners = [...new Set([...dealOwners, ...ticketOwners, ...leadOwners])];
+    return ["All Owners", ...allUniqueOwners.sort()];
+  }, [deals, tickets, leads]);
+
+  const availableYears = useMemo(() => {
+    const years = new Set([2023, 2024, 2025, 2026]);
+    [...(leads || []), ...(deals || []), ...(tickets || [])].forEach(item => {
+      const date = new Date(item.createdAt || item.updatedAt);
+      if (!isNaN(date.getFullYear())) {
+        years.add(date.getFullYear());
+      }
+    });
+    return Array.from(years).sort((a, b) => b - a);
+  }, [leads, deals, tickets]);
 
   // Calculate Metrics
   const metrics = useMemo(() => {
     const currentMonth = new Date().getMonth();
 
-    // Filter by selected year
-    const yearLeads = (leads || []).filter(l => {
+    // Filter leads by owner (Total Leads usually handles all time but can be filtered by owner)
+    const filteredLeads = (leads || []).filter(l => {
+      if (selectedOwner === "All Owners") return true;
+      const ownerList = Array.isArray(l.owner) ? l.owner : [l.owner];
+      return ownerList.includes(selectedOwner);
+    });
+
+    // Year-specific leads
+    const yearLeads = filteredLeads.filter(l => {
       const date = new Date(l.createdAt);
       return date.getFullYear() === selectedYear;
     });
 
-    const yearDeals = (deals || []).filter(d => {
+    const filteredDeals = (deals || []).filter(d => {
       const date = new Date(d.createdAt || d.updatedAt);
-      return date.getFullYear() === selectedYear;
+      const matchesYear = date.getFullYear() === selectedYear;
+      const matchesOwner = selectedOwner === "All Owners" || d.dealOwner === selectedOwner;
+      return matchesYear && matchesOwner;
     });
 
-    const totalLeads = yearLeads.length;
-    const activeDeals = yearDeals.filter(d =>
+    const totalLeads = filteredLeads.length; // Correct total leads for the selected owner across all time
+    const activeDeals = filteredDeals.filter(d =>
       d.dealStage !== "Closed Won" && d.dealStage !== "Closed Lost"
     ).length;
-    const closedDeals = yearDeals.filter(d => d.dealStage === "Closed Won").length;
+    const closedDeals = filteredDeals.filter(d => d.dealStage === "Closed Won").length;
 
-    const monthlyRevenue = yearDeals
+    const monthlyRevenue = filteredDeals
       .filter(d => {
         const date = new Date(d.createdAt || d.updatedAt);
         return d.dealStage === "Closed Won" && date.getMonth() === currentMonth;
       })
       .reduce((sum, d) => sum + (Number(d.amount) || 0), 0);
 
-    return { totalLeads, activeDeals, closedDeals, monthlyRevenue };
-  }, [leads, deals, selectedYear]);
+    const activeTickets = (tickets || []).filter(t => {
+      const matchesOwner = selectedOwner === "All Owners" || t.owner === selectedOwner;
+      const matchesYear = new Date(t.createdAt).getFullYear() === selectedYear;
+      return matchesOwner && matchesYear && t.status !== "Closed" && t.status !== "Resolved";
+    }).length;
+
+    return { totalLeads, activeDeals, closedDeals, monthlyRevenue, activeTickets };
+  }, [leads, deals, tickets, selectedYear, selectedOwner]);
 
   // Team Performance Data from Real Deals
   const teamPerformance = useMemo(() => {
@@ -69,6 +113,7 @@ export default function Dashboard() {
           activeDeals: 0,
           closedDeals: 0,
           revenue: 0,
+          tickets: 0,
           trend: "+0.0%",
           isPositive: true
         };
@@ -81,24 +126,53 @@ export default function Dashboard() {
       }
     });
 
+    // Add ticket counts to performance
+    (tickets || []).forEach(ticket => {
+      const date = new Date(ticket.createdAt);
+      if (date.getFullYear() === selectedYear) {
+        const owner = ticket.owner || "Unassigned";
+        if (!performance[owner]) { // Initialize if owner only has tickets
+          performance[owner] = {
+            employee: owner,
+            activeDeals: 0,
+            closedDeals: 0,
+            revenue: 0,
+            tickets: 0,
+            trend: "+0.0%",
+            isPositive: true
+          };
+        }
+        performance[owner].tickets += 1;
+      }
+    });
+
     const results = Object.values(performance).sort((a, b) => b.revenue - a.revenue);
     return results.length > 0 ? results : [
-      { employee: "No data for this year", activeDeals: 0, closedDeals: 0, revenue: 0, trend: "0%", isPositive: true }
+      { employee: "No data for this year", activeDeals: 0, closedDeals: 0, revenue: 0, tickets: 0, trend: "0%", isPositive: true }
     ];
-  }, [deals, selectedYear]);
+  }, [deals, tickets, selectedYear]);
 
   // Conversion Funnel Data
   const conversionFunnel = useMemo(() => {
-    const yearLeads = (leads || []).filter(l => new Date(l.createdAt).getFullYear() === selectedYear);
-    const yearDeals = (deals || []).filter(d => new Date(d.createdAt || d.updatedAt).getFullYear() === selectedYear);
+    const filteredLeads = (leads || []).filter(l => {
+      const matchesOwner = selectedOwner === "All Owners" || (Array.isArray(l.owner) ? l.owner.includes(selectedOwner) : l.owner === selectedOwner);
+      const matchesYear = new Date(l.createdAt).getFullYear() === selectedYear;
+      return matchesOwner && matchesYear;
+    });
+
+    const filteredDeals = (deals || []).filter(d => {
+      const matchesOwner = selectedOwner === "All Owners" || d.dealOwner === selectedOwner;
+      const matchesYear = new Date(d.createdAt || d.updatedAt).getFullYear() === selectedYear;
+      return matchesOwner && matchesYear;
+    });
 
     const counts = {
-      "Contact": yearLeads.length,
-      "Qualified Lead": yearLeads.filter(l => l.status === "Qualified" || l.status === "Converted").length,
-      "Proposal Sent": yearDeals.filter(d => d.dealStage === "Proposal Sent").length,
-      "Negotiation": yearDeals.filter(d => d.dealStage === "Negotiation").length,
-      "Closed Won": yearDeals.filter(d => d.dealStage === "Closed Won").length,
-      "Closed Lost": yearDeals.filter(d => d.dealStage === "Closed Lost").length
+      "Contact": filteredLeads.length,
+      "Qualified Lead": filteredLeads.filter(l => l.status === "Qualified" || l.status === "Converted").length,
+      "Proposal Sent": filteredDeals.filter(d => d.dealStage === "Proposal Sent").length,
+      "Negotiation": filteredDeals.filter(d => d.dealStage === "Negotiation").length,
+      "Closed Won": filteredDeals.filter(d => d.dealStage === "Closed Won").length,
+      "Closed Lost": filteredDeals.filter(d => d.dealStage === "Closed Lost").length
     };
 
     const max = Math.max(...Object.values(counts), 1);
@@ -115,16 +189,19 @@ export default function Dashboard() {
       ...bar,
       width: `${(bar.count / max) * 100}%`
     }));
-  }, [leads, deals, selectedYear]);
+  }, [leads, deals, selectedYear, selectedOwner]);
 
   // Sales Chart Data
   const salesChart = useMemo(() => {
     const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const filteredDeals = (deals || []).filter(d =>
+      selectedOwner === "All Owners" || d.dealOwner === selectedOwner
+    );
 
     if (reportFilter === "Yearly") {
-      const years = [2020, 2021, 2022, 2023, 2024, 2025, 2026];
+      const years = availableYears; // Use dynamically available years
       const yearlyData = years.map(year => {
-        const yearDeals = (deals || []).filter(d => {
+        const yearDeals = filteredDeals.filter(d => {
           const date = new Date(d.createdAt || d.updatedAt);
           return date.getFullYear() === year;
         });
@@ -145,13 +222,13 @@ export default function Dashboard() {
         label: d.label,
         revenue: d.revenue,
         pipeline: d.pipeline,
-        main: (d.revenue / maxVal) * 80,
-        light: ((d.revenue + d.pipeline) / maxVal) * 95
+        main: (d.revenue / maxVal) * 80 + 2,
+        light: ((d.revenue + d.pipeline) / maxVal) * 95 + 5
       }));
     }
 
     const monthlyData = months.map((m, i) => {
-      const monthDeals = (deals || []).filter(d => {
+      const monthDeals = filteredDeals.filter(d => {
         const date = new Date(d.createdAt || d.updatedAt);
         return date.getMonth() === i && date.getFullYear() === selectedYear;
       });
@@ -175,10 +252,10 @@ export default function Dashboard() {
       main: (d.revenue / maxVal) * 80 + 2,
       light: ((d.revenue + d.pipeline) / maxVal) * 95 + 5
     }));
-  }, [deals, reportFilter, selectedYear]);
+  }, [deals, reportFilter, selectedYear, selectedOwner, availableYears]);
 
   const handleExportCSV = () => {
-    const headers = ["Employee", "Active Deals", "Closed Deals", "Revenue"];
+    const headers = ["Employee", "Active Deals", "Closed Deals", "Revenue", "Tickets"];
     const rows = teamPerformance.map((item) => [
       item.employee,
       item.activeDeals,
@@ -216,6 +293,7 @@ export default function Dashboard() {
 
   return (
     <div className={styles.dashboard}>
+      <h1>Dashboard </h1>
       {/* ================= TOP CARDS ================= */}
       <div className={styles.cardGrid}>
         <div className={styles.metricCard}>
@@ -301,6 +379,7 @@ export default function Dashboard() {
                   onChange={(val) => setReportFilter(val)}
                 />
               </div>
+              
             </div>
           </div>
 
@@ -341,7 +420,7 @@ export default function Dashboard() {
       {/* ================= TABLE SECTION ================= */}
       <div className={styles.tableCard}>
         <div className={styles.tableHeader}>
-          <h3>Team Performance Tracking</h3>
+          <h3>Team Performance ({selectedYear})</h3>
           <button className={styles.exportBtn} onClick={handleExportCSV}>Export CSV</button>
         </div>
 
