@@ -10,7 +10,6 @@ const DealForm = ({ formData, onChange, errors = {} }) => {
     const { user } = useAuth();
     const [owners, setOwners] = useState([]);
     const leads = useSelector((state) => state.leads.leads);
-    const qualifiedLeads = leads.filter((lead) => lead.status === "Qualified");
 
     useEffect(() => {
         const fetchUsers = async () => {
@@ -42,9 +41,17 @@ const DealForm = ({ formData, onChange, errors = {} }) => {
         onChange(name, value);
     };
 
-    const leadOptions = qualifiedLeads.map((lead) => ({
+    const getLeadLabel = (lead) => {
+        if (lead.name && !lead.name.includes("undefined")) return lead.name;
+        const first = (lead.firstName && lead.firstName !== "undefined") ? lead.firstName : "";
+        const last = (lead.lastName && lead.lastName !== "undefined") ? lead.lastName : "";
+        const combined = `${first} ${last}`.trim();
+        return combined || "Unnamed Lead";
+    };
+
+    const leadOptions = leads.map((lead) => ({
         value: lead._id,
-        label: `${lead.firstName} ${lead.lastName} (${lead.company || 'No Company'})`
+        label: `${getLeadLabel(lead)} (${lead.company || 'No Company'})`
     }));
 
     return (
@@ -56,7 +63,7 @@ const DealForm = ({ formData, onChange, errors = {} }) => {
                     value={formData.associatedLeadId || ""}
                     options={leadOptions}
                     onChange={handleSelectChange}
-                    placeholder="Select Qualified Lead"
+                    placeholder="Select Lead"
                 />
             </div>
 

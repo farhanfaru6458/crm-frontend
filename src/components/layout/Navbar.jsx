@@ -4,8 +4,9 @@ import { FaSearch, FaBell, FaSignOutAlt, FaUser, FaTrash } from "react-icons/fa"
 import { useAuth } from "../../context/AuthContext";
 import { useDispatch, useSelector } from "react-redux";
 import { setQuery } from "../../redux/searchSlice";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { clearNotifications } from "../../redux/notificationsSlice";
+
 export default function Navbar() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -13,6 +14,25 @@ export default function Navbar() {
   const [searchInput, setSearchInput] = useState("");
   const [isNotifyOpen, setIsNotifyOpen] = useState(false);
   const notifications = useSelector((state) => state.notifications.notifications);
+  const notificationRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (notificationRef.current && !notificationRef.current.contains(event.target)) {
+        setIsNotifyOpen(false);
+      }
+    }
+
+    if (isNotifyOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    } else {
+      document.removeEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isNotifyOpen]);
 
   const handleLogout = () => {
     logout();
@@ -46,7 +66,7 @@ export default function Navbar() {
 
         </div>
 
-        <div className={styles.notificationWrapper}>
+        <div className={styles.notificationWrapper} ref={notificationRef}>
           <button className={styles.iconButton} onClick={() => setIsNotifyOpen(!isNotifyOpen)}>
             <FaBell />
             {notifications.length > 0 && <span className={styles.badge}>{notifications.length}</span>}

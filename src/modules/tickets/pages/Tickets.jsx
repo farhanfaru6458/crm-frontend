@@ -248,7 +248,8 @@ const Tickets = () => {
   }, [tickets]);
 
   const priorities = useMemo(() => {
-    return [...new Set((tickets || []).map(t => t.priority).filter(Boolean))].sort();
+    const uniquePriorities = [...new Set((tickets || []).map(t => t.priority).filter(Boolean))];
+    return uniquePriorities.sort();
   }, [tickets]);
 
   return (

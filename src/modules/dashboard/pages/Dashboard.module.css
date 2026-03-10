@@ -621,3 +621,51 @@ tbody tr td:last-child {
     font-size: 15px;
   }
 }
+
+/* ================= DASHBOARD HEADER ================= */
+
+.dashboardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.titleSection h1 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.titleSection p {
+  font-size: 14px;
+  color: #6b7280;
+  margin-top: 4px;
+}
+
+.globalFilters {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.globalFilters .filterWrapper {
+  width: 180px;
+}
+
+@media (max-width: 768px) {
+  .dashboardHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 20px;
+  }
+
+  .globalFilters {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .globalFilters .filterWrapper {
+    width: 100%;
+  }
+}

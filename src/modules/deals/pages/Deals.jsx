@@ -221,7 +221,8 @@ export default function Deals() {
   }, [deals]);
 
   const stages = useMemo(() => {
-    return [...new Set((deals || []).map(d => d.dealStage).filter(Boolean))].sort();
+    const uniqueStages = [...new Set((deals || []).map(d => d.dealStage).filter(Boolean))];
+    return uniqueStages.sort();
   }, [deals]);
 
   return (
