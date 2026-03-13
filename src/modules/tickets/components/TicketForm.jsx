@@ -142,10 +142,11 @@ const TicketForm = ({ formData, onChange, errors = {} }) => {
         <CustomSelect
           label="Ticket Owner *"
           name="owner"
-          value={formData.owner || ""}
+          value={Array.isArray(formData.owner) ? formData.owner : []}
           options={owners}
           onChange={handleGeneralSelect}
           error={errors.owner}
+          isMulti={true}
         />
       </div>
     </form>

@@ -52,6 +52,17 @@ const ActivityFeed = ({
         if (activeTab === "Meetings") return a.type === "Meeting";
         return true;
     });
+const isOverdue = (time, completed) => {
+  if (!time || completed) return false;
+
+
+  const formatted = time.replace(" at ", "T");
+
+  const taskDate = new Date(formatted);
+  const now = new Date();
+
+  return taskDate.getTime() < now.getTime();
+};
 
     const groups = useMemo(() => {
         const uniqueGroups = Array.from(new Set(activities.map(a => a.group)));
@@ -128,33 +139,56 @@ const ActivityFeed = ({
                                                 onClick={() => toggleExpand(item.id)}
                                                 style={{ cursor: 'pointer' }}
                                             >
-                                                <span className={styles.itemType}>
-                                                    <svg
-                                                        width="12" height="12"
-                                                        viewBox="0 0 24 24"
-                                                        fill="none"
-                                                        stroke="currentColor"
-                                                        strokeWidth="3"
-                                                        style={{
-                                                            transform: isExpanded ? "rotate(0deg)" : "rotate(-90deg)",
-                                                            color: "#5a4bff",
-                                                            transition: "transform 0.2s ease"
-                                                        }}
-                                                    >
-                                                        <path d="M19 9l-7 7-7-7" />
-                                                    </svg>
-                                                    {item.title}
-                                                </span>
+                                              <span className={styles.itemType}>
+  <svg
+    width="12"
+    height="12"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="3"
+    style={{
+      transform: isExpanded ? "rotate(0deg)" : "rotate(-90deg)",
+      color: "#5a4bff",
+      transition: "transform 0.2s ease"
+    }}
+  >
+    <path d="M19 9l-7 7-7-7" />
+  </svg>
+
+  {item.type === "Email" ? (
+    <>
+      <span className={styles.emailTitle}>
+        Logged Email - {item.subject}
+      </span>
+      <span className={styles.emailUser}>
+        {" "}by {item.createdBy || item.from}
+      </span>
+    </>
+  ) : (
+    item.title
+  )}
+</span>
                                                 <div className={styles.itemMeta}>
-                                                    {item.overdue && !item.completed && (
-                                                        <span className={styles.overdue}>
-                                                            <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24" style={{ marginRight: '4px' }}>
-                                                                <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z" />
-                                                            </svg>
-                                                            Overdue :
+                                                 {item.type === "Task" && isOverdue(item.time, item.completed) && (
+  <span className={styles.overdue}>
+    <svg
+      width="14"
+      height="14"
+      fill="currentColor"
+      viewBox="0 0 24 24"
+      style={{ marginRight: "4px", color: "red" }}
+    >
+      <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z" />
+    </svg>
+    Overdue :
+  </span>
+)}
+                                                    {item.type === "Task" ? (
+                                                        <span className={item.overdue ? styles.overdueTime : styles.normalTime}>
+                                                            {item.time}
                                                         </span>
-                                                    )}
-                                                    {item.time}
+                                                    ) : item.time}
                                                 </div>
                                             </div>
 
@@ -162,6 +196,7 @@ const ActivityFeed = ({
                                             {isExpanded && (
                                                 <div className={styles.itemBody}>
                                                     {(item.organizedBy || item.createdBy) && item.type !== "Email" && (
+                                                        
                                                         <p className={styles.organizedBy}>
                                                             {item.type === "Meeting" ? "Organized by " : "Created by "}
                                                             {item.organizedBy || item.createdBy}
@@ -178,11 +213,17 @@ const ActivityFeed = ({
                                                                     }}
                                                                     onClick={(e) => {
                                                                         e.stopPropagation();
-                                                                        onToggleTask && onToggleTask(item.id);
+                                                                        onToggleTask && onToggleTask(item.id || item._id);
                                                                     }}
-                                                                ></div>
+                                                                >
+                                                                    {item.completed && (
+                                                                        <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" className={styles.checkIcon}>
+                                                                            <path d="M20 6L9 17l-5-5" />
+                                                                        </svg>
+                                                                    )}
+                                                                </div>
                                                                 <p className={styles.itemText} style={{ textDecoration: item.completed ? "line-through" : "none" }}>
-                                                                    {item.content}
+                                                                    {item.content || item.name}
                                                                 </p>
                                                             </div>
                                                             <div className={styles.infoBox}>
@@ -192,14 +233,14 @@ const ActivityFeed = ({
                                                                 </div>
                                                                 <div className={styles.infoField}>
                                                                     <label>Priority</label>
-                                                                    <span>{item.priority}</span>
+                                                                    <span>{item.priority || "Medium"}</span>
                                                                 </div>
                                                                 <div className={styles.infoField}>
                                                                     <label>Type</label>
-                                                                    <span>{item.taskType}</span>
+                                                                    <span>{item.taskType || "To-Do"}</span>
                                                                 </div>
                                                             </div>
-                                                            {item.subNote && <p className={styles.subNote}>{item.subNote}</p>}
+                                                            {item.note && <p className={styles.subNote}>{item.note}</p>}
                                                         </div>
                                                     ) : item.type === "Meeting" ? (
                                                         <div className={styles.meetingFull}>

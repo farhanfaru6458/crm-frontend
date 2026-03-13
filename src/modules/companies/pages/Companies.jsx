@@ -43,6 +43,7 @@ const Companies = () => {
     industry: "",
     city: "",
     country: "",
+    leadStatus: "",
     createdAt: "",
   });
 
@@ -67,7 +68,7 @@ const Companies = () => {
   const handleOpenCreate = () => {
     setEditingCompany(null);
     setFormData({
-      owner: user ? `${user.firstName} ${user.lastName}` : ""
+      owner: user ? [`${user.firstName} ${user.lastName}`] : []
     });
     setErrors({});
     setIsModalOpen(true);
@@ -84,7 +85,7 @@ const Companies = () => {
     const newErrors = {};
     if (!formData.domain?.trim()) newErrors.domain = "Domain is required";
     if (!formData.name?.trim()) newErrors.name = "Company name is required";
-    if (!formData.owner?.trim()) newErrors.owner = "Company owner is required";
+    if (!formData.owner || (Array.isArray(formData.owner) && formData.owner.length === 0)) newErrors.owner = "At least one owner is required";
     if (!formData.industry) newErrors.industry = "Industry is required";
     if (!formData.type) newErrors.type = "Type is required";
     if (!formData.phone?.trim()) newErrors.phone = "Phone number is required";
@@ -175,6 +176,8 @@ const Companies = () => {
       const matchesCity = !filters.city || c.city === filters.city;
       const matchesCountry =
         !filters.country || c.country === filters.country;
+      const matchesLeadStatus =
+        !filters.leadStatus || c.leadStatus === filters.leadStatus;
 
       let matchesDate = true;
       if (filters.createdAt) {
@@ -188,6 +191,7 @@ const Companies = () => {
         matchesIndustry &&
         matchesCity &&
         matchesCountry &&
+        matchesLeadStatus &&
         matchesDate
       );
     });
@@ -211,11 +215,26 @@ const Companies = () => {
         </Link>
       ),
     },
-    { key: "owner", label: "COMPANY OWNER", width: "15%" },
+    { 
+      key: "owner", 
+      label: "COMPANY OWNER", 
+      width: "15%",
+      render: (row) => Array.isArray(row.owner) ? row.owner.join(", ") : row.owner
+    },
     { key: "phone", label: "PHONE NUMBER", width: "12%" },
     { key: "industry", label: "INDUSTRY", width: "12%" },
     { key: "city", label: "CITY", width: "10%" },
     { key: "country", label: "COUNTRY/REGION", width: "13%" },
+    // { 
+    //   key: "leadStatus", 
+    //   label: "LEAD STATUS",
+    //   width: "12%",
+    //   render: (row) => (
+    //     <span className={`${styles.statusBadge} ${styles[(row.leadStatus || "New").toLowerCase().replace(" ", "")]}`}>
+    //       {row.leadStatus || "New"}
+    //     </span>
+    //   )
+    // },
     {
       key: "createdAt",
       label: "CREATED DATE",
@@ -281,6 +300,14 @@ const Companies = () => {
               onChange={(val) => handleFilterChange("country", val)}
               options={["India", "Canada", "Netherlands", "USA", "UK", "Australia", "Germany", "Singapore", "UAE"]}
             />
+
+            {/* <CustomSelect
+              className={styles.filterSelectWrapper}
+              placeholder="Lead Status"
+              value={filters.leadStatus}
+              onChange={(val) => handleFilterChange("leadStatus", val)}
+              options={["New", "In Progress", "Converted", "Qualified", "Unqualified", "Contacted"]}
+            /> */}
 
             <div className={styles.datePicker}>
               <input

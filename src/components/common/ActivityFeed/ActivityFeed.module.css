@@ -16,6 +16,20 @@
     gap: 1rem;
     justify-content: space-between;
 }
+.emailTitle {
+  font-weight: 600;
+}
+
+.emailUser {
+  font-weight: 400;   /* same weight as title */
+  color: #64748b;     /* optional softer color like HubSpot */
+}
+.overdue {
+  color: red;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+}
 
 .convertBtn {
     background: linear-gradient(135deg, #5a4bff, #7c6fff);
@@ -159,11 +173,20 @@
 }
 
 .overdue {
-    color: #ef4444;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    gap: 4px;
+  color: #ef4444;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.overdueTime {
+  color: #ef4444;
+  font-weight: 700;
+}
+
+.normalTime {
+  color: #94a3b8;
 }
 
 .itemBody {
@@ -186,23 +209,30 @@
 }
 
 .circleCheckbox {
-    width: 20px;
-    height: 20px;
-    border: 2px solid #cbd5e1;
-    border-radius: 50%;
-    cursor: pointer;
-    flex-shrink: 0;
-    transition: all 0.2s;
+  width: 20px;
+  height: 20px;
+  border: 2px solid #cbd5e1;
+  border-radius: 50%;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.checkIcon {
+  width: 12px;
+  height: 12px;
 }
 
 .infoBox {
-    background: #f8fafc;
-    border-radius: 8px;
-    border: 1px solid #f1f5f9;
-    padding: 1.25rem;
-    display: flex;
-    gap: 3rem;
-    margin-bottom: 1rem;
+  background: #f1f5f9;
+  border-radius: 8px;
+  padding: 1.25rem 2rem;
+  display: flex;
+  gap: 5rem;
+  margin-bottom: 1rem;
 }
 
 .infoField {
@@ -219,9 +249,9 @@
 }
 
 .infoField span {
-    font-size: 0.8125rem;
-    font-weight: 600;
-    color: #1e293b;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #1e293b;
 }
 
 .subNote {

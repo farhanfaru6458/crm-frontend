@@ -67,7 +67,7 @@ const Tickets = () => {
   const handleOpenCreate = () => {
     setEditingTicket(null);
     setFormData({
-      owner: user ? `${user.firstName} ${user.lastName}` : ""
+      owner: user ? [`${user.firstName} ${user.lastName}`] : []
     });
     setErrors({});
     setIsModalOpen(true);
@@ -86,7 +86,7 @@ const Tickets = () => {
     if (!formData.status) newErrors.status = "Status is required";
     if (!formData.source) newErrors.source = "Source is required";
     if (!formData.priority) newErrors.priority = "Priority is required";
-    if (!formData.owner) newErrors.owner = "Owner is required";
+    if (!formData.owner || (Array.isArray(formData.owner) && formData.owner.length === 0)) newErrors.owner = "At least one owner is required";
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -226,7 +226,11 @@ const Tickets = () => {
     { key: "status", label: "STATUS" },
     { key: "priority", label: "PRIORITY" },
     { key: "source", label: "SOURCE" },
-    { key: "owner", label: "OWNER" },
+    { 
+      key: "owner", 
+      label: "OWNER",
+      render: (row) => Array.isArray(row.owner) ? row.owner.join(", ") : row.owner
+    },
     {
       key: "createdAt",
       label: "CREATED DATE",

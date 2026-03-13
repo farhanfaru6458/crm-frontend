@@ -80,6 +80,19 @@
   margin: 3px 0;
 }
 
+.headerEmailRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 4px;
+}
+
+.entityEmail {
+  font-size: 0.8125rem;
+  color: #64748b;
+  margin: 0;
+}
+
 .websiteLinkRow {
   display: flex;
   align-items: center;
@@ -198,6 +211,12 @@
   opacity: 0.6;
   transition: opacity 0.2s;
   cursor: pointer;
+}
+
+.disabledEdit {
+  color: #94a3b8;
+  cursor: not-allowed;
+  opacity: 0.4 !important;
 }
 
 .sectionCollapse:hover .editIcon {
@@ -760,7 +779,6 @@
   background: #fcfdfe;
   border: 1px solid #e2e8f0;
   border-radius: 9px;
-  padding-right: 0.75rem;
 }
 
 .iconInput select {
@@ -788,6 +806,25 @@
 
 .simpleTextarea:focus {
   border-color: #5a4bff;
+}
+
+.richTextarea {
+  width: 100%;
+  min-height: 200px;
+  padding: 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 9px;
+  outline: none;
+  font-size: 0.875rem;
+  resize: vertical;
+  background: white;
+  color: #334155;
+  line-height: 1.6;
+}
+
+.richTextarea:focus {
+  border-color: #5a4bff;
+  box-shadow: 0 0 0 4px rgba(90, 75, 255, 0.05);
 }
 
 .drawerFooter {

@@ -166,29 +166,38 @@ export default function Dashboard() {
       return matchesOwner && matchesYear;
     });
 
-    const counts = {
-      "Contact": filteredLeads.length,
-      "Qualified Lead": filteredLeads.filter(l => l.status === "Qualified" || l.status === "Converted").length,
-      "Proposal Sent": filteredDeals.filter(d => d.dealStage === "Proposal Sent").length,
-      "Negotiation": filteredDeals.filter(d => d.dealStage === "Negotiation").length,
-      "Closed Won": filteredDeals.filter(d => d.dealStage === "Closed Won").length,
-      "Closed Lost": filteredDeals.filter(d => d.dealStage === "Closed Lost").length
-    };
+    const newLeads = filteredLeads.filter(l => l.status === "New").length;
+const contactedLeads = filteredLeads.filter(l => l.status === "Contacted").length;
+  const counts = {
+ "Contact": newLeads + contactedLeads,
+  "Qualified Lead": filteredLeads.filter(l => l.status === "Qualified" || l.status === "Converted").length,
+  "Proposal Sent": filteredDeals.filter(d => d.dealStage === "Proposal Sent").length,
+  "Negotiation": filteredDeals.filter(d => d.dealStage === "Negotiation").length,
+  "Closed Won": filteredDeals.filter(d => d.dealStage === "Closed Won").length,
+};
 
-    const max = Math.max(...Object.values(counts), 1);
-    const bars = [
-      { label: "Contact", color: styles.purpleBar, count: counts["Contact"] },
-      { label: "Qualified Lead", color: styles.blueBar, count: counts["Qualified Lead"] },
-      { label: "Proposal Sent", color: styles.yellowBar, count: counts["Proposal Sent"] },
-      { label: "Negotiation", color: styles.purpleBar, count: counts["Negotiation"] },
-      { label: "Closed Won", color: styles.greenBar, count: counts["Closed Won"] },
-      { label: "Closed Lost", color: styles.redBar, count: counts["Closed Lost"] },
-    ];
+const max = Math.max(...Object.values(counts), 1);
 
-    return bars.map(bar => ({
-      ...bar,
-      width: `${(bar.count / max) * 100}%`
-    }));
+const bars = [
+  {
+    label: "Contact",
+    color: styles.purpleBar,
+    count: contactedLeads,
+    width:
+      newLeads + contactedLeads > 0
+        ? `${(contactedLeads / (newLeads + contactedLeads)) * 100}%`
+        : "0%",
+  },
+  { label: "Qualified Lead", color: styles.yellowBar, count: counts["Qualified Lead"] },
+  { label: "Proposal Sent", color: styles.purpleBar, count: counts["Proposal Sent"] },
+  { label: "Negotiation", color: styles.greenBar, count: counts["Negotiation"] },
+  { label: "Closed Won", color: styles.blueBar, count: counts["Closed Won"] },
+];
+
+return bars.map(bar => ({
+  ...bar,
+  width: `${(bar.count / max) * 100}%`
+}));
   }, [leads, deals, selectedYear, selectedOwner]);
 
   // Sales Chart Data

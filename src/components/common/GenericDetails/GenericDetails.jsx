@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import styles from "./GenericDetails.module.css";
 import ActivityFeed from "../../common/ActivityFeed/ActivityFeed";
 import { toast } from "react-hot-toast";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { addNotification } from "../../../redux/notificationsSlice";
 import ConfirmDialog from "../../ui/ConfirmDialog";
 import { useAuth } from "../../../context/AuthContext";
@@ -25,6 +25,10 @@ const GenericDetails = ({
 }) => {
   const { user } = useAuth();
   const dispatch = useDispatch();
+  const { deals } = useSelector(state => state.deals);
+  const hasActiveDeal = config.entityName === "Lead" && deals.some(d => d.associatedLeadId === entity._id);
+  const isEditDisabled = config.entityName === "Lead" && entity.status === "Converted" && hasActiveDeal;
+
   const [activeTab, setActiveTab] = useState("Activity");
   const [activities, setActivities] = useState(initialActivities || []);
   const [owners, setOwners] = useState([]);
@@ -194,8 +198,9 @@ const GenericDetails = ({
     date: new Date().toISOString().split('T')[0],
     time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }),
     note: "",
-    priority: "Medium",
-    type: "To-Do"
+    priority: "High",
+    type: "To-Do",
+    assignedTo: ""
   });
 
   const [meetingFormData, setMeetingFormData] = useState({
@@ -302,8 +307,10 @@ const GenericDetails = ({
       note: taskFormData.note || "No description provided.",
       priority: taskFormData.priority,
       taskType: taskFormData.type,
+      assignedTo: taskFormData.assignedTo,
       completed: false,
-      createdBy: `${user.firstName} ${user.lastName}`
+      createdBy: `${user.firstName} ${user.lastName}`,
+      title: taskFormData.assignedTo ? `Task assigned to ${taskFormData.assignedTo}` : `Task: ${taskFormData.name}`
     };
 
     if (onCreateActivity) {
@@ -529,6 +536,30 @@ const GenericDetails = ({
                 <h2 className={styles.entityTitle}>
                   {entity[config.titleField]}
                 </h2>
+                {config.entityName === "Lead" && entity.email && (
+                  <div className={styles.headerEmailRow}>
+                    <p className={styles.entityEmail}>
+                      {entity.email}
+                    </p>
+                    <svg
+                      className={styles.copyIcon}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      onClick={() => {
+                        navigator.clipboard.writeText(entity.email);
+                        toast.success("Email copied!");
+                      }}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"
+                      />
+                    </svg>
+                  </div>
+                )}
                 {config.subTitleRender ? (
                   <p className={styles.entitySub}>
                     {config.subTitleRender(entity)}
@@ -655,9 +686,13 @@ const GenericDetails = ({
                 viewBox="0 0 24 24"
                 strokeWidth={1.5}
                 stroke="currentColor"
-                className={styles.editIcon}
+                className={`${styles.editIcon} ${isEditDisabled ? styles.disabledEdit : ""}`}
                 onClick={(e) => {
                   e.stopPropagation();
+                  if (isEditDisabled) {
+                    toast.error("Converted leads cannot be edited unless their deal is deleted.");
+                    return;
+                  }
                   setIsEditDrawerOpen(true);
                 }}
               >
@@ -869,9 +904,7 @@ const GenericDetails = ({
                       value={taskFormData.date}
                       onChange={(e) => setTaskFormData({ ...taskFormData, date: e.target.value })}
                     />
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                      <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
+                   
                   </div>
                 </div>
                 <div className={styles.field}>
@@ -884,19 +917,43 @@ const GenericDetails = ({
                       value={taskFormData.time}
                       onChange={(e) => setTaskFormData({ ...taskFormData, time: e.target.value })}
                     />
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                      <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
+                  
                   </div>
                 </div>
+              </div>
+              <div className={styles.row}>
+                <div className={styles.field}>
+                  <CustomSelect
+                    label="Task Type *"
+                    value={taskFormData.type}
+                    options={["To-Do", "Email", "Call", "Meeting"]}
+                    onChange={(val) => setTaskFormData(prev => ({ ...prev, type: val }))}
+                  />
+                </div>
+                <div className={styles.field}>
+                  <CustomSelect
+                    label="Priority *"
+                    value={taskFormData.priority}
+                    options={["High", "Medium", "Low"]}
+                    onChange={(val) => setTaskFormData(prev => ({ ...prev, priority: val }))}
+                  />
+                </div>
+              </div>
+              <div className={styles.field}>
+                <CustomSelect
+                  label="Assigned to *"
+                  value={taskFormData.assignedTo}
+                  options={owners}
+                  onChange={(val) => setTaskFormData(prev => ({ ...prev, assignedTo: val }))}
+                />
               </div>
               <div className={styles.field}>
                 <label>
                   Note <span>*</span>
                 </label>
                 <textarea
-                  className={styles.simpleTextarea}
-                  placeholder="Enter note details..."
+                  className={styles.richTextarea}
+                  placeholder="Enter"
                   value={taskFormData.note}
                   onChange={(e) => setTaskFormData({ ...taskFormData, note: e.target.value })}
                 ></textarea>
@@ -1080,9 +1137,7 @@ const GenericDetails = ({
                       value={callFormData.date}
                       onChange={(e) => setCallFormData({ ...callFormData, date: e.target.value })}
                     />
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                      <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
+                  
                   </div>
                 </div>
                 <div className={styles.field}>
@@ -1095,9 +1150,7 @@ const GenericDetails = ({
                       value={callFormData.time}
                       onChange={(e) => setCallFormData({ ...callFormData, time: e.target.value })}
                     />
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                      <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
+                   
                   </div>
                 </div>
               </div>

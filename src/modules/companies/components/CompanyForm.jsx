@@ -72,10 +72,11 @@ const CompanyForm = ({ formData, onChange, errors = {} }) => {
                 <CustomSelect
                     label="Company Owner *"
                     name="owner"
-                    value={formData.owner || ""}
+                    value={Array.isArray(formData.owner) ? formData.owner : []}
                     options={owners}
                     onChange={handleSelectChange}
                     error={errors.owner}
+                    isMulti={true}
                 />
             </div>
 
@@ -150,6 +151,16 @@ const CompanyForm = ({ formData, onChange, errors = {} }) => {
                     />
                 </div>
             </div>
+
+            {/* <div className={styles.field}>
+                <CustomSelect
+                    label="Lead Status"
+                    name="leadStatus"
+                    value={formData.leadStatus || "New"}
+                    options={["New", "In Progress", "Converted", "Qualified", "Unqualified", "Contacted"]}
+                    onChange={handleSelectChange}
+                />
+            </div> */}
 
             <div className={styles.field}>
                 <label className={styles.label}>Phone Number *</label>
