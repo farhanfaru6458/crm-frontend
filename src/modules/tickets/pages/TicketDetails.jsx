@@ -2,6 +2,9 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { updateTicket, removeTicket } from "../../../redux/ticketsSlice";
+import { fetchCompanies } from "../../../redux/companiesSlice";
+import { fetchDeals } from "../../../redux/dealsSlice";
+import { fetchLeads } from "../../../redux/leadsSlice";
 import { addNotification } from "../../../redux/notificationsSlice";
 import GenericDetails from "../../../components/common/GenericDetails/GenericDetails";
 import { toast } from "react-hot-toast";
@@ -11,6 +14,10 @@ const TicketDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
+
+  const { deals } = useSelector(state => state.deals);
+  const { companies } = useSelector(state => state.companies);
+  const { leads } = useSelector(state => state.leads);
 
   const [ticket, setTicket] = useState(null);
   const [activities, setActivities] = useState([]);
@@ -28,6 +35,10 @@ const TicketDetails = () => {
   };
 
   useEffect(() => {
+    if (companies.length === 0) dispatch(fetchCompanies());
+    if (deals.length === 0) dispatch(fetchDeals());
+    if (leads.length === 0) dispatch(fetchLeads());
+    
     const fetchTicketById = async () => {
       try {
         const { data } = await axios.get(`/tickets/${id}`);
@@ -40,15 +51,44 @@ const TicketDetails = () => {
       }
     };
     fetchTicketById();
-  }, [id, navigate]);
+  }, [id, navigate, dispatch]);
+
+  useEffect(() => {
+    if (ticket && !ticket.email) {
+        let emailToUse = "";
+        if (ticket.associatedCompanyId && companies.length > 0) {
+            const co = companies.find(c => c._id === ticket.associatedCompanyId);
+            if (co) {
+              if (co.email) {
+                 emailToUse = co.email;
+              } else if (leads.length > 0) {
+                const companyLead = leads.find(l => l.company && l.company.toLowerCase() === co.name.toLowerCase());
+                if (companyLead && companyLead.email) {
+                   emailToUse = companyLead.email;
+                }
+              }
+            }
+        } else if (ticket.associatedDealId && deals.length > 0 && leads.length > 0) {
+            const currentDealId = typeof ticket.associatedDealId === 'object' ? ticket.associatedDealId?._id : ticket.associatedDealId;
+            const d = deals.find(d => d._id === currentDealId);
+            if (d) {
+                const currentLeadId = typeof d.associatedLeadId === 'object' ? d.associatedLeadId?._id : d.associatedLeadId;
+                const l = leads.find(l => l._id === currentLeadId);
+                if (l && l.email) emailToUse = l.email;
+            }
+        }
+        
+        if (emailToUse) {
+            setTicket(prev => prev.email === emailToUse ? prev : { ...prev, email: emailToUse });
+        }
+    }
+  }, [ticket, companies, deals, leads]);
 
   const handleCreateActivity = async (activityData) => {
     try {
-      const { data } = await axios.post(`/activities/Ticket/${id}`, activityData);
-      if (data.success) {
-        setActivities(prev => [data.data, ...prev]);
-        toast.success(`${activityData.type} logged successfully`);
-      }
+      await axios.post(`/activities/Ticket/${id}`, activityData);
+      fetchActivities(id);
+      toast.success(`${activityData.type} logged successfully`);
     } catch (err) {
       toast.error("Failed to log activity");
     }
@@ -90,6 +130,48 @@ const TicketDetails = () => {
     showAvatar: false,
     detailsFields: [
       { key: "ticketName", label: "Ticket Name" },
+      { 
+        key: "associatedDealId", 
+        label: "Associated Deal", 
+        render: (deal) => {
+          const d = typeof deal === 'object' ? deal : deals.find(x => x._id === deal);
+          return d ? d.dealName : "None";
+        }
+      },
+      { 
+        key: "associatedCompanyId", 
+        label: "Associated Company", 
+        render: (co) => {
+          const c = typeof co === 'object' ? co : companies.find(x => x._id === co);
+          return c ? c.name : "None";
+        }
+      },
+      { 
+        key: "leadName", 
+        label: "Associated Contact Info", 
+        render: () => {
+          if (!ticket) return "N/A";
+          const currentDealId = typeof ticket.associatedDealId === 'object' ? ticket.associatedDealId?._id : ticket.associatedDealId;
+          if (currentDealId) {
+            const d = deals.find(d => d._id === currentDealId);
+            if (d) {
+               const currentLeadId = typeof d.associatedLeadId === 'object' ? d.associatedLeadId?._id : d.associatedLeadId;
+               const l = leads.find(l => l._id === currentLeadId);
+               return l ? `${l.name} (${l.email})` : "N/A";
+            }
+          }
+          const currentCoId = typeof ticket.associatedCompanyId === 'object' ? ticket.associatedCompanyId?._id : ticket.associatedCompanyId;
+          if (currentCoId) {
+            const co = companies.find(c => c._id === currentCoId);
+            if (co) {
+               const l = leads.find(l => l.company && l.company.toLowerCase() === co.name.toLowerCase());
+               return l ? `${l.name} (${l.email})` : "N/A";
+            }
+          }
+          return "N/A";
+        }
+      },
+      { key: "email", label: "Email" },
       { key: "description", label: "Description" },
       { key: "status", label: "Status" },
       { key: "priority", label: "Priority" },
@@ -104,6 +186,18 @@ const TicketDetails = () => {
       { key: "priority", label: "Priority" },
       { key: "source", label: "Source" },
       { key: "owner", label: "Owner" },
+      { 
+        key: "associatedDealId", 
+        label: "Deal", 
+        type: "select",
+        options: deals.map(d => ({ value: d._id, label: d.dealName }))
+      },
+      { 
+        key: "associatedCompanyId", 
+        label: "Company", 
+        type: "select",
+        options: companies.map(c => ({ value: c._id, label: c.name }))
+      },
     ],
   };
 

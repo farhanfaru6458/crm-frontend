@@ -44,11 +44,12 @@ export default function Deals() {
   // Filtering Logic
   const filteredDeals = (deals || []).filter((deal) => {
     const searchTerm = (search || "").toLowerCase();
+    const ownerName = Array.isArray(deal.dealOwner) ? deal.dealOwner.join(" ") : (deal.dealOwner || "");
     const matchesSearch =
       (deal.dealName || "").toLowerCase().includes(searchTerm) ||
-      (deal.dealOwner || "").toLowerCase().includes(searchTerm);
+      ownerName.toLowerCase().includes(searchTerm);
 
-    const matchesOwner = !ownerFilter || deal.dealOwner === ownerFilter;
+    const matchesOwner = !ownerFilter || (Array.isArray(deal.dealOwner) ? deal.dealOwner.includes(ownerFilter) : deal.dealOwner === ownerFilter);
     const matchesStage = !stageFilter || deal.dealStage === stageFilter;
 
     return matchesSearch && matchesOwner && matchesStage;
@@ -118,7 +119,7 @@ export default function Deals() {
   const handleOpenModal = () => {
     setEditingDeal(null);
     setFormData({
-      dealOwner: user ? `${user.firstName} ${user.lastName}` : ""
+      dealOwner: user ? [`${user.firstName} ${user.lastName}`] : []
     });
     setErrors({});
     setIsModalOpen(true);
@@ -144,7 +145,7 @@ export default function Deals() {
     if (!formData.dealName?.trim()) newErrors.dealName = "Deal name is required";
     if (!formData.dealStage) newErrors.dealStage = "Deal stage is required";
     if (!formData.amount) newErrors.amount = "Amount is required";
-    if (!formData.dealOwner) newErrors.dealOwner = "Deal owner is required";
+    if (!formData.dealOwner || formData.dealOwner.length === 0) newErrors.dealOwner = "Deal owner is required";
     if (!formData.closeDate) newErrors.closeDate = "Close date is required";
     if (!formData.priority) newErrors.priority = "Priority is required";
 
@@ -207,7 +208,11 @@ export default function Deals() {
     },
     { key: "dealStage", label: "DEAL STAGE" },
     { key: "closeDate", label: "CLOSE DATE" },
-    { key: "dealOwner", label: "DEAL OWNER" },
+    { 
+      key: "dealOwner", 
+      label: "DEAL OWNER",
+      render: (row) => Array.isArray(row.dealOwner) ? row.dealOwner.join(", ") : row.dealOwner
+    },
     {
       key: "amount",
       label: "AMOUNT",
@@ -216,7 +221,15 @@ export default function Deals() {
   ];
 
   const owners = useMemo(() => {
-    const uniqueOwners = [...new Set((deals || []).map(d => d.dealOwner).filter(Boolean))];
+    const allOwners = (deals || []).reduce((acc, d) => {
+      if (Array.isArray(d.dealOwner)) {
+        acc.push(...d.dealOwner);
+      } else if (d.dealOwner) {
+        acc.push(d.dealOwner);
+      }
+      return acc;
+    }, []);
+    const uniqueOwners = [...new Set(allOwners.filter(Boolean))];
     return uniqueOwners.sort();
   }, [deals]);
 

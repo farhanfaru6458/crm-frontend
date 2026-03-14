@@ -210,7 +210,9 @@ const GenericDetails = ({
     endTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }),
     note: "",
     duration: "30 mins",
-    attendees: "1"
+    attendees: [],
+    location: "",
+    reminder: ""
   });
 
   const [emailFormData, setEmailFormData] = useState({
@@ -221,8 +223,8 @@ const GenericDetails = ({
 
   // Keep email in sync when entity changes
   useEffect(() => {
-    if (entity?.email) {
-      setEmailFormData(prev => ({ ...prev, to: entity.email }));
+    if (entity && entity.email !== undefined) {
+      setEmailFormData(prev => ({ ...prev, to: entity.email || "" }));
     }
   }, [entity?.email]);
 
@@ -355,7 +357,9 @@ const GenericDetails = ({
       endTime: meetingFormData.endTime,
       note: meetingFormData.note || "No description provided.",
       duration: meetingFormData.duration || "N/A",
-      attendees: meetingFormData.attendees || "1",
+      attendees: meetingFormData.attendees,
+      location: meetingFormData.location || "N/A",
+      reminder: meetingFormData.reminder || "N/A",
       organizedBy: `${user.firstName} ${user.lastName}`
     };
 
@@ -379,7 +383,9 @@ const GenericDetails = ({
       endTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }),
       note: "",
       duration: "30 mins",
-      attendees: "1"
+      attendees: [],
+      location: "",
+      reminder: ""
     });
     setErrors({});
   };
@@ -536,7 +542,7 @@ const GenericDetails = ({
                 <h2 className={styles.entityTitle}>
                   {entity[config.titleField]}
                 </h2>
-                {config.entityName === "Lead" && entity.email && (
+                {(config.entityName === "Lead" || config.entityName === "Company" || config.entityName === "Deal" || config.entityName === "Ticket") && entity.email && (
                   <div className={styles.headerEmailRow}>
                     <p className={styles.entityEmail}>
                       {entity.email}
@@ -732,6 +738,7 @@ const GenericDetails = ({
             onOpenTaskDrawer={() => setIsTaskDrawerOpen(true)}
             onOpenMeetingDrawer={() => setIsMeetingDrawerOpen(true)}
             tabs={tabs}
+            owners={owners}
             showConvertButton={showConvertButton}
             onConvert={() => setIsConvertDrawerOpen(true)}
             convertDisabled={config.moduleName === "Leads" && entity.status !== "Qualified"}
@@ -1051,13 +1058,30 @@ const GenericDetails = ({
                   />
                 </div>
                 <div className={styles.field}>
-                  <label>Attendees</label>
-                  <input
-                    type="number"
-                    min="1"
-                    className={styles.input}
+                  <CustomSelect
+                    label="Attendees"
+                    isMulti={true}
                     value={meetingFormData.attendees}
-                    onChange={(e) => setMeetingFormData({ ...meetingFormData, attendees: e.target.value })}
+                    options={owners}
+                    onChange={(val) => handleSelectChange("attendees", val)}
+                  />
+                </div>
+              </div>
+              <div className={styles.row}>
+                <div className={styles.field}>
+                  <CustomSelect
+                    label="Location"
+                    value={meetingFormData.location}
+                    options={["Online", "Office", "Phone Call", "Other"]}
+                    onChange={(val) => handleSelectChange("location", val)}
+                  />
+                </div>
+                <div className={styles.field}>
+                  <CustomSelect
+                    label="Reminder"
+                    value={meetingFormData.reminder}
+                    options={["At time of meeting", "5 mins before", "15 mins before", "30 mins before", "1 hour before", "1 day before"]}
+                    onChange={(val) => handleSelectChange("reminder", val)}
                   />
                 </div>
               </div>
@@ -1197,12 +1221,23 @@ const GenericDetails = ({
             <div className={styles.drawerBody}>
               {config.editFields.map((field, idx) => (
                 <div key={idx} className={styles.field}>
-                  <label>{field.label}</label>
-                  <input
-                    type="text"
-                    value={entity[field.key] || ""}
-                    onChange={(e) => onFieldChange(field.key, e.target.value)}
-                  />
+                  {field.type === "select" ? (
+                    <CustomSelect
+                      label={field.label}
+                      value={(typeof entity[field.key] === 'object' && entity[field.key] !== null) ? entity[field.key]._id : (entity[field.key] || "")}
+                      options={field.options || []}
+                      onChange={(val) => onFieldChange(field.key, val)}
+                    />
+                  ) : (
+                    <>
+                      <label>{field.label}</label>
+                      <input
+                        type={field.type || "text"}
+                        value={entity[field.key] || ""}
+                        onChange={(e) => onFieldChange(field.key, e.target.value)}
+                      />
+                    </>
+                  )}
                 </div>
               ))}
             </div>

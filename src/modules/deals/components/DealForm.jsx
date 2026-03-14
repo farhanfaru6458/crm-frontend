@@ -49,7 +49,10 @@ const DealForm = ({ formData, onChange, errors = {} }) => {
         return combined || "Unnamed Lead";
     };
 
-    const leadOptions = leads.map((lead) => ({
+    const currentLeadId = typeof formData.associatedLeadId === 'object' ? formData.associatedLeadId?._id : formData.associatedLeadId;
+    const leadOptions = leads
+        .filter(lead => lead.status === "Qualified" || lead._id === currentLeadId)
+        .map((lead) => ({
         value: lead._id,
         label: `${getLeadLabel(lead)} (${lead.company || 'No Company'})`
     }));
@@ -60,7 +63,7 @@ const DealForm = ({ formData, onChange, errors = {} }) => {
                 <CustomSelect
                     label="Associated Lead"
                     name="associatedLeadId"
-                    value={formData.associatedLeadId || ""}
+                    value={(typeof formData.associatedLeadId === 'object' && formData.associatedLeadId !== null) ? formData.associatedLeadId._id : (formData.associatedLeadId || "")}
                     options={leadOptions}
                     onChange={handleSelectChange}
                     placeholder="Select Lead"
@@ -112,8 +115,9 @@ const DealForm = ({ formData, onChange, errors = {} }) => {
                 <CustomSelect
                     label="Deal Owner *"
                     name="dealOwner"
-                    value={formData.dealOwner || ""}
+                    value={formData.dealOwner || []}
                     options={owners}
+                    isMulti={true}
                     onChange={handleSelectChange}
                     error={errors.dealOwner}
                 />

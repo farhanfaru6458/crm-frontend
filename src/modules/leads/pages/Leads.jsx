@@ -146,10 +146,12 @@ export default function Leads() {
   // Filtering Logic
   const filteredLeads = (leads || []).filter((lead) => {
     const searchTerm = (search || "").toLowerCase();
+    const ownerName = Array.isArray(lead.owner) ? lead.owner.join(" ") : (lead.owner || "");
     const matchesSearch =
       (lead.name || "").toLowerCase().includes(searchTerm) ||
       (lead.email || "").toLowerCase().includes(searchTerm) ||
-      (lead.phone || "").includes(searchTerm);
+      (lead.phone || "").includes(searchTerm) ||
+      ownerName.toLowerCase().includes(searchTerm);
 
     const matchesStatus = !statusFilter || lead.status === statusFilter;
 

@@ -74,7 +74,7 @@ const TicketForm = ({ formData, onChange, errors = {} }) => {
           <CustomSelect
             label="Deal"
             name="associatedDealId"
-            value={formData.associatedDealId || ""}
+            value={(typeof formData.associatedDealId === 'object' && formData.associatedDealId !== null) ? formData.associatedDealId._id : (formData.associatedDealId || "")}
             options={dealOptions}
             onChange={handleSelectChange}
             placeholder="Choose Deal"
@@ -84,7 +84,7 @@ const TicketForm = ({ formData, onChange, errors = {} }) => {
           <CustomSelect
             label="Company"
             name="associatedCompanyId"
-            value={formData.associatedCompanyId || ""}
+            value={(typeof formData.associatedCompanyId === 'object' && formData.associatedCompanyId !== null) ? formData.associatedCompanyId._id : (formData.associatedCompanyId || "")}
             options={companyOptions}
             onChange={handleSelectChange}
             placeholder="Choose Company"

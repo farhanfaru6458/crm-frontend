@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { useSelector, useDispatch } from "react-redux";
+import { fetchLeads } from "../../../redux/leadsSlice";
 import GenericDetails from "../../../components/common/GenericDetails/GenericDetails";
 import { toast } from "react-hot-toast";
 
@@ -9,6 +11,9 @@ const ENTITY_TYPE = "Company";
 const CompanyDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+
+  const dispatch = useDispatch();
+  const { leads } = useSelector((state) => state.leads);
 
   const [company, setCompany] = useState(null);
   const [activities, setActivities] = useState([]);
@@ -35,9 +40,19 @@ const CompanyDetails = () => {
   };
 
   useEffect(() => {
+    if (leads.length === 0) dispatch(fetchLeads());
     fetchCompany();
     fetchActivities();
-  }, [id]);
+  }, [id, dispatch]);
+
+  useEffect(() => {
+    if (company && !company.email && leads.length > 0) {
+        const companyLead = leads.find(l => l.company && l.company.toLowerCase() === company.name.toLowerCase());
+        if (companyLead && companyLead.email) {
+            setCompany(prev => prev.email === companyLead.email ? prev : { ...prev, email: companyLead.email });
+        }
+    }
+  }, [company, leads]);
 
   // ================= COMPANY EDIT =================
   const handleFieldChange = (field, value) => {
@@ -117,6 +132,7 @@ const CompanyDetails = () => {
 
     detailsFields: [
       { key: "name", label: "Company Name" },
+      { key: "email", label: "Email" },
       { key: "industry", label: "Industry" },
       { key: "domain", label: "Domain" },
       { key: "phone", label: "Phone Number" },
@@ -131,6 +147,7 @@ const CompanyDetails = () => {
 
     editFields: [
       { key: "name", label: "Company Name" },
+      { key: "email", label: "Email", type: "email" },
       { key: "industry", label: "Industry" },
       { key: "phone", label: "Phone Number" },
       { key: "city", label: "City" },

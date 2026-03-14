@@ -172,17 +172,17 @@ const Tickets = () => {
   const filteredTickets = useMemo(() => {
     return (tickets || []).filter((t) => {
       const ticketName = t.ticketName || t.name || "";
-      const owner = t.owner || "";
+      const ownerName = Array.isArray(t.owner) ? t.owner.join(" ") : (t.owner || "");
       const source = t.source || "";
       const status = t.status || "";
       const priority = t.priority || "";
 
       const matchesSearch =
         ticketName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        owner.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        ownerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         source.toLowerCase().includes(searchTerm.toLowerCase());
 
-      const matchesOwner = !filters.owner || owner === filters.owner;
+      const matchesOwner = !filters.owner || (Array.isArray(t.owner) ? t.owner.includes(filters.owner) : t.owner === filters.owner);
       const matchesStatus = !filters.status || status === filters.status;
       const matchesSource = !filters.source || source === filters.source;
       const matchesPriority =
@@ -239,7 +239,15 @@ const Tickets = () => {
   ];
 
   const owners = useMemo(() => {
-    const uniqueOwners = [...new Set((tickets || []).map(t => t.owner).filter(Boolean))];
+    const allOwners = (tickets || []).reduce((acc, t) => {
+      if (Array.isArray(t.owner)) {
+        acc.push(...t.owner);
+      } else if (t.owner) {
+        acc.push(t.owner);
+      }
+      return acc;
+    }, []);
+    const uniqueOwners = [...new Set(allOwners.filter(Boolean))];
     return uniqueOwners.sort();
   }, [tickets]);
 

@@ -18,10 +18,12 @@ const ActivityFeed = ({
     showConvertButton = false,
     onConvert,
     convertDisabled = false,
+    owners = []
 }) => {
     const dispatch = useDispatch();
     // Track which accordion items are expanded (open by default)
     const [expandedItems, setExpandedItems] = useState({});
+    const [searchTerm, setSearchTerm] = useState("");
 
     const toggleExpand = (id) => {
         setExpandedItems(prev => ({ ...prev, [id]: !prev[id] }));
@@ -44,12 +46,33 @@ const ActivityFeed = ({
     };
 
     const filteredActivities = activities.filter((a) => {
-        if (activeTab === "Activity") return true;
-        if (activeTab === "Notes") return a.type === "Note";
-        if (activeTab === "Emails") return a.type === "Email tracking" || a.type === "Email";
-        if (activeTab === "Calls") return a.type === "Call";
-        if (activeTab === "Tasks") return a.type === "Task";
-        if (activeTab === "Meetings") return a.type === "Meeting";
+        const matchesTab = (() => {
+            if (activeTab === "Activity") return true;
+            if (activeTab === "Notes") return a.type === "Note";
+            if (activeTab === "Emails") return a.type === "Email tracking" || a.type === "Email";
+            if (activeTab === "Calls") return a.type === "Call";
+            if (activeTab === "Tasks") return a.type === "Task";
+            if (activeTab === "Meetings") return a.type === "Meeting";
+            return true;
+        })();
+
+        if (!matchesTab) return false;
+
+        if (searchTerm) {
+            const query = searchTerm.toLowerCase();
+            const createdBy = (a.createdBy || "").toLowerCase();
+            const organizedBy = (a.organizedBy || "").toLowerCase();
+            const assignedTo = (a.assignedTo || "").toLowerCase();
+            const fromPerson = (a.from || "").toLowerCase();
+            const toPerson = (a.to || "").toLowerCase();
+            const attendees = Array.isArray(a.attendees) ? a.attendees.map(at => at.toLowerCase()).join(" ") : "";
+            
+            const owner = `${createdBy} ${organizedBy} ${assignedTo} ${fromPerson} ${toPerson} ${attendees}`;
+            const title = (a.title || a.subject || a.outcome || a.type || "").toLowerCase();
+            const content = (a.content || a.note || a.body || "").toLowerCase();
+            
+            return title.includes(query) || content.includes(query) || owner.includes(query);
+        }
         return true;
     });
 const isOverdue = (time, completed) => {
@@ -85,7 +108,12 @@ const isOverdue = (time, completed) => {
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
                     </svg>
-                    <input type="text" placeholder="Search activities" />
+                    <input 
+                      type="text" 
+                      placeholder="Search activities" 
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
                 </div>
                 {showConvertButton && (
                     <button
@@ -260,13 +288,21 @@ const isOverdue = (time, completed) => {
                                                                 </div>
                                                                 <div className={styles.infoField}>
                                                                     <label>Attendees</label>
-                                                                    <input
-                                                                        type="number"
-                                                                        min="1"
-                                                                        className={styles.attendeesInput}
-                                                                        value={item.attendees || ""}
-                                                                        onChange={(e) => handleUpdate(item.id, { attendees: e.target.value })}
+                                                                    <CustomSelect
+                                                                        className={styles.compactSelect}
+                                                                        isMulti={true}
+                                                                        value={Array.isArray(item.attendees) ? item.attendees : []}
+                                                                        options={owners}
+                                                                        onChange={(val) => handleUpdate(item.id, { attendees: val })}
                                                                     />
+                                                                </div>
+                                                                <div className={styles.infoField}>
+                                                                    <label>Location</label>
+                                                                    <span>{item.location || "N/A"}</span>
+                                                                </div>
+                                                                <div className={styles.infoField}>
+                                                                    <label>Reminder</label>
+                                                                    <span>{item.reminder || "N/A"}</span>
                                                                 </div>
                                                             </div>
                                                             <p className={styles.itemText}>{item.content || item.note || item.body}</p>

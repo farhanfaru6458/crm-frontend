@@ -55,17 +55,31 @@ const CompanyForm = ({ formData, onChange, errors = {} }) => {
                 {errors.domain && <span className={styles.errorText}>{errors.domain}</span>}
             </div>
 
-            <div className={styles.field}>
-                <label className={styles.label}>Company Name *</label>
-                <input
-                    type="text"
-                    name="name"
-                    className={`${styles.input} ${errors.name ? styles.errorInput : ""}`}
-                    placeholder="Enter"
-                    value={formData.name || ""}
-                    onChange={handleChange}
-                />
-                {errors.name && <span className={styles.errorText}>{errors.name}</span>}
+            <div className={styles.row}>
+                <div className={styles.field}>
+                    <label className={styles.label}>Company Name *</label>
+                    <input
+                        type="text"
+                        name="name"
+                        className={`${styles.input} ${errors.name ? styles.errorInput : ""}`}
+                        placeholder="Enter"
+                        value={formData.name || ""}
+                        onChange={handleChange}
+                    />
+                    {errors.name && <span className={styles.errorText}>{errors.name}</span>}
+                </div>
+                <div className={styles.field}>
+                    <label className={styles.label}>Company Email</label>
+                    <input
+                        type="email"
+                        name="email"
+                        className={`${styles.input} ${errors.email ? styles.errorInput : ""}`}
+                        placeholder="Enter"
+                        value={formData.email || ""}
+                        onChange={handleChange}
+                    />
+                    {errors.email && <span className={styles.errorText}>{errors.email}</span>}
+                </div>
             </div>
 
             <div className={styles.field}>

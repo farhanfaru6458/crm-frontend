@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import axios from "axios";
 import { fetchDeals, updateDeal, removeDeal } from "../../../redux/dealsSlice";
+import { fetchLeads } from "../../../redux/leadsSlice";
 import { addNotification } from "../../../redux/notificationsSlice";
 import GenericDetails from "../../../components/common/GenericDetails/GenericDetails";
 import { toast } from "react-hot-toast";
@@ -16,6 +17,7 @@ const DealDetails = () => {
     const dispatch = useDispatch();
 
     const { deals } = useSelector(state => state.deals);
+    const { leads } = useSelector(state => state.leads);
     const dealData = deals.find(d => d._id === id);
 
     const [deal, setDeal] = useState(null);
@@ -24,7 +26,8 @@ const DealDetails = () => {
     const fetchDeal = async () => {
         try {
             const { data } = await axios.get(`${API_BASE}/deals/${id}`);
-            setDeal(data.data);
+            const fetchedDeal = data.data;
+            setDeal(fetchedDeal);
         } catch (error) {
             toast.error("Failed to load deal details");
         }
@@ -40,15 +43,26 @@ const DealDetails = () => {
     };
 
     useEffect(() => {
+        if (leads.length === 0) dispatch(fetchLeads());
         fetchDeal();
         fetchActivities();
-    }, [id]);
+    }, [id, dispatch]);
 
     useEffect(() => {
         if (dealData) {
             setDeal(dealData);
         }
     }, [dealData]);
+
+    useEffect(() => {
+        if (deal && !deal.email && leads.length > 0) {
+            const currentLeadId = typeof deal.associatedLeadId === 'object' ? deal.associatedLeadId?._id : deal.associatedLeadId;
+            const associatedLead = leads.find(l => l._id === currentLeadId);
+            if (associatedLead && associatedLead.email) {
+                setDeal(prev => prev.email === associatedLead.email ? prev : { ...prev, email: associatedLead.email });
+            }
+        }
+    }, [deal, leads]);
 
     const handleFieldChange = (field, value) => {
         setDeal(prev => ({ ...prev, [field]: value }));
@@ -125,6 +139,15 @@ const DealDetails = () => {
         subTitleRender: (entity) => `Amount: ${entity.amount} | Stage: ${entity.dealStage}`,
         detailsFields: [
             { key: "dealName", label: "Deal Name" },
+            { 
+                key: "associatedLeadId", 
+                label: "Associated Lead", 
+                render: (lead) => {
+                    if (typeof lead === 'object' && lead !== null) return lead.name;
+                    return leads.find(l => l._id === lead)?.name || "N/A";
+                }
+            },
+            { key: "email", label: "Email" },
             { key: "dealStage", label: "Deal Stage" },
             { key: "amount", label: "Amount", render: formatCurrency },
             { key: "closeDate", label: "Close Date" },
@@ -134,9 +157,26 @@ const DealDetails = () => {
         ],
         editFields: [
             { key: "dealName", label: "Deal Name" },
-            { key: "amount", label: "Amount" },
-            { key: "dealStage", label: "Stage" },
-            { key: "closeDate", label: "Close Date" },
+            { key: "amount", label: "Amount", type: "number" },
+            { 
+              key: "dealStage", 
+              label: "Stage",
+              type: "select",
+              options: [
+                  "Proposal Sent", "Negotiation", "Presentation Scheduled",
+                  "Qualified to Buy", "Contract Sent", "Appointment Scheduled",
+                  "Decision Maker Bought In", "Closed Won", "Closed Lost"
+              ]
+            },
+            { key: "closeDate", label: "Close Date", type: "date" },
+            { 
+                key: "associatedLeadId", 
+                label: "Associated Lead", 
+                type: "select",
+                options: leads
+                    .filter(l => l.status === "Qualified" || l._id === (typeof deal?.associatedLeadId === 'object' ? deal.associatedLeadId._id : deal?.associatedLeadId))
+                    .map(l => ({ value: l._id, label: `${l.name || (l.firstName + ' ' + l.lastName)} (${l.company || 'No Company'})` }))
+            },
         ],
     };
 

@@ -166,9 +166,10 @@ const Companies = () => {
 
   const filteredCompanies = useMemo(() => {
     return companies.filter((c) => {
+      const ownerName = Array.isArray(c.owner) ? c.owner.join(" ") : (c.owner || "");
       const matchesSearch =
         c.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        c.owner?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        ownerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         c.phone?.toLowerCase().includes(searchTerm.toLowerCase());
 
       const matchesIndustry =

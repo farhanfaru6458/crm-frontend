@@ -219,20 +219,20 @@ return bars.map(bar => ({
           .filter(d => d.dealStage === "Closed Won")
           .reduce((sum, d) => sum + (Number(d.amount) || 0), 0);
 
-        const pipeline = yearDeals
-          .filter(d => d.dealStage === "Negotiation" || d.dealStage === "Proposal Sent")
+        const closedLost = yearDeals
+          .filter(d => d.dealStage === "Closed Lost")
           .reduce((sum, d) => sum + (Number(d.amount) || 0), 0);
 
-        return { label: year.toString(), revenue, pipeline };
+        return { label: year.toString(), revenue, closedLost };
       });
 
-      const maxVal = Math.max(...yearlyData.map(d => d.revenue + d.pipeline), 10000);
+      const maxVal = Math.max(...yearlyData.map(d => d.revenue + d.closedLost), 10000);
       return yearlyData.map(d => ({
         label: d.label,
         revenue: d.revenue,
-        pipeline: d.pipeline,
+        closedLost: d.closedLost,
         main: (d.revenue / maxVal) * 80 + 2,
-        light: ((d.revenue + d.pipeline) / maxVal) * 95 + 5
+        light: ((d.revenue + d.closedLost) / maxVal) * 95 + 5
       }));
     }
 
@@ -246,20 +246,20 @@ return bars.map(bar => ({
         .filter(d => d.dealStage === "Closed Won")
         .reduce((sum, d) => sum + (Number(d.amount) || 0), 0);
 
-      const pipeline = monthDeals
-        .filter(d => d.dealStage === "Negotiation" || d.dealStage === "Proposal Sent")
+      const closedLost = monthDeals
+        .filter(d => d.dealStage === "Closed Lost")
         .reduce((sum, d) => sum + (Number(d.amount) || 0), 0);
 
-      return { label: m, revenue, pipeline };
+      return { label: m, revenue, closedLost };
     });
 
-    const maxVal = Math.max(...monthlyData.map(d => d.revenue + d.pipeline), 10000);
+    const maxVal = Math.max(...monthlyData.map(d => d.revenue + d.closedLost), 10000);
     return monthlyData.map(d => ({
       label: d.label,
       revenue: d.revenue,
-      pipeline: d.pipeline,
+      closedLost: d.closedLost,
       main: (d.revenue / maxVal) * 80 + 2,
-      light: ((d.revenue + d.pipeline) / maxVal) * 95 + 5
+      light: ((d.revenue + d.closedLost) / maxVal) * 95 + 5
     }));
   }, [deals, reportFilter, selectedYear, selectedOwner, availableYears]);
 
@@ -371,6 +371,7 @@ return bars.map(bar => ({
         <div className={styles.salesCard}>
           <div className={styles.salesHeader}>
             <h3>Sales Reports</h3>
+            
             <div className={styles.salesOptions}>
               {reportFilter === "Monthly" && (
                 <div className={styles.filterWrapper}>
@@ -381,16 +382,27 @@ return bars.map(bar => ({
                   />
                 </div>
               )}
-              <div className={styles.filterWrapper}>
-                <CustomSelect
-                  value={reportFilter}
-                  options={["Monthly", "Yearly"]}
-                  onChange={(val) => setReportFilter(val)}
-                />
+                <div className={styles.filterWrapper}>
+                  <CustomSelect
+                    value={reportFilter}
+                    options={["Monthly", "Yearly"]}
+                    onChange={(val) => setReportFilter(val)}
+                  />
+                </div>
               </div>
-
             </div>
-          </div>
+                <div className={styles.legendContainer}>
+              <div className={styles.legendItem}>
+                <span className={`${styles.legendColor} ${styles.blueLegend}`}></span>
+                <span>Closed Won</span>
+              </div>
+              <div className={styles.legendItem}>
+                <span className={`${styles.legendColor} ${styles.grayLegend}`}></span>
+                <span>Closed Lost</span>
+              </div>
+            </div>
+
+        
 
           <div className={styles.chartContainer}>
             <div className={styles.yAxis}>
@@ -406,9 +418,9 @@ return bars.map(bar => ({
               {salesChart.map((bar, index) => (
                 <div key={index} className={styles.barWrapper}>
                   <div className={styles.tooltip}>
-                    <div>Revenue: {formatCurrency(bar.revenue)}</div>
-                    <div>Pipeline: {formatCurrency(bar.pipeline)}</div>
-                    <div>Total: {formatCurrency(bar.revenue + bar.pipeline)}</div>
+                    <div>Closed Won: {formatCurrency(bar.revenue)}</div>
+                    <div>Closed Lost: {formatCurrency(bar.closedLost)}</div>
+                    <div>Total: {formatCurrency(bar.revenue + bar.closedLost)}</div>
                   </div>
                   <div
                     className={styles.lightBar}
