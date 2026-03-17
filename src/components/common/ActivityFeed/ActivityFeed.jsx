@@ -274,38 +274,25 @@ const isOverdue = (time, completed) => {
                                                         <div className={styles.meetingFull}>
                                                             <div className={styles.infoBox}>
                                                                 <div className={styles.infoField}>
-                                                                    <label>Date & Time</label>
+                                                                    <label>Date &amp; Time</label>
                                                                     <span>{item.time}</span>
                                                                 </div>
                                                                 <div className={styles.infoField}>
                                                                     <label>Duration</label>
-                                                                    <CustomSelect
-                                                                        className={styles.compactSelect}
-                                                                        value={item.duration || ""}
-                                                                        options={["15 mins", "30 mins", "45 mins", "1 hour", "1.5 hours", "2 hours"]}
-                                                                        onChange={(val) => handleUpdate(item.id, { duration: val })}
-                                                                    />
+                                                                    <span>{item.duration || "N/A"}</span>
                                                                 </div>
                                                                 <div className={styles.infoField}>
                                                                     <label>Attendees</label>
-                                                                    <CustomSelect
-                                                                        className={styles.compactSelect}
-                                                                        isMulti={true}
-                                                                        value={Array.isArray(item.attendees) ? item.attendees : []}
-                                                                        options={owners}
-                                                                        onChange={(val) => handleUpdate(item.id, { attendees: val })}
-                                                                    />
-                                                                </div>
-                                                                <div className={styles.infoField}>
-                                                                    <label>Location</label>
-                                                                    <span>{item.location || "N/A"}</span>
-                                                                </div>
-                                                                <div className={styles.infoField}>
-                                                                    <label>Reminder</label>
-                                                                    <span>{item.reminder || "N/A"}</span>
+                                                                    <span>
+                                                                        {Array.isArray(item.attendees)
+                                                                            ? item.attendees.length
+                                                                            : (item.attendees || 0)}
+                                                                    </span>
                                                                 </div>
                                                             </div>
-                                                            <p className={styles.itemText}>{item.content || item.note || item.body}</p>
+                                                            {(item.content || item.note || item.body) && (
+                                                                <p className={styles.subNote}>{item.content || item.note || item.body}</p>
+                                                            )}
                                                         </div>
                                                     ) : item.type === "Email" ? (
                                                         <div className={styles.emailFull}>

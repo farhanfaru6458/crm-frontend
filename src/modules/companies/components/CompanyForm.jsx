@@ -69,7 +69,7 @@ const CompanyForm = ({ formData, onChange, errors = {} }) => {
                     {errors.name && <span className={styles.errorText}>{errors.name}</span>}
                 </div>
                 <div className={styles.field}>
-                    <label className={styles.label}>Company Email</label>
+                    <label className={styles.label}>Email</label>
                     <input
                         type="email"
                         name="email"

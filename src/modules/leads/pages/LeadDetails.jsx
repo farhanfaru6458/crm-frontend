@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
-import axios from "axios";
+import axios from "../../../services/axiosInstance";
 import { fetchLeads, updateLead, removeLead } from "../../../redux/leadsSlice";
 import { addDeal } from "../../../redux/dealsSlice";
 import { addNotification } from "../../../redux/notificationsSlice";
 import GenericDetails from "../../../components/common/GenericDetails/GenericDetails";
 import { toast } from "react-hot-toast";
 
-const API_BASE = "http://localhost:5000/api";
 const ENTITY_TYPE = "Lead";
 
 const LeadDetails = () => {
@@ -24,7 +23,7 @@ const LeadDetails = () => {
 
     const fetchLead = async () => {
         try {
-            const { data } = await axios.get(`${API_BASE}/leads/${id}`);
+            const { data } = await axios.get(`/leads/${id}`);
             setLead(data.data);
         } catch (error) {
             toast.error("Failed to load lead details");
@@ -33,7 +32,7 @@ const LeadDetails = () => {
 
     const fetchActivities = async () => {
         try {
-            const { data } = await axios.get(`${API_BASE}/activities/${ENTITY_TYPE}/${id}`);
+            const { data } = await axios.get(`/activities/${ENTITY_TYPE}/${id}`);
             setActivities(data.data);
         } catch (error) {
             toast.error("Failed to load activities");
@@ -83,7 +82,7 @@ const LeadDetails = () => {
 
     const handleCreateActivity = async (activityData) => {
         try {
-            await axios.post(`${API_BASE}/activities/${ENTITY_TYPE}/${id}`, activityData);
+            await axios.post(`/activities/${ENTITY_TYPE}/${id}`, activityData);
             fetchActivities();
         } catch (error) {
             toast.error("Activity creation failed");
@@ -92,7 +91,7 @@ const LeadDetails = () => {
 
     const handleUpdateActivity = async (activityId, updates) => {
         try {
-            await axios.put(`${API_BASE}/activities/${activityId}`, updates);
+            await axios.put(`/activities/${activityId}`, updates);
             fetchActivities();
         } catch (error) {
             toast.error("Activity update failed");
@@ -101,7 +100,7 @@ const LeadDetails = () => {
 
     const handleToggleTask = async (taskId) => {
         try {
-            await axios.put(`${API_BASE}/tasks/${taskId}/toggle`);
+            await axios.put(`/tasks/${taskId}/toggle`);
             fetchActivities();
         } catch (error) {
             toast.error("Task update failed");

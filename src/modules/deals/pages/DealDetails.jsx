@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
-import axios from "axios";
+import axios from "../../../services/axiosInstance";
 import { fetchDeals, updateDeal, removeDeal } from "../../../redux/dealsSlice";
 import { fetchLeads } from "../../../redux/leadsSlice";
 import { addNotification } from "../../../redux/notificationsSlice";
 import GenericDetails from "../../../components/common/GenericDetails/GenericDetails";
 import { toast } from "react-hot-toast";
-
-const API_BASE = "http://localhost:5000/api";
 const ENTITY_TYPE = "Deal";
 
 const DealDetails = () => {
@@ -25,7 +23,7 @@ const DealDetails = () => {
 
     const fetchDeal = async () => {
         try {
-            const { data } = await axios.get(`${API_BASE}/deals/${id}`);
+            const { data } = await axios.get(`/deals/${id}`);
             const fetchedDeal = data.data;
             setDeal(fetchedDeal);
         } catch (error) {
@@ -35,7 +33,7 @@ const DealDetails = () => {
 
     const fetchActivities = async () => {
         try {
-            const { data } = await axios.get(`${API_BASE}/activities/${ENTITY_TYPE}/${id}`);
+            const { data } = await axios.get(`/activities/${ENTITY_TYPE}/${id}`);
             setActivities(data.data);
         } catch (error) {
             toast.error("Failed to load activities");
@@ -54,15 +52,7 @@ const DealDetails = () => {
         }
     }, [dealData]);
 
-    useEffect(() => {
-        if (deal && !deal.email && leads.length > 0) {
-            const currentLeadId = typeof deal.associatedLeadId === 'object' ? deal.associatedLeadId?._id : deal.associatedLeadId;
-            const associatedLead = leads.find(l => l._id === currentLeadId);
-            if (associatedLead && associatedLead.email) {
-                setDeal(prev => prev.email === associatedLead.email ? prev : { ...prev, email: associatedLead.email });
-            }
-        }
-    }, [deal, leads]);
+
 
     const handleFieldChange = (field, value) => {
         setDeal(prev => ({ ...prev, [field]: value }));
@@ -96,7 +86,7 @@ const DealDetails = () => {
 
     const handleCreateActivity = async (activityData) => {
         try {
-            await axios.post(`${API_BASE}/activities/${ENTITY_TYPE}/${id}`, activityData);
+            await axios.post(`/activities/${ENTITY_TYPE}/${id}`, activityData);
             fetchActivities();
         } catch (error) {
             toast.error("Activity creation failed");
@@ -105,7 +95,7 @@ const DealDetails = () => {
 
     const handleUpdateActivity = async (activityId, updates) => {
         try {
-            await axios.put(`${API_BASE}/activities/${activityId}`, updates);
+            await axios.put(`/activities/${activityId}`, updates);
             fetchActivities();
         } catch (error) {
             toast.error("Activity update failed");
@@ -114,7 +104,7 @@ const DealDetails = () => {
 
     const handleToggleTask = async (taskId) => {
         try {
-            await axios.put(`${API_BASE}/tasks/${taskId}/toggle`);
+            await axios.put(`/tasks/${taskId}/toggle`);
             fetchActivities();
         } catch (error) {
             toast.error("Task update failed");
@@ -157,6 +147,7 @@ const DealDetails = () => {
         ],
         editFields: [
             { key: "dealName", label: "Deal Name" },
+            { key: "email", label: "Email" },
             { key: "amount", label: "Amount", type: "number" },
             { 
               key: "dealStage", 

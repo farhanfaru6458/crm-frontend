@@ -190,7 +190,7 @@
 }
 
 .itemBody {
-    padding: 1.25rem;
+    padding: .25rem;
 }
 
 .itemText {
@@ -249,9 +249,10 @@
 }
 
 .infoField span {
-  font-size: 0.875rem;
-  font-weight: 700;
-  color: #1e293b;
+     font-size: 9px;
+    font-weight: 600;
+    color: #1e293b;
+    width: 55px;
 }
 
 .subNote {

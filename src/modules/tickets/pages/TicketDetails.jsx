@@ -53,36 +53,7 @@ const TicketDetails = () => {
     fetchTicketById();
   }, [id, navigate, dispatch]);
 
-  useEffect(() => {
-    if (ticket && !ticket.email) {
-        let emailToUse = "";
-        if (ticket.associatedCompanyId && companies.length > 0) {
-            const co = companies.find(c => c._id === ticket.associatedCompanyId);
-            if (co) {
-              if (co.email) {
-                 emailToUse = co.email;
-              } else if (leads.length > 0) {
-                const companyLead = leads.find(l => l.company && l.company.toLowerCase() === co.name.toLowerCase());
-                if (companyLead && companyLead.email) {
-                   emailToUse = companyLead.email;
-                }
-              }
-            }
-        } else if (ticket.associatedDealId && deals.length > 0 && leads.length > 0) {
-            const currentDealId = typeof ticket.associatedDealId === 'object' ? ticket.associatedDealId?._id : ticket.associatedDealId;
-            const d = deals.find(d => d._id === currentDealId);
-            if (d) {
-                const currentLeadId = typeof d.associatedLeadId === 'object' ? d.associatedLeadId?._id : d.associatedLeadId;
-                const l = leads.find(l => l._id === currentLeadId);
-                if (l && l.email) emailToUse = l.email;
-            }
-        }
-        
-        if (emailToUse) {
-            setTicket(prev => prev.email === emailToUse ? prev : { ...prev, email: emailToUse });
-        }
-    }
-  }, [ticket, companies, deals, leads]);
+
 
   const handleCreateActivity = async (activityData) => {
     try {
@@ -186,6 +157,7 @@ const TicketDetails = () => {
       { key: "priority", label: "Priority" },
       { key: "source", label: "Source" },
       { key: "owner", label: "Owner" },
+      { key: "email", label: "Email" },
       { 
         key: "associatedDealId", 
         label: "Deal", 

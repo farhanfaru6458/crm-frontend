@@ -222,6 +222,7 @@ const Companies = () => {
       width: "15%",
       render: (row) => Array.isArray(row.owner) ? row.owner.join(", ") : row.owner
     },
+    { key: "email", label: "EMAIL", width: "15%" },
     { key: "phone", label: "PHONE NUMBER", width: "12%" },
     { key: "industry", label: "INDUSTRY", width: "12%" },
     { key: "city", label: "CITY", width: "10%" },

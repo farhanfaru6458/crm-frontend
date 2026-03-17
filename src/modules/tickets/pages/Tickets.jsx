@@ -173,6 +173,8 @@ const Tickets = () => {
     return (tickets || []).filter((t) => {
       const ticketName = t.ticketName || t.name || "";
       const ownerName = Array.isArray(t.owner) ? t.owner.join(" ") : (t.owner || "");
+      const dealName = t.associatedDealId?.dealName || "";
+      const companyName = t.associatedCompanyId?.name || "";
       const source = t.source || "";
       const status = t.status || "";
       const priority = t.priority || "";
@@ -180,7 +182,9 @@ const Tickets = () => {
       const matchesSearch =
         ticketName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         ownerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        source.toLowerCase().includes(searchTerm.toLowerCase());
+        source.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        dealName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        companyName.toLowerCase().includes(searchTerm.toLowerCase());
 
       const matchesOwner = !filters.owner || (Array.isArray(t.owner) ? t.owner.includes(filters.owner) : t.owner === filters.owner);
       const matchesStatus = !filters.status || status === filters.status;
@@ -222,6 +226,22 @@ const Tickets = () => {
           {row.ticketName || row.name}
         </Link>
       ),
+    },
+    {
+      key: "associatedDealId",
+      label: "DEAL NAME",
+      render: (row) => {
+        const deal = typeof row.associatedDealId === 'object' ? row.associatedDealId : null;
+        return deal ? deal.dealName : "None";
+      }
+    },
+    {
+      key: "associatedCompanyId",
+      label: "COMPANY NAME",
+      render: (row) => {
+        const company = typeof row.associatedCompanyId === 'object' ? row.associatedCompanyId : null;
+        return company ? company.name : "None";
+      }
     },
     { key: "status", label: "STATUS" },
     { key: "priority", label: "PRIORITY" },

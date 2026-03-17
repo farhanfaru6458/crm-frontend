@@ -38,6 +38,12 @@ const DealForm = ({ formData, onChange, errors = {} }) => {
     };
 
     const handleSelectChange = (name, value) => {
+        if (name === "associatedLeadId" && value) {
+            const selectedLead = leads.find(l => l._id === value);
+            if (selectedLead && selectedLead.email) {
+                onChange("email", selectedLead.email);
+            }
+        }
         onChange(name, value);
     };
 
@@ -109,6 +115,18 @@ const DealForm = ({ formData, onChange, errors = {} }) => {
                     onChange={handleChange}
                 />
                 {errors.amount && <span className={styles.errorText}>{errors.amount}</span>}
+            </div>
+
+            <div className={styles.field}>
+                <label className={styles.label}>Email (Contact)</label>
+                <input
+                    type="email"
+                    name="email"
+                    className={styles.input}
+                    placeholder="Auto-populated from lead"
+                    value={formData.email || ""}
+                    onChange={handleChange}
+                />
             </div>
 
             <div className={styles.field}>

@@ -1,17 +1,20 @@
 import axios from "axios";
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
+const TOKEN_KEY = import.meta.env.VITE_TOKEN_KEY || "crm_token";
+
 const axiosInstance = axios.create({
-  baseURL: "http://localhost:5000/api",
+  baseURL: API_BASE_URL,
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-// 🔥 ADD TOKEN TO EVERY PROTECTED REQUEST
+// Add auth token to every protected request
 axiosInstance.interceptors.request.use(
   (config) => {
     const token =
-      localStorage.getItem("crm_token") || sessionStorage.getItem("crm_token");
+      localStorage.getItem(TOKEN_KEY) || sessionStorage.getItem(TOKEN_KEY);
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }

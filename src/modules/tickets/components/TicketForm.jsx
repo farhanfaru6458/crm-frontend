@@ -44,8 +44,16 @@ const TicketForm = ({ formData, onChange, errors = {} }) => {
     // Mutually exclusive: clear the other when one is set
     if (name === "associatedDealId" && value) {
       onChange("associatedCompanyId", "");
+      const selectedDeal = deals.find(d => d._id === value);
+      if (selectedDeal && selectedDeal.email) {
+        onChange("email", selectedDeal.email);
+      }
     } else if (name === "associatedCompanyId" && value) {
       onChange("associatedDealId", "");
+      const selectedCo = companies.find(c => c._id === value);
+      if (selectedCo && selectedCo.email) {
+        onChange("email", selectedCo.email);
+      }
     }
     onChange(name, value);
   };
@@ -135,6 +143,18 @@ const TicketForm = ({ formData, onChange, errors = {} }) => {
           options={["High", "Medium", "Low"]}
           onChange={handleGeneralSelect}
           error={errors.priority}
+        />
+      </div>
+
+      <div className={styles.field}>
+        <label className={styles.label}>Email (Contact)</label>
+        <input
+          type="email"
+          name="email"
+          className={styles.input}
+          placeholder="Contact email address"
+          value={formData.email || ""}
+          onChange={handleChange}
         />
       </div>
 
