@@ -156,7 +156,7 @@ const isOverdue = (time, completed) => {
 
                         return (
                             <div key={group} className={styles.feedGroup}>
-                                <h3 className={styles.groupTitle}>{activeTab === "Activity" ? group : ""}</h3>
+                                <h3 className={styles.groupTitle}>{group}</h3>
                                 {groupItems.map((item) => {
                                     const isExpanded = !!expandedItems[item.id];
                                     return (
@@ -167,69 +167,64 @@ const isOverdue = (time, completed) => {
                                                 onClick={() => toggleExpand(item.id)}
                                                 style={{ cursor: 'pointer' }}
                                             >
-                                              <span className={styles.itemType}>
-  <svg
-    width="12"
-    height="12"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="3"
-    style={{
-      transform: isExpanded ? "rotate(0deg)" : "rotate(-90deg)",
-      color: "#5a4bff",
-      transition: "transform 0.2s ease"
-    }}
-  >
-    <path d="M19 9l-7 7-7-7" />
-  </svg>
+                                                <div className={styles.itemHeaderMain}>
+                                                    <div className={styles.itemTitleRow}>
+                                                        <svg
+                                                            width="12"
+                                                            height="12"
+                                                            viewBox="0 0 24 24"
+                                                            fill="none"
+                                                            stroke="currentColor"
+                                                            strokeWidth="3"
+                                                            style={{
+                                                                transform: isExpanded ? "rotate(0deg)" : "rotate(-90deg)",
+                                                                color: "#5a4bff",
+                                                                transition: "transform 0.2s ease",
+                                                                flexShrink: 0
+                                                            }}
+                                                        >
+                                                            <path d="M19 9l-7 7-7-7" />
+                                                        </svg>
 
-  {item.type === "Email" ? (
-    <>
-      <span className={styles.emailTitle}>
-        Logged Email - {item.subject}
-      </span>
-      <span className={styles.emailUser}>
-        {" "}by {item.createdBy || item.from}
-      </span>
-    </>
-  ) : (
-    item.title
-  )}
-</span>
+                                                        {item.type === "Email" ? (
+                                                            <span className={styles.itemTitle}>
+                                                                <span className={styles.emailTitle}>Logged Email - {item.subject}</span>
+                                                                <span className={styles.emailUser}> by {item.createdBy || item.from}</span>
+                                                            </span>
+                                                        ) : item.type === "Call" ? (
+                                                            <span className={styles.itemTitle}>
+                                                                Call from <span className={styles.usernameSmall}>{item.createdBy || "User"}</span>
+                                                            </span>
+                                                        ) : (
+                                                            <span className={styles.itemTitle}>{item.title}</span>
+                                                        )}
+                                                    </div>
+                                                    
+                                                    {item.type === "Call" && (
+                                                        <div className={styles.callDescription}>
+                                                            {item.note || item.content || item.body}
+                                                        </div>
+                                                    )}
+                                                </div>
+
                                                 <div className={styles.itemMeta}>
-                                                 {item.type === "Task" && isOverdue(item.time, item.completed) && (
-  <span className={styles.overdue}>
-    <svg
-      width="14"
-      height="14"
-      fill="currentColor"
-      viewBox="0 0 24 24"
-      style={{ marginRight: "4px", color: "red" }}
-    >
-      <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z" />
-    </svg>
-    Overdue :
-  </span>
-)}
-                                                    {item.type === "Task" ? (
-                                                        <span className={item.overdue ? styles.overdueTime : styles.normalTime}>
-                                                            {item.time}
+                                                    {item.type === "Task" && isOverdue(item.time, item.completed) && (
+                                                        <span className={styles.overdue}>
+                                                            <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24" style={{ marginRight: "4px" }}>
+                                                                <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z" />
+                                                            </svg>
+                                                            Overdue :
                                                         </span>
-                                                    ) : item.time}
+                                                    )}
+                                                    <span className={item.type === "Task" && isOverdue(item.time, item.completed) ? styles.overdueTime : styles.normalTime}>
+                                                        {item.time}
+                                                    </span>
                                                 </div>
                                             </div>
 
                                             {/* Accordion Body */}
                                             {isExpanded && (
                                                 <div className={styles.itemBody}>
-                                                    {(item.organizedBy || item.createdBy) && item.type !== "Email" && (
-                                                        
-                                                        <p className={styles.organizedBy}>
-                                                            {item.type === "Meeting" ? "Organized by " : "Created by "}
-                                                            {item.organizedBy || item.createdBy}
-                                                        </p>
-                                                    )}
                                                     {item.type === "Task" ? (
                                                         <div className={styles.taskFull}>
                                                             <div className={styles.taskAction}>
@@ -314,7 +309,9 @@ const isOverdue = (time, completed) => {
                                                         </div>
                                                     ) : (
                                                         <>
-                                                            <p className={styles.itemText}>{item.content || item.body || item.note}</p>
+                                                            {item.type !== "Call" && (
+                                                                <p className={styles.itemText}>{item.content || item.body || item.note}</p>
+                                                            )}
                                                             {item.type === "Call" && (activeTab === "Calls" || activeTab === "Activity") && (
                                                                 <div className={styles.outcomeRow}>
                                                                     <div className={styles.outcomeField}>
@@ -332,7 +329,12 @@ const isOverdue = (time, completed) => {
                                                                                 value={item.duration || ""}
                                                                                 options={["1 min", "2 mins", "5 mins", "10 mins", "15 mins", "30 mins", "1 hour"]}
                                                                                 onChange={(val) => handleUpdate(item.id, { duration: val })}
+                                                                                className={styles.durationSelect}
                                                                             />
+                                                                            <svg className={styles.durationIcon} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                                                <circle cx="12" cy="12" r="10" />
+                                                                                <path d="M12 6v6l4 2" />
+                                                                            </svg>
                                                                         </div>
                                                                     </div>
                                                                 </div>

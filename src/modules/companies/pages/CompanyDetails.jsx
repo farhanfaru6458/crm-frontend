@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
+import axios from "../../../services/axiosInstance";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchLeads } from "../../../redux/leadsSlice";
 import GenericDetails from "../../../components/common/GenericDetails/GenericDetails";
 import { toast } from "react-hot-toast";
 
-const API_BASE = "http://localhost:5000/api";
 const ENTITY_TYPE = "Company";
 const CompanyDetails = () => {
   const { id } = useParams();
@@ -21,7 +20,7 @@ const CompanyDetails = () => {
   // ================= FETCH COMPANY =================
   const fetchCompany = async () => {
     try {
-      const { data } = await axios.get(`${API_BASE}/companies/${id}`);
+      const { data } = await axios.get(`/companies/${id}`);
       setCompany(data.data);
     } catch (error) {
       toast.error("Failed to load company");
@@ -31,7 +30,7 @@ const CompanyDetails = () => {
   // ================= FETCH ACTIVITIES =================
   const fetchActivities = async () => {
     try {
-      const { data } = await axios.get(`${API_BASE}/activities/${ENTITY_TYPE}/${id}`)
+      const { data } = await axios.get(`/activities/${ENTITY_TYPE}/${id}`)
 
       setActivities(data.data);
     } catch (error) {
@@ -62,7 +61,7 @@ const CompanyDetails = () => {
   const handleSaveEdit = async () => {
     try {
       const { data } = await axios.put(
-        `${API_BASE}/companies/${id}`,
+        `/companies/${id}`,
         company
       );
       setCompany(data.data);
@@ -74,7 +73,7 @@ const CompanyDetails = () => {
 
   const handleDeleteCompany = async () => {
     try {
-      await axios.delete(`${API_BASE}/companies/${id}`);
+      await axios.delete(`/companies/${id}`);
       toast.success("Company deleted");
       navigate("/companies");
     } catch (error) {
@@ -86,7 +85,7 @@ const CompanyDetails = () => {
   const handleCreateActivity = async (activityData) => {
     try {
       await axios.post(
-        `${API_BASE}/activities/${ENTITY_TYPE}/${id}`,
+        `/activities/${ENTITY_TYPE}/${id}`,
         activityData
       );
       fetchActivities();
@@ -99,7 +98,7 @@ const CompanyDetails = () => {
   const handleUpdateActivity = async (activityId, updates) => {
     try {
       await axios.put(
-        `${API_BASE}/activities/${activityId}`,
+        `/activities/${activityId}`,
         updates
       );
       fetchActivities();
@@ -111,7 +110,7 @@ const CompanyDetails = () => {
   // ================= TOGGLE TASK =================
   const handleToggleTask = async (taskId) => {
     try {
-      await axios.put(`${API_BASE}/tasks/${taskId}/toggle`);
+      await axios.put(`/tasks/${taskId}/toggle`);
       fetchActivities();
     } catch (error) {
       toast.error("Task update failed");

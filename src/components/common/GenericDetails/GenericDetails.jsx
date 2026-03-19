@@ -7,7 +7,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { addNotification } from "../../../redux/notificationsSlice";
 import ConfirmDialog from "../../ui/ConfirmDialog";
 import { useAuth } from "../../../context/AuthContext";
-import axios from "axios";
+import axios from "../../../services/axiosInstance";
 import CustomSelect from "../../ui/CustomSelect/CustomSelect";
 
 const GenericDetails = ({
@@ -42,7 +42,7 @@ const GenericDetails = ({
       if (user?.role === 'admin') {
         const token = localStorage.getItem('crm_token') || sessionStorage.getItem('crm_token');
         try {
-          const res = await axios.get("http://localhost:5000/api/users", {
+          const res = await axios.get("/users", {
             headers: { Authorization: `Bearer ${token}` }
           });
           const formattedOwners = res.data.map(u => `${u.firstName} ${u.lastName}`);
@@ -251,7 +251,7 @@ const GenericDetails = ({
     if (onCreateActivity) {
       onCreateActivity(newCall);
     } else {
-      setActivities([{ ...newCall, id: Date.now(), title: "Call logged", time: `${callFormData.date} at ${callFormData.time}`, group: "Recent" }, ...activities]);
+      setActivities([{ ...newCall, id: Date.now(), title: `Call from ${user.firstName} ${user.lastName}`, time: `${callFormData.date} at ${callFormData.time}`, group: "Recent" }, ...activities]);
     }
 
     setIsCallDrawerOpen(false);
