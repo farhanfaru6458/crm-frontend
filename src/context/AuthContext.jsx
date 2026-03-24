@@ -102,12 +102,21 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const setRoleForDemo = (newRole) => {
+    if (!user) return;
+    const updatedUser = { ...user, role: newRole };
+    setUser(updatedUser);
+    localStorage.setItem('crm_user', JSON.stringify(updatedUser));
+    sessionStorage.setItem('crm_user', JSON.stringify(updatedUser));
+  };
+
   const value = {
     user,
     login,
     register,
     logout,
     updateUser,
+    setRoleForDemo,
     loading
   };
 

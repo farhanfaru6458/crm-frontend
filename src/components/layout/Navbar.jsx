@@ -8,7 +8,7 @@ import { useState, useEffect, useRef } from "react";
 import { clearNotifications } from "../../redux/notificationsSlice";
 
 export default function Navbar() {
-  const { user, logout, updateUser } = useAuth();
+  const { user, logout, setRoleForDemo } = useAuth();
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [searchInput, setSearchInput] = useState("");
@@ -49,14 +49,12 @@ export default function Navbar() {
   const handleRoleToggle = () => {
     if (!user) return;
     const newRole = user.role === 'admin' ? 'user' : 'admin';
-    const updatedUser = { ...user, role: newRole };
     
-    // Update storage so the change persists on reload
-    localStorage.setItem('crm_user', JSON.stringify(updatedUser));
-    sessionStorage.setItem('crm_user', JSON.stringify(updatedUser));
+    // Update role internally (Demo purpose)
+    setRoleForDemo(newRole);
     
-    // Redirect to dashboard while forcing a full page load to re-initialize AuthContext
-    window.location.href = "/dashboard";
+    // Redirect without a full reload
+    navigate("/dashboard");
   };
 
   return (
