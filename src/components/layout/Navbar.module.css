@@ -298,3 +298,81 @@
   font-size: 0.75rem;
   color: #94a3b8;
 }
+
+/* =========== ROLE TOGGLE BUTTON =========== */
+
+.roleToggleWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.roleToggleBtn {
+  font-size: 0.65rem;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 20px;
+  border: 1.5px solid transparent;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+  letter-spacing: 0.01em;
+  line-height: 1.5;
+}
+
+.roleToggleBtnUser {
+  background: #ede9fe;
+  color: #5b21b6;
+  border-color: #c4b5fd;
+}
+
+.roleToggleBtnUser:hover {
+  background: #ddd6fe;
+  border-color: #7c3aed;
+}
+
+.roleToggleBtnAdmin {
+  background: #fef3c7;
+  color: #92400e;
+  border-color: #fcd34d;
+}
+
+.roleToggleBtnAdmin:hover {
+  background: #fde68a;
+  border-color: #f59e0b;
+}
+
+.roleTooltip {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  background: #1e293b;
+  color: #e2e8f0;
+  font-size: 0.72rem;
+  font-weight: 400;
+  line-height: 1.5;
+  padding: 8px 12px;
+  border-radius: 8px;
+  width: 220px;
+  z-index: 9999;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+  pointer-events: none;
+  animation: tooltipFade 0.15s ease;
+}
+
+.roleTooltip::before {
+  content: '';
+  position: absolute;
+  top: -5px;
+  right: 18px;
+  width: 10px;
+  height: 10px;
+  background: #1e293b;
+  transform: rotate(45deg);
+  border-radius: 2px;
+}
+
+@keyframes tooltipFade {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}

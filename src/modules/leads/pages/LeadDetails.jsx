@@ -7,6 +7,7 @@ import { addDeal } from "../../../redux/dealsSlice";
 import { addNotification } from "../../../redux/notificationsSlice";
 import GenericDetails from "../../../components/common/GenericDetails/GenericDetails";
 import { toast } from "react-hot-toast";
+import { DetailsSkeleton } from "../../../components/ui/Skeleton/Skeleton";
 
 const ENTITY_TYPE = "Lead";
 
@@ -152,7 +153,7 @@ const LeadDetails = () => {
         navigate("/deals");
     };
 
-    if (!lead) return <div>Loading...</div>;
+    if (!lead) return <DetailsSkeleton />;
 
     return (
         <GenericDetails

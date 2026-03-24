@@ -16,7 +16,7 @@ const DealForm = ({ formData, onChange, errors = {} }) => {
             if (user?.role === 'admin') {
                 const token = localStorage.getItem('crm_token') || sessionStorage.getItem('crm_token');
                 try {
-                    const res = await axios.get("http://localhost:5000/api/users", {
+                    const res = await axios.get("https://crm-backend-5yxt.onrender.com/api/users", {
                         headers: { Authorization: `Bearer ${token}` }
                     });
                     const formattedOwners = res.data.map(u => `${u.firstName} ${u.lastName}`);
@@ -59,9 +59,9 @@ const DealForm = ({ formData, onChange, errors = {} }) => {
     const leadOptions = leads
         .filter(lead => lead.status === "Qualified" || lead._id === currentLeadId)
         .map((lead) => ({
-        value: lead._id,
-        label: `${getLeadLabel(lead)} (${lead.company || 'No Company'})`
-    }));
+            value: lead._id,
+            label: `${getLeadLabel(lead)} (${lead.company || 'No Company'})`
+        }));
 
     return (
         <form className={styles.form}>

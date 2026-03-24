@@ -6,6 +6,7 @@ import { useAuth } from "../../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { countries } from "../../../utils/countries";
 import CustomSelect from "../../../components/ui/CustomSelect/CustomSelect";
+import OtpRedirectLoader from "../../../components/ui/OtpRedirectLoader/OtpRedirectLoader";
 
 export default function Registration() {
   const { register } = useAuth();
@@ -24,6 +25,7 @@ export default function Registration() {
 
   const [errors, setErrors] = useState({});
   const [submitError, setSubmitError] = useState("");
+  const [redirecting, setRedirecting] = useState(false);
 
   const validate = () => {
     let newErrors = {};
@@ -94,7 +96,10 @@ export default function Registration() {
 
       const res = await register(payload);
       if (res.success) {
-        navigate(`/verify-otp`, { state: { email: emailToSend } });
+        setRedirecting(true);
+        setTimeout(() => {
+          navigate(`/verify-otp`, { state: { email: emailToSend, devOtp: res.devOtp } });
+        }, 1800);
       } else {
         setSubmitError(res.error);
       }
@@ -102,6 +107,8 @@ export default function Registration() {
   };
 
   return (
+    <>
+    {redirecting && <OtpRedirectLoader email={formData.email} />}
     <div className={styles.wrapper}>
       <div className={styles.card}>
         <h2 className={styles.title}>Register</h2>
@@ -257,5 +264,6 @@ export default function Registration() {
         </Link>
       </p>
     </div>
+    </>
   );
 }

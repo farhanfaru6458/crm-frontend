@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
-import axios from "axios";
+import axiosInstance from "../../../services/axiosInstance";
 import { useNavigate, useLocation } from "react-router-dom";
-import { ShieldCheck, Mail, ArrowLeft, RefreshCw } from "lucide-react";
+import { ShieldCheck, ArrowLeft, RefreshCw } from "lucide-react";
 import styles from "./VerifyOtp.module.css";
 
 export default function VerifyOtp() {
@@ -11,8 +11,11 @@ export default function VerifyOtp() {
     const [otp, setOtp] = useState(Array(6).fill(""));
     const [status, setStatus] = useState({ type: "", message: "" });
     const [loading, setLoading] = useState(false);
-    const [timeLeft, setTimeLeft] = useState(300);
+    const [timeLeft, setTimeLeft] = useState(300); // 5 min expiry
     const inputRefs = useRef([]);
+
+    // Resend allowed after 2 minutes have passed (when 180s remain)
+    const RESEND_AFTER_SECONDS = 180;
 
     useEffect(() => {
         if (!email && !location.state?.email) {
@@ -41,7 +44,6 @@ export default function VerifyOtp() {
         newOtp[index] = value.substring(value.length - 1);
         setOtp(newOtp);
 
-        // Auto-focus next input
         if (value && index < 5) {
             inputRefs.current[index + 1].focus();
         }
@@ -65,7 +67,7 @@ export default function VerifyOtp() {
         setStatus({ type: "", message: "" });
 
         try {
-            const res = await axios.post("http://localhost:5000/api/auth/verify-otp", {
+            const res = await axiosInstance.post("/auth/verify-otp", {
                 email,
                 otp: otpValue,
             });
@@ -89,7 +91,7 @@ export default function VerifyOtp() {
         setLoading(true);
         setStatus({ type: "", message: "" });
         try {
-            await axios.post("http://localhost:5000/api/auth/resend-otp", { email });
+            await axiosInstance.post("/auth/resend-otp", { email });
             setStatus({ type: "success", message: "A new code has been sent to your email." });
             setTimeLeft(300);
             setOtp(Array(6).fill(""));
@@ -103,6 +105,9 @@ export default function VerifyOtp() {
             setLoading(false);
         }
     };
+
+    const canResend = timeLeft <= RESEND_AFTER_SECONDS;
+    const waitMins = Math.ceil((timeLeft - RESEND_AFTER_SECONDS) / 60);
 
     return (
         <div className={styles.wrapper}>
@@ -163,10 +168,10 @@ export default function VerifyOtp() {
                     <span>Didn't receive code?</span>
                     <button
                         onClick={handleResend}
-                        disabled={loading || timeLeft > 60} // Allow resend after 4 mins
+                        disabled={loading || !canResend}
                         className={styles.resendBtn}
                     >
-                        {timeLeft > 60 ? `Wait ${Math.ceil((timeLeft - 60) / 60)}m to resend` : "Resend Now"}
+                        {!canResend ? `Wait ${waitMins}m to resend` : "Resend Now"}
                     </button>
                 </div>
 

@@ -5,6 +5,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { fetchLeads } from "../../../redux/leadsSlice";
 import GenericDetails from "../../../components/common/GenericDetails/GenericDetails";
 import { toast } from "react-hot-toast";
+import { DetailsSkeleton } from "../../../components/ui/Skeleton/Skeleton";
 
 const ENTITY_TYPE = "Company";
 const CompanyDetails = () => {
@@ -117,7 +118,7 @@ const CompanyDetails = () => {
     }
   };
 
-  if (!company) return <div>Loading...</div>;
+  if (!company) return <DetailsSkeleton />;
 
   // ================= CONFIG FOR GENERIC DETAILS =================
   const config = {

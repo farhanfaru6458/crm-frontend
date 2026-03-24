@@ -8,6 +8,7 @@ import TicketForm from "../components/TicketForm";
 import styles from "./Tickets.module.css";
 import CustomSelect from "../../../components/ui/CustomSelect/CustomSelect";
 import { useAuth } from "../../../context/AuthContext";
+import { TableSkeleton } from "../../../components/ui/Skeleton/Skeleton";
 
 import { useSelector, useDispatch } from "react-redux";
 import { fetchTickets, removeTicket, addTicket, updateTicket, bulkDeleteTickets, bulkAddTickets } from "../../../redux/ticketsSlice";
@@ -368,8 +369,8 @@ const Tickets = () => {
             </div>
           </div>
 
-          {loading ? (
-            <div className={styles.loading}>Loading tickets...</div>
+          {loading && tickets.length === 0 ? (
+            <TableSkeleton rows={8} cols={8} />
           ) : (
             <Table
               columns={columns}

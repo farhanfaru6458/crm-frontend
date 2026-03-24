@@ -77,8 +77,16 @@ const companiesSlice = createSlice({
   extraReducers: (builder) => {
     builder
       // FETCH
+      .addCase(fetchCompanies.pending, (state) => {
+        state.loading = true;
+      })
       .addCase(fetchCompanies.fulfilled, (state, action) => {
+        state.loading = false;
         state.companies = action.payload;
+      })
+      .addCase(fetchCompanies.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message;
       })
 
       // CREATE

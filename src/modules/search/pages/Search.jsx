@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import styles from "./Search.module.css";
 import { FaUser, FaBuilding, FaHandshake, FaTicketAlt } from "react-icons/fa";
+import { SearchItemSkeleton } from "../../../components/ui/Skeleton/Skeleton";
 
 export default function Search() {
   const query = useSelector((state) => state.search.query);
@@ -13,6 +14,7 @@ export default function Search() {
   const tickets = useSelector((state) => state.tickets.tickets);
 
   const [results, setResults] = useState([]);
+  const [searching, setSearching] = useState(false);
 
   useEffect(() => {
     if (!query) {
@@ -50,15 +52,20 @@ export default function Search() {
       )
       .map(t => ({ ...t, type: "Ticket", icon: <FaTicketAlt />, link: `/tickets/${t._id}`, displayName: t.ticketName || t.name }));
 
-    // Grouping results
-    const combined = [...leadResults, ...companyResults, ...dealResults, ...ticketResults];
-    const grouped = combined.reduce((acc, item) => {
-      if (!acc[item.type]) acc[item.type] = [];
-      acc[item.type].push(item);
-      return acc;
-    }, {});
+    setSearching(true);
+    const timer = setTimeout(() => {
+        const combined = [...leadResults, ...companyResults, ...dealResults, ...ticketResults];
+        const grouped = combined.reduce((acc, item) => {
+          if (!acc[item.type]) acc[item.type] = [];
+          acc[item.type].push(item);
+          return acc;
+        }, {});
 
-    setResults(grouped);
+        setResults(grouped);
+        setSearching(false);
+    }, 400);
+
+    return () => clearTimeout(timer);
   }, [query, leads, companies, deals, tickets]);
 
   const totalCount = Object.values(results).reduce((sum, grp) => sum + grp.length, 0);
@@ -73,7 +80,12 @@ export default function Search() {
       </div>
 
       <div className={styles.groupedResults}>
-        {totalCount === 0 ? (
+        {searching ? (
+          <div className={styles.groupSection}>
+            <h2 className={styles.groupTitle}>Searching...</h2>
+            {[...Array(4)].map((_, i) => <SearchItemSkeleton key={i} />)}
+          </div>
+        ) : totalCount === 0 ? (
           <div className={styles.noResults}>
             <div className={styles.noResultsIcon}>🔍</div>
             <p>No results found for your search query.</p>

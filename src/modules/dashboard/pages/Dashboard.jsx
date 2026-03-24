@@ -7,6 +7,7 @@ import { fetchDeals } from "../../../redux/dealsSlice";
 import { fetchCompanies } from "../../../redux/companiesSlice";
 import { fetchTickets } from "../../../redux/ticketsSlice";
 import CustomSelect from "../../../components/ui/CustomSelect/CustomSelect";
+import { DashboardSkeleton } from "../../../components/ui/Skeleton/Skeleton";
 
 export default function Dashboard() {
   const dispatch = useDispatch();
@@ -297,7 +298,7 @@ return bars.map(bar => ({
   };
 
   if (loadingLeads && loadingDeals && leads.length === 0) {
-    return <div className={styles.loading}>Loading dynamic insights...</div>;
+    return <DashboardSkeleton />;
   }
 
   return (

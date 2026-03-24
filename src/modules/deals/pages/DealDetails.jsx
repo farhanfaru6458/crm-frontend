@@ -7,6 +7,7 @@ import { fetchLeads } from "../../../redux/leadsSlice";
 import { addNotification } from "../../../redux/notificationsSlice";
 import GenericDetails from "../../../components/common/GenericDetails/GenericDetails";
 import { toast } from "react-hot-toast";
+import { DetailsSkeleton } from "../../../components/ui/Skeleton/Skeleton";
 const ENTITY_TYPE = "Deal";
 
 const DealDetails = () => {
@@ -171,7 +172,7 @@ const DealDetails = () => {
         ],
     };
 
-    if (!deal) return <div>Loading...</div>;
+    if (!deal) return <DetailsSkeleton />;
 
     return (
         <GenericDetails

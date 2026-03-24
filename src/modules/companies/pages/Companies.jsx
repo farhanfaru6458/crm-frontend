@@ -8,6 +8,7 @@ import CompanyForm from "../components/CompanyForm";
 import styles from "./Companies.module.css";
 import CustomSelect from "../../../components/ui/CustomSelect/CustomSelect";
 import { useAuth } from "../../../context/AuthContext";
+import { TableSkeleton } from "../../../components/ui/Skeleton/Skeleton";
 
 import { useSelector, useDispatch } from "react-redux";
 import {
@@ -322,8 +323,8 @@ const Companies = () => {
               />
             </div>
           </div>
-          {loading ? (
-            <p style={{ padding: "20px" }}>Loading...</p>
+          {loading && companies.length === 0 ? (
+            <TableSkeleton rows={8} cols={7} />
           ) : (
             <Table
               columns={columns}
