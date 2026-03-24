@@ -4,11 +4,13 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000
 const TOKEN_KEY = import.meta.env.VITE_TOKEN_KEY || "crm_token";
 
 const axiosInstance = axios.create({
+
   baseURL: API_BASE_URL,
   headers: {
     "Content-Type": "application/json",
   },
 });
+
 
 // Add auth token to every protected request
 axiosInstance.interceptors.request.use(
