@@ -16,6 +16,7 @@ import LeadForm from "../components/LeadForm";
 import ConfirmDialog from "../../../components/ui/ConfirmDialog";
 import CustomSelect from "../../../components/ui/CustomSelect/CustomSelect";
 import { useAuth } from "../../../context/AuthContext";
+import { TableSkeleton } from "../../../components/ui/Skeleton/Skeleton";
 
 export default function Leads() {
   const { user } = useAuth();
@@ -307,14 +308,18 @@ export default function Leads() {
 
           {/* Table */}
           <div className={styles.tableCard}>
-            <Table
-              columns={columns}
-              data={currentLeads}
-              onEdit={handleOpenEdit}
-              onDelete={handleDelete}
-              onSelectionChange={setSelectedLeads}
-              selectedRows={selectedLeads}
-            />
+            {loading && leads.length === 0 ? (
+              <TableSkeleton rows={8} cols={5} />
+            ) : (
+              <Table
+                columns={columns}
+                data={currentLeads}
+                onEdit={handleOpenEdit}
+                onDelete={handleDelete}
+                onSelectionChange={setSelectedLeads}
+                selectedRows={selectedLeads}
+              />
+            )}
           </div>
         </div>
       </div>

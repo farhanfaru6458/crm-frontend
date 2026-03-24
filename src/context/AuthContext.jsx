@@ -1,8 +1,6 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import axios from 'axios';
+import axiosInstance from '../services/axiosInstance';
 import { useNavigate } from 'react-router-dom';
-
-const API_URL = 'http://localhost:5000/api/auth';
 
 const AuthContext = createContext();
 
@@ -28,7 +26,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password, rememberMe = true) => {
     try {
-      const response = await axios.post(`${API_URL}/login`, { email, password });
+      const response = await axiosInstance.post(`/auth/login`, { email, password });
 
       if (response.data && response.data.token) {
 
@@ -46,9 +44,18 @@ export const AuthProvider = ({ children }) => {
       }
 
     } catch (error) {
+      const data = error.response?.data;
+      // If unverified, pass devOtp so OTP page can show it
+      if (data?.devOtp) {
+        return {
+          success: false,
+          error: data.message,
+          devOtp: data.devOtp
+        };
+      }
       return {
         success: false,
-        error: error.response?.data?.message || "Invalid email or password"
+        error: data?.message || "Invalid email or password"
       };
     }
   };
@@ -60,12 +67,13 @@ export const AuthProvider = ({ children }) => {
         companyName: userData.company
       };
 
-      const response = await axios.post(`${API_URL}/register`, payload);
+      const response = await axiosInstance.post(`/auth/register`, payload);
 
       return {
         success: true,
         userId: response.data.userId,
-        message: response.data.message
+        message: response.data.message,
+        devOtp: response.data.devOtp // fallback when email fails
       };
 
     } catch (error) {
@@ -84,10 +92,7 @@ export const AuthProvider = ({ children }) => {
 
   const updateUser = async (updatedData) => {
     try {
-      const token = localStorage.getItem('crm_token');
-      const response = await axios.put(`${API_URL}/profile`, updatedData, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await axiosInstance.put(`/auth/profile`, updatedData);
       if (response.data && response.data.user) {
         setUser(response.data.user);
         localStorage.setItem('crm_user', JSON.stringify(response.data.user));

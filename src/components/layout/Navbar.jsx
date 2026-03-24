@@ -8,11 +8,12 @@ import { useState, useEffect, useRef } from "react";
 import { clearNotifications } from "../../redux/notificationsSlice";
 
 export default function Navbar() {
-  const { user, logout } = useAuth();
+  const { user, logout, updateUser } = useAuth();
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [searchInput, setSearchInput] = useState("");
   const [isNotifyOpen, setIsNotifyOpen] = useState(false);
+  const [showTooltip, setShowTooltip] = useState(false);
   const notifications = useSelector((state) => state.notifications.notifications);
   const notificationRef = useRef(null);
 
@@ -43,6 +44,19 @@ export default function Navbar() {
     e.stopPropagation();
     dispatch(clearNotifications());
     setIsNotifyOpen(false);
+  };
+
+  const handleRoleToggle = () => {
+    if (!user) return;
+    const newRole = user.role === 'admin' ? 'user' : 'admin';
+    const updatedUser = { ...user, role: newRole };
+    
+    // Update storage so the change persists on reload
+    localStorage.setItem('crm_user', JSON.stringify(updatedUser));
+    sessionStorage.setItem('crm_user', JSON.stringify(updatedUser));
+    
+    // Redirect to dashboard while forcing a full page load to re-initialize AuthContext
+    window.location.href = "/dashboard";
   };
 
   return (
@@ -113,6 +127,23 @@ export default function Navbar() {
             <button onClick={handleLogout} className={styles.logoutButton} title="Logout">
               <FaSignOutAlt />
             </button>
+
+            {/* Role toggle demo button */}
+            <div className={styles.roleToggleWrapper}>
+              <button
+                className={`${styles.roleToggleBtn} ${user?.role === 'admin' ? styles.roleToggleBtnAdmin : styles.roleToggleBtnUser}`}
+                onClick={handleRoleToggle}
+                onMouseEnter={() => setShowTooltip(true)}
+                onMouseLeave={() => setShowTooltip(false)}
+              >
+                {user?.role === 'admin' ? '👤 Make me User' : '🛡️ Make me Admin'}
+              </button>
+              {showTooltip && (
+                <div className={styles.roleTooltip}>
+                  This button is for demo only — it shows what a User and Admin have access to.
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>

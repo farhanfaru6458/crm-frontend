@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from "../../../context/AuthContext";
+import { ProfileSkeleton } from "../../../components/ui/Skeleton/Skeleton";
 import styles from './Profile.module.css';
 import { countries } from "../../../utils/countries";
 import CustomSelect from "../../../components/ui/CustomSelect/CustomSelect";
@@ -10,7 +11,7 @@ const Profile = () => {
     const [formData, setFormData] = useState({});
 
     if (!user) {
-        return <div className={styles.container}>Loading profile...</div>;
+        return <ProfileSkeleton />;
     }
 
     const handleEditClick = () => {

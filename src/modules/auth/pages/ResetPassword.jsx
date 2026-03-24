@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import axios from "axios";
+import axiosInstance from "../../../services/axiosInstance";
 import { useParams, useNavigate } from "react-router-dom";
 import { ShieldCheck, Eye, EyeOff } from "lucide-react";
 import styles from "./ResetPassword.module.css";
@@ -50,8 +50,8 @@ export default function ResetPassword() {
     }
 
     try {
-      const res = await axios.post(
-        "http://localhost:5000/api/auth/reset-password",
+      const res = await axiosInstance.post(
+        "/auth/reset-password",
         { email, otp: otpValue, newPassword }
       );
 

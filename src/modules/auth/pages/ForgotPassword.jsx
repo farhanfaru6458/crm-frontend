@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import styles from "./ForgotPassword.module.css";
-import axios from "axios";
+import axiosInstance from "../../../services/axiosInstance";
 export default function ForgotPassword() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
@@ -23,27 +23,27 @@ export default function ForgotPassword() {
 
 
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  if (validate()) {
-    try {
-      const res = await axios.post(
-        "http://localhost:5000/api/auth/forgot-password",
-        { email }
-      );
+    if (validate()) {
+      try {
+        const res = await axiosInstance.post(
+          "/auth/forgot-password",
+          { email }
+        );
 
-      setSuccess(res.data.message);
+        setSuccess(res.data.message);
 
-      setTimeout(() => {
-        navigate(`/reset-password/${email}`);
-      }, 1500);
+        setTimeout(() => {
+          navigate(`/reset-password/${email}`);
+        }, 1500);
 
-    } catch (err) {
-      setError(err.response?.data?.message || "Something went wrong");
+      } catch (err) {
+        setError(err.response?.data?.message || "Something went wrong");
+      }
     }
-  }
-};
+  };
 
   return (
     <div className={styles.wrapper}>

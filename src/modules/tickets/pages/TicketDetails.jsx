@@ -8,6 +8,7 @@ import { fetchLeads } from "../../../redux/leadsSlice";
 import { addNotification } from "../../../redux/notificationsSlice";
 import GenericDetails from "../../../components/common/GenericDetails/GenericDetails";
 import { toast } from "react-hot-toast";
+import { DetailsSkeleton } from "../../../components/ui/Skeleton/Skeleton";
 import axios from "../../../services/axiosInstance";
 
 const TicketDetails = () => {
@@ -173,7 +174,7 @@ const TicketDetails = () => {
     ],
   };
 
-  if (loading) return <div style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>;
+  if (loading) return <DetailsSkeleton />;
 
   return (
     <GenericDetails

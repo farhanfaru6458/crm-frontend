@@ -14,6 +14,7 @@ import { toast } from "react-hot-toast";
 import { addNotification } from "../../../redux/notificationsSlice";
 import CustomSelect from "../../../components/ui/CustomSelect/CustomSelect";
 import { useAuth } from "../../../context/AuthContext";
+import { TableSkeleton } from "../../../components/ui/Skeleton/Skeleton";
 
 import { useSelector, useDispatch } from "react-redux";
 import { fetchDeals, removeDeal, addDeal, updateDeal, bulkDeleteDeals, bulkAddDeals } from "../../../redux/dealsSlice";
@@ -312,14 +313,18 @@ export default function Deals() {
 
         {/* Table */}
         <div className={styles.tableCard}>
-          <Table
-            columns={columns}
-            data={currentDeals}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-            onSelectionChange={setSelectedDeals}
-            selectedRows={selectedDeals}
-          />
+          {loading && deals.length === 0 ? (
+            <TableSkeleton rows={8} cols={5} />
+          ) : (
+            <Table
+              columns={columns}
+              data={currentDeals}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              onSelectionChange={setSelectedDeals}
+              selectedRows={selectedDeals}
+            />
+          )}
         </div>
       </div>
 

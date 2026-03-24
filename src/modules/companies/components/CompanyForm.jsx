@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import axiosInstance from "../../../services/axiosInstance";
 import { useAuth } from "../../../context/AuthContext";
 import styles from "./CompanyForm.module.css";
 import { countries } from "../../../utils/countries";
@@ -15,9 +15,7 @@ const CompanyForm = ({ formData, onChange, errors = {} }) => {
             if (user?.role === 'admin') {
                 const token = localStorage.getItem('crm_token') || sessionStorage.getItem('crm_token');
                 try {
-                    const res = await axios.get("http://localhost:5000/api/users", {
-                        headers: { Authorization: `Bearer ${token}` }
-                    });
+                    const res = await axiosInstance.get("/users");
                     const formattedOwners = res.data.map(u => `${u.firstName} ${u.lastName}`);
                     setOwners(formattedOwners);
                 } catch (e) {

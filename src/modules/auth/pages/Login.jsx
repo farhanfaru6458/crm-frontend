@@ -5,6 +5,7 @@ import { Eye, EyeOff } from "lucide-react";
 
 import { useAuth } from "../../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import OtpRedirectLoader from "../../../components/ui/OtpRedirectLoader/OtpRedirectLoader";
 
 export default function Login() {
     const { login } = useAuth();
@@ -17,6 +18,7 @@ export default function Login() {
     const [errors, setErrors] = useState({});
     const [showPassword, setShowPassword] = useState(false);
     const [submitError, setSubmitError] = useState("");
+    const [redirecting, setRedirecting] = useState(false);
 
     const validate = () => {
         let newErrors = {};
@@ -57,14 +59,18 @@ export default function Login() {
             } else {
                 setSubmitError(res.error);
                 if (res.error === "Please verify your email first") {
-                    // Redirect to verify-otp page if email is not verified
-                    navigate("/verify-otp", { state: { email: formData.email } });
+                    setRedirecting(true);
+                    setTimeout(() => {
+                        navigate("/verify-otp", { state: { email: formData.email, devOtp: res.devOtp } });
+                    }, 1800);
                 }
             }
         }
     };
 
     return (
+        <>
+        {redirecting && <OtpRedirectLoader email={formData.email} />}
         <div className={styles.wrapper}>
             <div className={styles.card}>
                 <h2 className={styles.title}>Log in</h2>
@@ -141,5 +147,6 @@ export default function Login() {
                 </Link>
             </p>
         </div>
+        </>
     );
 }
