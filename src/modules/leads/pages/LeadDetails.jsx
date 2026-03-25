@@ -10,7 +10,7 @@ import { toast } from "react-hot-toast";
 import { DetailsSkeleton } from "../../../components/ui/Skeleton/Skeleton";
 
 const ENTITY_TYPE = "Lead";
-
+// lead details function
 const LeadDetails = () => {
     const { id } = useParams();
     const navigate = useNavigate();
