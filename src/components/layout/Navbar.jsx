@@ -134,11 +134,19 @@ export default function Navbar() {
                 onMouseEnter={() => setShowTooltip(true)}
                 onMouseLeave={() => setShowTooltip(false)}
               >
-                {user?.role === 'admin' ? '👤 Make me User' : '🛡️ Make me Admin'}
+                <div className={styles.roleToggleContent}>
+                  <span className={styles.roleEmoji}>
+                    {user?.role === 'admin' ? '👤' : '🛡️'}
+                  </span>
+                  <span className={styles.roleText}>
+                    {user?.role === 'admin' ? 'Make me User' : 'Make me Admin'}
+                  </span>
+                </div>
               </button>
               {showTooltip && (
                 <div className={styles.roleTooltip}>
-                  This button is for demo only — it shows what a User and Admin have access to.
+                  {user?.role === 'admin' ? 'Switch to User mode' : 'Switch to Admin mode'} — 
+                  for demo purposes to see different access levels.
                 </div>
               )}
             </div>
