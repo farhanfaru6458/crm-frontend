@@ -101,6 +101,12 @@ export default function Dashboard() {
   // Team Performance Data from Real Deals
   const teamPerformance = useMemo(() => {
     const performance = {};
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+    const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+    const lastMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+
     const yearDeals = (deals || []).filter(d => {
       const date = new Date(d.createdAt || d.updatedAt);
       return date.getFullYear() === selectedYear;
@@ -115,13 +121,21 @@ export default function Dashboard() {
           closedDeals: 0,
           revenue: 0,
           tickets: 0,
-          trend: "+0.0%",
-          isPositive: true
+          currMonthRev: 0,
+          prevMonthRev: 0
         };
       }
+
+      const dealDate = new Date(deal.createdAt || deal.updatedAt);
+      const isCurrMonth = dealDate.getMonth() === currentMonth && dealDate.getFullYear() === currentYear;
+      const isPrevMonth = dealDate.getMonth() === lastMonth && dealDate.getFullYear() === lastMonthYear;
+
       if (deal.dealStage === "Closed Won") {
         performance[owner].closedDeals += 1;
-        performance[owner].revenue += (Number(deal.amount) || 0);
+        const amt = Number(deal.amount) || 0;
+        performance[owner].revenue += amt;
+        if (isCurrMonth) performance[owner].currMonthRev += amt;
+        if (isPrevMonth) performance[owner].prevMonthRev += amt;
       } else if (deal.dealStage !== "Closed Lost") {
         performance[owner].activeDeals += 1;
       }
@@ -132,18 +146,30 @@ export default function Dashboard() {
       const date = new Date(ticket.createdAt);
       if (date.getFullYear() === selectedYear) {
         const owner = ticket.owner || "Unassigned";
-        if (!performance[owner]) { // Initialize if owner only has tickets
+        if (!performance[owner]) {
           performance[owner] = {
             employee: owner,
             activeDeals: 0,
             closedDeals: 0,
             revenue: 0,
             tickets: 0,
-            trend: "+0.0%",
-            isPositive: true
+            currMonthRev: 0,
+            prevMonthRev: 0
           };
         }
         performance[owner].tickets += 1;
+      }
+    });
+
+    // Calculate Trend
+    Object.values(performance).forEach(p => {
+      if (p.prevMonthRev > 0) {
+        const diff = ((p.currMonthRev - p.prevMonthRev) / p.prevMonthRev) * 100;
+        p.trend = `${diff >= 0 ? "+" : ""}${diff.toFixed(1)}%`;
+        p.isPositive = diff >= 0;
+      } else {
+        p.trend = p.currMonthRev > 0 ? "+100%" : "+0.0%";
+        p.isPositive = true;
       }
     });
 
@@ -168,37 +194,37 @@ export default function Dashboard() {
     });
 
     const newLeads = filteredLeads.filter(l => l.status === "New").length;
-const contactedLeads = filteredLeads.filter(l => l.status === "Contacted").length;
-  const counts = {
- "Contact": newLeads + contactedLeads,
-  "Qualified Lead": filteredLeads.filter(l => l.status === "Qualified" || l.status === "Converted").length,
-  "Proposal Sent": filteredDeals.filter(d => d.dealStage === "Proposal Sent").length,
-  "Negotiation": filteredDeals.filter(d => d.dealStage === "Negotiation").length,
-  "Closed Won": filteredDeals.filter(d => d.dealStage === "Closed Won").length,
-};
+    const contactedLeads = filteredLeads.filter(l => l.status === "Contacted").length;
+    const counts = {
+      "Contact": newLeads + contactedLeads,
+      "Qualified Lead": filteredLeads.filter(l => l.status === "Qualified" || l.status === "Converted").length,
+      "Proposal Sent": filteredDeals.filter(d => d.dealStage === "Proposal Sent").length,
+      "Negotiation": filteredDeals.filter(d => d.dealStage === "Negotiation").length,
+      "Closed Won": filteredDeals.filter(d => d.dealStage === "Closed Won").length,
+    };
 
-const max = Math.max(...Object.values(counts), 1);
+    const max = Math.max(...Object.values(counts), 1);
 
-const bars = [
-  {
-    label: "Contact",
-    color: styles.purpleBar,
-    count: contactedLeads,
-    width:
-      newLeads + contactedLeads > 0
-        ? `${(contactedLeads / (newLeads + contactedLeads)) * 100}%`
-        : "0%",
-  },
-  { label: "Qualified Lead", color: styles.yellowBar, count: counts["Qualified Lead"] },
-  { label: "Proposal Sent", color: styles.purpleBar, count: counts["Proposal Sent"] },
-  { label: "Negotiation", color: styles.greenBar, count: counts["Negotiation"] },
-  { label: "Closed Won", color: styles.blueBar, count: counts["Closed Won"] },
-];
+    const bars = [
+      {
+        label: "Contact",
+        color: styles.purpleBar,
+        count: contactedLeads,
+        width:
+          newLeads + contactedLeads > 0
+            ? `${(contactedLeads / (newLeads + contactedLeads)) * 100}%`
+            : "0%",
+      },
+      { label: "Qualified Lead", color: styles.yellowBar, count: counts["Qualified Lead"] },
+      { label: "Proposal Sent", color: styles.purpleBar, count: counts["Proposal Sent"] },
+      { label: "Negotiation", color: styles.greenBar, count: counts["Negotiation"] },
+      { label: "Closed Won", color: styles.blueBar, count: counts["Closed Won"] },
+    ];
 
-return bars.map(bar => ({
-  ...bar,
-  width: `${(bar.count / max) * 100}%`
-}));
+    return bars.map(bar => ({
+      ...bar,
+      width: `${(bar.count / max) * 100}%`
+    }));
   }, [leads, deals, selectedYear, selectedOwner]);
 
   // Sales Chart Data
@@ -372,7 +398,7 @@ return bars.map(bar => ({
         <div className={styles.salesCard}>
           <div className={styles.salesHeader}>
             <h3>Sales Reports</h3>
-            
+
             <div className={styles.salesOptions}>
               {reportFilter === "Monthly" && (
                 <div className={styles.filterWrapper}>
@@ -383,27 +409,27 @@ return bars.map(bar => ({
                   />
                 </div>
               )}
-                <div className={styles.filterWrapper}>
-                  <CustomSelect
-                    value={reportFilter}
-                    options={["Monthly", "Yearly"]}
-                    onChange={(val) => setReportFilter(val)}
-                  />
-                </div>
+              <div className={styles.filterWrapper}>
+                <CustomSelect
+                  value={reportFilter}
+                  options={["Monthly", "Yearly"]}
+                  onChange={(val) => setReportFilter(val)}
+                />
               </div>
             </div>
-                <div className={styles.legendContainer}>
-              <div className={styles.legendItem}>
-                <span className={`${styles.legendColor} ${styles.blueLegend}`}></span>
-                <span>Closed Won</span>
-              </div>
-              <div className={styles.legendItem}>
-                <span className={`${styles.legendColor} ${styles.grayLegend}`}></span>
-                <span>Closed Lost</span>
-              </div>
+          </div>
+          <div className={styles.legendContainer}>
+            <div className={styles.legendItem}>
+              <span className={`${styles.legendColor} ${styles.blueLegend}`}></span>
+              <span>Closed Won</span>
             </div>
+            <div className={styles.legendItem}>
+              <span className={`${styles.legendColor} ${styles.grayLegend}`}></span>
+              <span>Closed Lost</span>
+            </div>
+          </div>
 
-        
+
 
           <div className={styles.chartContainer}>
             <div className={styles.yAxis}>
